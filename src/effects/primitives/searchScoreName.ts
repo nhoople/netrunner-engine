@@ -8,13 +8,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { chooseCards } from "../triggers/chooseCards.js";
-import {
-  applyPrimitive,
-  evalEffect,
-  shuffleCorpRdAfterSearch,
-} from "../eval.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import { evalEffect, shuffleCorpRdAfterSearch } from "../eval.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -193,61 +187,6 @@ export function applyLunarTsbPrimitive(
         state,
         `Sealed Vault — take ${n}¢ to pool (${card.hostedCredits} hosted).`,
       );
-      return { ok: true };
-    }
-    case "resolve_will_o_wisp": {
-      // "You may trash this upgrade. If you do, choose 1 installed
-      // icebreaker that was used to break at least 1 subroutine during this
-      // run. The Runner adds that icebreaker to the bottom of the stack."
-      // The trash comes first; with no such icebreaker it is still trashed
-      // (CR 1.2.1).
-      const up = state.cards[sourceId];
-      if (!up?.zone.startsWith("server:")) {
-        log(
-          state,
-          `Will-o'-the-Wisp is no longer installed, so it cannot be trashed.`,
-        );
-        return { ok: true };
-      }
-      trashCard(state, sourceId, { by: "corp" });
-      const used = (state.run?.breakersThatBroke ?? []).filter(
-        (id) =>
-          state.runner.installed.includes(id) &&
-          (state.cards[id]?.subtypes ?? []).includes("icebreaker"),
-      );
-      if (used.length === 0) {
-        log(state, `Will-o'-the-Wisp — no icebreaker was used this run.`);
-        return { ok: true };
-      }
-      if (used.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "resolve_will_o_wisp_breaker",
-          cardId: used[0]!,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: used.map((id) => ({
-          id: `wow-breaker:${id}`,
-          label: `${state.cards[id]!.title} to the bottom of the stack`,
-          effect: fx.do({
-            kind: "resolve_will_o_wisp_breaker",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-    case "resolve_will_o_wisp_breaker": {
-      const cardId = (action as { cardId: string }).cardId;
-      if (state.runner.installed.includes(cardId)) {
-        uninstallCard(state, cardId, "deck-bottom");
-        log(
-          state,
-          `Will-o'-the-Wisp — the Runner adds ${state.cards[cardId]!.title} to the bottom of the stack.`,
-        );
-      }
       return { ok: true };
     }
     case "three_steps_ahead_payout": {

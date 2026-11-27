@@ -20,10 +20,6 @@ function installedVirusProgramIds(state: EffectCtx["state"]): string[] {
   });
 }
 
-function installedRunnerCardIds(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter((id) => !state.cards[id]?.hostId);
-}
-
 function iceWithNoAdvancement(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
   for (const server of Object.values(state.servers)) {
@@ -273,27 +269,6 @@ export function applyKitaraTdatdPrimitive(
           onSuccess: fx.do({ kind: "tdatd_amani_bounce" }),
         },
       });
-    }
-
-    case "tdatd_amani_bounce": {
-      const installed = installedRunnerCardIds(state);
-      if (installed.length === 0) {
-        log(state, `Amani Senai — no installed Runner card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: installed.map((id) => ({
-          id: `amani:${id}`,
-          label: `Add ${state.cards[id]!.title} to grip`,
-          effect: fx.do({
-            kind: "add_installed_runner_card_to_grip",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
     }
 
     case "advance_sso_ice": {

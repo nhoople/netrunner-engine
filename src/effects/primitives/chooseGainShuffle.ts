@@ -1,7 +1,6 @@
 /** Blood and Water (baw) Red Sand pack primitives — v1.132.0. */
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
-import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/setupAndEnd/emptyRnd.js";
@@ -87,34 +86,6 @@ export function applyRedsandBawPrimitive(
         state.runner.deck[j] = tmp;
       }
       log(state, `Runner shuffles grip into stack (${grip.length} card(s)).`);
-      return { ok: true };
-    }
-
-    case "may_move_miraju_archives_jack_out_derez": {
-      const ice = state.cards[sourceId];
-      if (ice?.rezzed) {
-        ice.rezzed = false;
-        log(state, `Mirāju — derez.`);
-      }
-      if (!state.run) return { ok: true };
-      moveRunnerToOutermost(state, "archives");
-      log(state, `Mirāju — Runner moves to outermost Archives.`);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "jack-out",
-            label: "Jack out",
-            effect: fx.do({ kind: "end_the_run" }),
-          },
-          {
-            id: "continue",
-            label: "Continue the run",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-          },
-        ],
-      });
       return { ok: true };
     }
 

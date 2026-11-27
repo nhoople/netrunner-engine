@@ -16,13 +16,11 @@ import { evalEffect, grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
-import { moveIce } from "../../state/uninstallAndPosition/rearrange.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function serverIdForCard(
+export function serverIdForCard(
   state: EffectCtx["state"],
   cardId: string,
 ): ServerId | null {
@@ -202,31 +200,6 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "move_to_outermost": {
-      const servers = Object.keys(state.servers) as ServerId[];
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: servers.map((sid) => ({
-          id: `builder:${sid}`,
-          label: `Move Builder to outermost of ${sid}`,
-          effect: fx.do({ kind: "move_to_server", serverId: sid }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "move_to_server": {
-      const serverId = (action as { serverId: ServerId }).serverId;
-      const from = serverIdForCard(state, sourceId);
-      if (!from || !state.servers[serverId]) {
-        return { ok: false, error: "Builder move invalid.", cites: [] };
-      }
-      moveIce(state, sourceId, serverId, "outermost");
-      log(state, `Builder — move to outermost of ${serverId}.`);
-      return { ok: true };
-    }
-
     case "place_advancement_on_advanceable_ice_protecting_this_server": {
       const sid = serverIdForCard(state, sourceId);
       if (!sid) return { ok: true };
@@ -297,43 +270,6 @@ export function applyOacPrimitive(
           `The Twins — force re-encounter of ${state.cards[iceId]?.title} (CR ${CR.forcedEncounterDuringRun.number}).`,
         );
       }
-      return { ok: true };
-    }
-
-    case "uninstall_program_or_hardware_to_grip": {
-      const cands = state.runner.installed.filter((id) => {
-        const t = state.cards[id]?.type;
-        return t === "program" || t === "hardware";
-      });
-      if (cands.length === 0) {
-        log(state, `Uninstall — no program/hardware installed.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: cands.map((id) => ({
-          id: `uninst:${id}`,
-          label: `Add ${state.cards[id]!.title} to grip`,
-          effect: fx.do({ kind: "uninstall_to_grip", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "uninstall_to_grip": {
-      const cardId = (action as { cardId: string }).cardId;
-      const card = state.cards[cardId];
-      if (!card || !state.runner.installed.includes(cardId)) {
-        return {
-          ok: false,
-          error: "Uninstall target not installed.",
-          cites: [],
-        };
-      }
-      uninstallCard(state, cardId, "hand", {
-        logLine: `Uninstall — ${card.title} to grip.`,
-      });
       return { ok: true };
     }
 

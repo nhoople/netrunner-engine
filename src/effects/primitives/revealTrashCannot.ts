@@ -6,7 +6,6 @@ import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -18,18 +17,6 @@ export function applyMumbadFtmPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "add_fully_broken_barrier_to_hq": {
-      const iceId = state.run?.encounter?.iceId;
-      if (!iceId) return { ok: true };
-      const ice = state.cards[iceId];
-      if (!ice || !(ice.subtypes ?? []).includes("barrier")) {
-        return { ok: true };
-      }
-      uninstallCard(state, iceId, "hand");
-      log(state, `Ankusa — add fully broken barrier ${ice.title} to HQ.`);
-      return { ok: true };
-    }
-
     case "spend_rigged_results_secret_guess": {
       // Psi-style: Runner bid 0–2; Corp guesses. Differ → choose ice + run + bypass.
       startPsiGame(

@@ -1,5 +1,3 @@
-/** Martial Law (ml) Flashpoint pack primitives — v1.126.0. */
-import { CR } from "../../timing/labels.js";
 import {
   breakNextSubroutines,
   interfaceBlock,
@@ -7,13 +5,12 @@ import {
 } from "../../state/turnAndActions/break.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -154,29 +151,6 @@ export function applyFlashpointMlPrimitive(
         })),
       });
       return { ok: true };
-    }
-
-    case "redirect_resolve": {
-      const serverId = action.serverId as ServerId | undefined;
-      if (!state.run || !serverId || !state.servers[serverId]) {
-        log(state, `Mind Game — invalid redirect.`);
-        return { ok: true };
-      }
-      // "The Runner moves to the outermost position of that server"
-      // (CR 6.2.8b): no position, not −1, when it has no ice.
-      const moved = moveRunnerToOutermost(state, serverId);
-      (
-        state.run as {
-          jackOutAdditionalCostAddInstalledToStackBottom?: boolean;
-        }
-      ).jackOutAdditionalCostAddInstalledToStackBottom = true;
-      log(
-        state,
-        moved
-          ? `Mind Game — move to outermost of ${serverId}; jack out costs +1 installed to stack bottom.`
-          : `Mind Game — the Runner cannot move to a position now (CR ${CR.ineffectiveMove.number}); jack out costs +1 installed to stack bottom.`,
-      );
-      return evalEffect(ctx, fx.do({ kind: "offer_jack_out" }));
     }
 
     case "give_tags_if_runner_has_installed_subtype": {

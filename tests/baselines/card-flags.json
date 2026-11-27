@@ -1107,10 +1107,6 @@
           ]
         },
         {
-          "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/derezExposePrevent.ts#applyRedsandDcPrimitive",
           "kinds": [],
           "mirrors": [
@@ -1127,6 +1123,10 @@
         },
         {
           "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/returnKinds.ts#applyReturnKinds",
           "kinds": []
         },
         {
@@ -6718,6 +6718,10 @@
         },
         {
           "site": "src/effects/triggers/chooseCards.ts#sameForChoice",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/uninstallAndPositionKinds.ts#applyUninstallAndPositionKinds",
           "kinds": []
         },
         {
@@ -17033,10 +17037,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
           "kinds": []
         },
@@ -17060,6 +17060,10 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/returnKinds.ts#applyReturnKinds",
           "kinds": []
         },
         {
@@ -18202,10 +18206,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/shuffleKinds.ts#applyShuffleKinds",
           "kinds": []
         },
@@ -18285,6 +18285,10 @@
         },
         {
           "site": "src/effects/triggers/chooseKinds.ts#applyChooseKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/returnKinds.ts#applyReturnKinds",
           "kinds": []
         },
         {
@@ -19713,10 +19717,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#applyKitaraWinPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/spendInstallAdd.ts#breakUnbrokenExcept",
           "kinds": []
         },
@@ -19738,6 +19738,10 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/uninstallAndPositionKinds.ts#applyUninstallAndPositionKinds",
           "kinds": []
         },
         {
@@ -20140,10 +20144,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
           "kinds": []
         },
@@ -20201,14 +20201,6 @@
         },
         {
           "site": "src/effects/primitives/resolveExposePay.ts#installedVirusProgramIds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#installedProgramsOrVirtualResources",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/revealTrashCannot.ts#applyMumbadFtmPrimitive",
           "kinds": []
         },
         {
@@ -20276,6 +20268,18 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/returnKinds.ts#applyReturnKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/uninstallAndPositionKinds.ts#applyUninstallAndPositionKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/uninstallAndPositionKinds.ts#installedProgramsOrVirtualResources",
           "kinds": []
         },
         {
@@ -21377,15 +21381,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/moveKinds.ts#applyMoveKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds.nameFor",
           "kinds": []
         },
         {
@@ -21402,14 +21398,6 @@
         },
         {
           "site": "src/effects/kinds/removeKinds.ts#applyRemoveKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds.moveToHq",
           "kinds": []
         },
         {
@@ -21702,6 +21690,26 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/moveKinds.ts#applyMoveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/returnKinds.ts#applyReturnKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/returnKinds.ts#applyReturnKinds.moveToHq",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/uninstallAndPositionKinds.ts#applyUninstallAndPositionKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/uninstallAndPositionKinds.ts#applyUninstallAndPositionKinds.nameFor",
           "kinds": []
         },
         {
@@ -23996,10 +24004,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/moveKinds.ts#applyMoveKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
           "kinds": []
         },
@@ -24104,10 +24108,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#installedProgramsOrVirtualResources",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/revealTrashCannot.ts#applyMumbadFtmPrimitive",
           "kinds": []
         },
@@ -24205,6 +24205,18 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/moveKinds.ts#applyMoveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/uninstallAndPositionKinds.ts#applyUninstallAndPositionKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/uninstallAndPosition/uninstallAndPositionKinds.ts#installedProgramsOrVirtualResources",
           "kinds": []
         },
         {
@@ -24800,7 +24812,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds",
+          "site": "src/effects/uninstallAndPosition/returnKinds.ts#applyReturnKinds",
           "kinds": []
         },
         {
