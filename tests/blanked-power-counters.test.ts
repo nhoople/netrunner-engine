@@ -18,7 +18,7 @@ import {
   firePowerCounterOnAnyCorpInstall,
   maybeFirePowerCountersGte,
   syncEtrPerPowerCounterSubs,
-} from "../src/state/powerCounters.js";
+} from "../src/state/counters/powerCounters.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {

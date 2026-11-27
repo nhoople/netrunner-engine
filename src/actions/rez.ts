@@ -48,7 +48,7 @@ import {
   fireHostedCreditsOnAnyIceRez,
   firePowerCounterOnAnyCardRez,
   firePowerOnHarmonicIceRez,
-} from "../state/powerCounters.js";
+} from "../state/counters/powerCounters.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { runnerIsTagged } from "../state/tags.js";

@@ -3,13 +3,13 @@
  * (Environmental Testing–class; CR §9.6.7).
  */
 
-import { evalEffect } from "../effects/eval.js";
-import { CR } from "../timing/labels.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { isCardActive } from "./continuous/active.js";
-import { log } from "./createGame.js";
-import type { CardInstance, GameState } from "./types.js";
-import type { Effect } from "../effects/ir.js";
+import { evalEffect } from "../../effects/eval.js";
+import { CR } from "../../timing/labels.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { isCardActive } from "../continuous/active.js";
+import { log } from "../createGame.js";
+import type { CardInstance, GameState } from "../types.js";
+import type { Effect } from "../../effects/ir.js";
 
 /**
  * After power counters on `cardId` increase, if the card declares

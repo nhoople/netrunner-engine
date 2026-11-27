@@ -27,7 +27,7 @@ import {
   occurCheckpoint,
   playEffectFromCard,
 } from "../src/index.js";
-import { fireHostedCreditsOnAnyIceRez } from "../src/state/powerCounters.js";
+import { fireHostedCreditsOnAnyIceRez } from "../src/state/counters/powerCounters.js";
 import {
   creditsAvailableForInstall,
   spendCreditsForInstall,

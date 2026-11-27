@@ -1,4 +1,4 @@
-import type { CardInstance } from "./types.js";
+import type { CardInstance } from "../types.js";
 
 /**
  * The Corp can advance an installed agenda, or another installed card that

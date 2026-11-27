@@ -8,7 +8,7 @@ import { recomputeRunnerMaxHandSize } from "../state/continuous/handSize.js";
 import {
   maybeFirePowerCountersGte,
   syncEtrPerPowerCounterSubs,
-} from "../state/powerCounters.js";
+} from "../state/counters/powerCounters.js";
 import { purgeVirusCounters } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
 import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";

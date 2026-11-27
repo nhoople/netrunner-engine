@@ -57,7 +57,7 @@ import {
 import {
   mayAdvanceInstalledCard,
   printsCanBeAdvanced,
-} from "../src/state/advanceable.js";
+} from "../src/state/counters/advanceable.js";
 import {
   clearCorpHand,
   clearRd,

@@ -28,7 +28,7 @@ import {
   beginBreachAccess,
   refreshRdDeckCandidate,
 } from "../state/access/access.js";
-import { syncNextSubtypeEtrSubs } from "../state/powerCounters.js";
+import { syncNextSubtypeEtrSubs } from "../state/counters/powerCounters.js";
 import { syncCorpHandSizeSubroutines } from "../state/continuous/handSizeSubroutines.js";
 import { getCardDef } from "../cards/load.js";
 import { iceStrengthCannotBeLowered } from "../cards/stubs.js";

@@ -3,7 +3,7 @@ import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/createGame.js";
 import { revealCards } from "../../state/visibility/reveal.js";
-import { mayAdvanceInstalledCard } from "../../state/advanceable.js";
+import { mayAdvanceInstalledCard } from "../../state/counters/advanceable.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";

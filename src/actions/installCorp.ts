@@ -17,7 +17,7 @@ import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
 import { noteStoredConditional } from "../state/triggers/storedConditionalHooks.js";
 import { noteInstalledThisTurn } from "../state/install/programHardwareInstall.js";
 import { cardBecameNewObject } from "../state/turn.js";
-import { firePowerCounterOnAnyCorpInstall } from "../state/powerCounters.js";
+import { firePowerCounterOnAnyCorpInstall } from "../state/counters/powerCounters.js";
 import {
   noteFirstCorpCardInstallEachTurn,
   noteFirstCorpRootInstallEachTurn,

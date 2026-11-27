@@ -1,5 +1,5 @@
 /** The Liberated Mind (tlm) Mumbad pack primitives — v1.120.0. */
-import { printsCanBeAdvanced } from "../../state/advanceable.js";
+import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/createGame.js";
 import {
