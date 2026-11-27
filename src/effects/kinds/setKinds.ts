@@ -3,7 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import type { EffectCtx, EvalResult } from "../eval.js";
-import { setRunnerPosition } from "../../state/runPosition.js";
+import { setRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import type { Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";

@@ -13,7 +13,7 @@ import {
   evalEffect,
   instantiateCard,
 } from "../src/index.js";
-import { iceAtRunnerPosition } from "../src/state/runPosition.js";
+import { iceAtRunnerPosition } from "../src/state/uninstallAndPosition/runPosition.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";
 

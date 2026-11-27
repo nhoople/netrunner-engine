@@ -9,7 +9,7 @@ import {
   corpInstallCost,
   subtractRunnerCreditPool,
 } from "../../state/costs.js";
-import { addOutermostIce } from "../../state/runPosition.js";
+import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
@@ -19,7 +19,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
-import { uninstallCard } from "../../state/procedures/uninstall.js";
+import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

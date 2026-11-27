@@ -13,7 +13,7 @@ import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import { fireOnArchivesFacedownTurnedFaceupGte } from "../triggers/miscConditionalHooks.js";
 import { shuffleInPlace } from "../rng.js";
-import { setAttackedServer } from "../runPosition.js";
+import { setAttackedServer } from "../uninstallAndPosition/runPosition.js";
 
 /** The Twinning: remove power for bonus HQ/R&D access at breach begin. */
 /**

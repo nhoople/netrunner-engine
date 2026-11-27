@@ -15,7 +15,7 @@ import {
   evalEffect,
   instantiateCard,
 } from "../src/index.js";
-import { iceAtRunnerPosition } from "../src/state/runPosition.js";
+import { iceAtRunnerPosition } from "../src/state/uninstallAndPosition/runPosition.js";
 import type { Action, GameState } from "../src/state/types.js";
 
 beforeAll(() => {

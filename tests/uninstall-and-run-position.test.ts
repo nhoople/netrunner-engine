@@ -3,8 +3,8 @@
  * Runner (CR 8.5.1b, 8.5.10, 6.2, 8.3, 4.9).
  *
  * The cards go through their own effect kinds; the shared helpers are
- * `src/state/procedures/uninstall.ts`, `src/state/procedures/rearrange.ts`
- * and `src/state/runPosition.ts`.
+ * `src/state/uninstallAndPosition/uninstall.ts`, `src/state/uninstallAndPosition/rearrange.ts`
+ * and `src/state/uninstallAndPosition/runPosition.ts`.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -24,13 +24,13 @@ import {
   isRearrangement,
   moveIce,
   rearrangeIce,
-} from "../src/state/procedures/rearrange.js";
+} from "../src/state/uninstallAndPosition/rearrange.js";
 import {
   ceaseVacantPositions,
   isInstalled,
   removeCardFromGame,
   uninstallCard,
-} from "../src/state/procedures/uninstall.js";
+} from "../src/state/uninstallAndPosition/uninstall.js";
 import {
   addOutermostIce,
   iceAtRunnerPosition,
@@ -42,7 +42,7 @@ import {
   notePositionsCeased,
   runnerCanMoveToPosition,
   setAttackedServer,
-} from "../src/state/runPosition.js";
+} from "../src/state/uninstallAndPosition/runPosition.js";
 import type { GameState, RunState } from "../src/state/types.js";
 import { expectStateDelta, snapshot } from "./kind-coverage.js";
 

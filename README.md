@@ -174,6 +174,7 @@ src/                 # index.ts: the package entry; cli.ts: the development host
     searchAndDeck/   # searching and deck order (CR 8.7): when a seat may look at a hidden zone during a search
     triggers/        # conditional abilities and their machinery (CR 9.6): pending abilities, stored triggers, trigger predicates over checkpoint facts, the conditional collectors that span several areas; interrupts and replacements (9.9); pending choices
     types/           # the game state types, one file per thing they describe: shared words, card (with its hooks and costs), abilities, servers, players, turn, run, restrictions, checkpoints, pending abilities, windows, lingering effects, pending choices, game, actions, public view
+    uninstallAndPosition/# uninstalling, rearranging ice, and the Runner's position in a run (CR 8.5.10, 8.3, 6.2)
     visibility/      # what each seat may see (CR 1.21, 10.2): seat visibility, revealing, exposing
   timing/            # graph.ts: the timing step graph (CR 11.2–11.5); machine.ts: stepping through it
 tests/               # vitest suites, grouped by file name prefix (confidence-*, cr-*, blanked-*, …)

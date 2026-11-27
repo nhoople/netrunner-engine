@@ -14,7 +14,7 @@
  * Card text decides whether the install cost is paid (CR 1.2.1).
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { iceAtRunnerPosition } from "../src/state/runPosition.js";
+import { iceAtRunnerPosition } from "../src/state/uninstallAndPosition/runPosition.js";
 import {
   applyAction,
   assertCardsPinnedTag,

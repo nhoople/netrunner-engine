@@ -15,7 +15,7 @@ import {
 import { returnRdLookedToDeckTop } from "../eval.js";
 import { fx } from "../ir.js";
 import { unhostCard } from "../../state/hostingAndTrash/host.js";
-import { uninstallCard } from "../../state/procedures/uninstall.js";
+import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 export function applyReturnKinds(
   ctx: EffectCtx,

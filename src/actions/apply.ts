@@ -4,7 +4,7 @@ import {
   endLooksAndReveals,
   lookAtChoiceCards,
 } from "../state/visibility/reveal.js";
-import { setRunnerPosition } from "../state/runPosition.js";
+import { setRunnerPosition } from "../state/uninstallAndPosition/runPosition.js";
 import { runApplyHook } from "../debug/applyHook.js";
 import { pendingOptionHiddenFromOpponent } from "../api/library.js";
 import {
@@ -238,7 +238,7 @@ import {
   trashCard,
   resolveSkorpiosTrash,
 } from "../state/hostingAndTrash/trash.js";
-import { removeCardFromGame } from "../state/procedures/uninstall.js";
+import { removeCardFromGame } from "../state/uninstallAndPosition/uninstall.js";
 
 /** The payer's pick for a one-card cost, or the last card when not asked. */
 function chosenCostCard(state: GameState, pool: readonly string[]): string {

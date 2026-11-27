@@ -3,7 +3,7 @@ import { revealCards } from "../../state/visibility/reveal.js";
 import {
   iceAtRunnerPosition,
   moveRunnerToOutermost,
-} from "../../state/runPosition.js";
+} from "../../state/uninstallAndPosition/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
@@ -13,7 +13,7 @@ import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
-import { removeCardFromGame } from "../../state/procedures/uninstall.js";
+import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

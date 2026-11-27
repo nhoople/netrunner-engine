@@ -8,7 +8,7 @@
  * continues to exist until they move (CR 6.2.4).
  */
 
-import type { GameState, RunState, ServerId } from "./types.js";
+import type { GameState, RunState, ServerId } from "../types.js";
 
 /**
  * The ice in the Runner's position. Null when the Runner has no position or

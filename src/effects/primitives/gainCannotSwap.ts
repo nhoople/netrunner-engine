@@ -4,7 +4,7 @@ import {
   resolveChronosFirstNetPick,
   resolveRibsPick,
 } from "../../state/damageAndPrevention/damage.js";
-import { setRunnerPosition } from "../../state/runPosition.js";
+import { setRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { EffectCtx } from "../eval.js";

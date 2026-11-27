@@ -18,7 +18,7 @@ import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
-import { moveRunnerToOutermost } from "../../state/runPosition.js";
+import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

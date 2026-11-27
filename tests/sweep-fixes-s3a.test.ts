@@ -23,7 +23,7 @@ import { fx, type Effect } from "../src/effects/ir.js";
 import { memoryLimit } from "../src/state/turn.js";
 import { recomputeRunnerLink } from "../src/state/hostingAndTrash/trashHooks.js";
 import { maybeOpenTrashPrevent } from "../src/state/hostingAndTrash/trashPrevent.js";
-import { uninstallCard } from "../src/state/procedures/uninstall.js";
+import { uninstallCard } from "../src/state/uninstallAndPosition/uninstall.js";
 import { paidAbilityOpenIn } from "../src/state/costs.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";
 import {

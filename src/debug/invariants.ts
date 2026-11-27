@@ -8,7 +8,7 @@
  * `setApplyHook` (see `tests/setup/invariants.ts`).
  */
 
-import { iceAtRunnerPosition } from "../state/runPosition.js";
+import { iceAtRunnerPosition } from "../state/uninstallAndPosition/runPosition.js";
 import type { GameState, ServerId } from "../state/types.js";
 
 /** Stable problem codes. Baselines key on these, so never rename one. */

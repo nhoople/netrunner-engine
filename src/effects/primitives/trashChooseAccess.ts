@@ -13,7 +13,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
-import { uninstallCard } from "../../state/procedures/uninstall.js";
+import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

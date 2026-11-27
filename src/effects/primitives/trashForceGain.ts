@@ -9,7 +9,7 @@ import { evalEffect, grantAbilityCredits } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { uninstallCard } from "../../state/procedures/uninstall.js";
+import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

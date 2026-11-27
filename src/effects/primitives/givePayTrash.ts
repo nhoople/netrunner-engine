@@ -1,13 +1,13 @@
 /** Crimson Dust (cd) Red Sand pack primitives — v1.134.0. */
 import { log } from "../../state/createGame.js";
-import { addOutermostIce } from "../../state/runPosition.js";
+import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { corpInstallCost } from "../../state/costs.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { removeCardFromGame } from "../../state/procedures/uninstall.js";
+import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

@@ -1,7 +1,7 @@
 /** Order and Chaos (oac) deluxe primitives. */
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { effectiveCorpMaxHandSize } from "../../state/continuous/handSize.js";
-import { iceAtRunnerPosition } from "../../state/runPosition.js";
+import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import {
   emptyRunnerCreditPool,
   noteCorpSpentAgendaCounters,
@@ -21,8 +21,8 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
-import { uninstallCard } from "../../state/procedures/uninstall.js";
-import { moveIce } from "../../state/procedures/rearrange.js";
+import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import { moveIce } from "../../state/uninstallAndPosition/rearrange.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

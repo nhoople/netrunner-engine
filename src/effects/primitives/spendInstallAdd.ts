@@ -20,7 +20,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { moveRunnerToOutermost } from "../../state/runPosition.js";
+import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
 import { resetEncounterBreaks } from "../../state/procedures/break.js";
 
 type PrimResult =

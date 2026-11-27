@@ -41,7 +41,7 @@ import {
 } from "../hostingAndTrash/trashHooks.js";
 import { recomputeRunnerMaxHandSize } from "../continuous/handSize.js";
 import { shuffleInPlace } from "../rng.js";
-import { notePositionsCeased } from "../runPosition.js";
+import { notePositionsCeased } from "./runPosition.js";
 import { unhostCard } from "../hostingAndTrash/host.js";
 
 /** Where an uninstalled card goes. */

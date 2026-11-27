@@ -27,7 +27,7 @@ import {
   addOutermostIce,
   followEncounteredIce,
   noteIceUninstalled,
-} from "../runPosition.js";
+} from "./runPosition.js";
 
 /** The new order of each server's ice, outermost first. */
 export type IceArrangement = Partial<Record<ServerId, readonly string[]>>;

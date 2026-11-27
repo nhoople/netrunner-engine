@@ -16,7 +16,7 @@ import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { unhostCard } from "../../state/hostingAndTrash/host.js";
 import { fireOnAgendaAddedToRunnerScore } from "../../state/hostingAndTrash/trashHooks.js";
 import { CR } from "../../timing/labels.js";
-import { uninstallCard } from "../../state/procedures/uninstall.js";
+import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 export function applyAddKinds(
   ctx: EffectCtx,

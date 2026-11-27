@@ -34,9 +34,9 @@ export const areas = {
   uninstall: {
     title: "2. Uninstall, ice removal, run position, rearrange",
     mutate: [
-      "src/state/runPosition.ts",
-      "src/state/procedures/uninstall.ts",
-      "src/state/procedures/rearrange.ts",
+      "src/state/uninstallAndPosition/runPosition.ts",
+      "src/state/uninstallAndPosition/uninstall.ts",
+      "src/state/uninstallAndPosition/rearrange.ts",
     ],
     tests: [
       "tests/*uninstall*.test.ts",

@@ -18,7 +18,7 @@ import { fireOnAfterOperationOrExpendable } from "../eval.js";
 
 import { noteCheckpointAndResolvePlay } from "../eval.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { removeCardFromGame } from "../../state/procedures/uninstall.js";
+import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 
 export function applyPlayKinds(
   ctx: EffectCtx,
