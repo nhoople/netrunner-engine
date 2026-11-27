@@ -4,7 +4,7 @@
  */
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { log } from "../state/createGame.js";
-import { onTagsRemoved } from "../state/cardDeclarations.js";
+import { onTagsRemoved } from "../state/cardFlags/cardDeclarations.js";
 import {
   hasPayableTagInterrupt,
   openPendingTags,

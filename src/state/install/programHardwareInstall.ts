@@ -10,7 +10,7 @@ import { maybeFireCompanionInstallOrSpendCredits } from "../triggers/companionHo
 import { noteJobConnectionOrHardwareInstalled } from "./firstInstallDiscount.js";
 import type { GameState } from "../types.js";
 import { fireRunnerValTrigger } from "../../effects/sansanValHooks.js";
-import { onRunnerInstalledProgramOrHardware } from "../staticFlags.js";
+import { onRunnerInstalledProgramOrHardware } from "../cardFlags/staticFlags.js";
 import {
   activeCorpCurrentIds,
   noteTargetedMarketing,

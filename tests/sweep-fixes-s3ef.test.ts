@@ -81,7 +81,7 @@ import {
 
 import { enhancedLoginProtocolClick } from "../src/state/continuous/currents.js";
 import { enterLingeringPlayArea } from "../src/state/zones.js";
-import { traceBaseBonus } from "../src/state/staticFlags.js";
+import { traceBaseBonus } from "../src/state/cardFlags/staticFlags.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

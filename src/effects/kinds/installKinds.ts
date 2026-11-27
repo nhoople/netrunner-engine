@@ -3,7 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { openCardName } from "../../state/visibility/seatVisibility.js";
-import { iceInstallCapRefuses } from "../../state/staticFlags.js";
+import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import {
   applyInstallCorpCard,

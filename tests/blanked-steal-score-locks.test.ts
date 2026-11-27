@@ -12,7 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { installBlockReason } from "../src/state/staticFlags.js";
+import { installBlockReason } from "../src/state/cardFlags/staticFlags.js";
 import { scoreAgendaAction } from "../src/actions/score.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 

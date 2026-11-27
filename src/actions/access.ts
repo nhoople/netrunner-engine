@@ -12,7 +12,7 @@ import {
   fireOnSteal,
 } from "../state/triggers/cardLifecycleHooks.js";
 import { noteAccessTrash } from "../state/trashHooks.js";
-import { runnerCannotTrashWhileRezzed } from "../state/cardDeclarations.js";
+import { runnerCannotTrashWhileRezzed } from "../state/cardFlags/cardDeclarations.js";
 import { removeCardFromCurrentZone, stealAgenda } from "../state/scoring.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/continuous/lockdowns.js";
 import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";

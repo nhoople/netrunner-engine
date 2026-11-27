@@ -162,6 +162,7 @@ src/                 # index.ts: the package entry; cli.ts: the development host
   legality/          # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries
   state/             # types.ts: points to types/; costs, run position, seat visibility, and the hooks each timing point fires
     access/          # accessing cards (CR ch. 7): access candidates and filters, access-step abilities, abilities that replace a breach
+    cardFlags/       # card flags and static declarations: what the loader copies onto a card and when each declaration runs
     continuous/      # continuous effects (CR 9.12): whether a card is active (1.8), blanking, lingering effects (9.10), currents and lockdowns in the play area, continuous cost, subroutine, strength and hand-size modifiers
     install/         # installing cards (CR 8.5): install-triggered abilities and install discounts
     procedures/      # one shared helper per CR audit procedure: host, trash, uninstall, rearrange, break

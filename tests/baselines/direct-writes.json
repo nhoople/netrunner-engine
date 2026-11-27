@@ -498,7 +498,7 @@
     "src/legality/checkpoints.ts": {
       "rezzed": 1
     },
-    "src/state/cardDeclarations.ts": {
+    "src/state/cardFlags/cardDeclarations.ts": {
       "deck": 4,
       "discardPile": 3,
       "hand": 3,

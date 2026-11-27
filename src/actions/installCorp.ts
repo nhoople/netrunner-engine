@@ -36,8 +36,8 @@ import type {
 } from "../state/types.js";
 import { fx } from "../effects/ir.js";
 import { CR } from "../timing/labels.js";
-import { installBlockReason } from "../state/staticFlags.js";
-import { onCorpCardInstalledInRemote } from "../state/cardDeclarations.js";
+import { installBlockReason } from "../state/cardFlags/staticFlags.js";
+import { onCorpCardInstalledInRemote } from "../state/cardFlags/cardDeclarations.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { fireOnInstallFromNonHq } from "../state/triggers/miscConditionalHooks.js";
 import { trashCard } from "../state/procedures/trash.js";

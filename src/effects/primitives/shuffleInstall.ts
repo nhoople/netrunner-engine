@@ -1,5 +1,5 @@
 import { revealCards } from "../../state/visibility/reveal.js";
-import { iceInstallCapRefuses } from "../../state/staticFlags.js";
+import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /** Magnum Opus (mo) primitives — v1.142.0. */
 import { log } from "../../state/createGame.js";

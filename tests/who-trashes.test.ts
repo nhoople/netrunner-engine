@@ -24,7 +24,7 @@ import {
   seedRng,
 } from "../src/index.js";
 import type { Action, Effect, GameState } from "../src/index.js";
-import { notePowerCounters } from "../src/state/cardDeclarations.js";
+import { notePowerCounters } from "../src/state/cardFlags/cardDeclarations.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

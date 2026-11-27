@@ -5,7 +5,7 @@ import { moveForfeitedAgendaOutOfGame } from "../state/scoring.js";
 import { iceAtRunnerPosition } from "../state/runPosition.js";
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
-import { onCardRezzed } from "../state/staticFlags.js";
+import { onCardRezzed } from "../state/cardFlags/staticFlags.js";
 import { getCardDef } from "../cards/load.js";
 import {
   applyHostServerRecurringTowardCorpRez,

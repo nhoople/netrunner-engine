@@ -16,7 +16,7 @@ import {
   onTagsRemoved,
   onTrashAbility,
   prepareTraceSpendOrder,
-} from "../src/state/cardDeclarations.js";
+} from "../src/state/cardFlags/cardDeclarations.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import { completeExpose } from "../src/state/visibility/expose.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";

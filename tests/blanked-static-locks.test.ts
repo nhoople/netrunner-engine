@@ -14,7 +14,7 @@ import { midwayStationBreakTax } from "../src/state/procedures/break.js";
 import {
   naviMumbaiBlocksPaidAbilities,
   runnerHeapLocked,
-} from "../src/state/cardDeclarations.js";
+} from "../src/state/cardFlags/cardDeclarations.js";
 import { wirelessNetPavilionExtra } from "../src/state/costs.js";
 import { checkWinConditions } from "../src/state/scoring.js";
 import type { ServerId } from "../src/index.js";

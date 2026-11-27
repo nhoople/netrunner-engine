@@ -18,7 +18,7 @@ import {
   geneticsPavilionDrawLimit,
   onCorpDrew,
   onRunnerDrew,
-} from "../state/staticFlags.js";
+} from "../state/cardFlags/staticFlags.js";
 import type { Primitive, SideRef } from "./ir.js";
 import { fireOnWouldDrawOncePerTurn as markOnWouldDrawOncePerTurn } from "../state/triggers/miscConditionalHooks.js";
 

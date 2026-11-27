@@ -187,7 +187,7 @@ import {
   breachCreditGain,
   corpStartsWithBadPublicity,
   onRunnerTurnEnds,
-} from "../state/staticFlags.js";
+} from "../state/cardFlags/staticFlags.js";
 import {
   noteApproachIce,
   noteEncounterIce,
@@ -197,7 +197,7 @@ import {
   onRunnerTurnBegan,
   onSuccessfulRunEnded,
   startIdentitySetup,
-} from "../state/cardDeclarations.js";
+} from "../state/cardFlags/cardDeclarations.js";
 import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../state/identityFlipHooks.js";
 import { noteOutsidePoolSpendTriggers } from "../state/outsidePoolSpend.js";
 import {

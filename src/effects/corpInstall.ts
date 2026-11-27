@@ -11,7 +11,7 @@ import {
   payInstallCost,
 } from "../state/costs.js";
 import { noteInstalledThisTurn } from "../state/install/programHardwareInstall.js";
-import { iceInstallCapRefuses } from "../state/staticFlags.js";
+import { iceInstallCapRefuses } from "../state/cardFlags/staticFlags.js";
 import { cardBecameNewObject } from "../state/turn.js";
 import type { GameState, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";

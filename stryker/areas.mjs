@@ -129,7 +129,7 @@ export const areas = {
   },
   "card-flags": {
     title: "10. Card flags and declarations",
-    mutate: ["src/state/cardDeclarations.ts"],
+    mutate: ["src/state/cardFlags/cardDeclarations.ts"],
     tests: ["tests/card-declarations.test.ts", "tests/static-flags.test.ts"],
     grep: /\b9\.12\b|continuousSubtypeGrants/,
   },

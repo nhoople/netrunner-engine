@@ -30,7 +30,7 @@ import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 
 import { drawCards } from "../src/effects/draw.js";
 import type { GameState } from "../src/state/types.js";
-import { onRunnerEventPlayed } from "../src/state/cardDeclarations.js";
+import { onRunnerEventPlayed } from "../src/state/cardFlags/cardDeclarations.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
 import { RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE } from "../src/state/fenris.js";
 import { autoWalk, enterStep } from "../src/timing/machine.js";

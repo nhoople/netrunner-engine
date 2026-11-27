@@ -19,7 +19,7 @@ import {
   onCardAdvanced,
   runnerHeapLocked,
   startIdentitySetup,
-} from "../src/state/cardDeclarations.js";
+} from "../src/state/cardFlags/cardDeclarations.js";
 import { startTrace } from "../src/state/trace.js";
 import { fx } from "../src/effects/ir.js";
 

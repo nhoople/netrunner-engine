@@ -18,7 +18,7 @@ import {
   seedRng,
 } from "../src/index.js";
 import type { Effect } from "../src/index.js";
-import { onAccessFinishedWithoutStealOrTrash } from "../src/state/cardDeclarations.js";
+import { onAccessFinishedWithoutStealOrTrash } from "../src/state/cardFlags/cardDeclarations.js";
 import type { GameState } from "../src/index.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { trashCard } from "../src/state/procedures/trash.js";

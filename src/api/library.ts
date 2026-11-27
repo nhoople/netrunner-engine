@@ -7,7 +7,7 @@ import { applyAction } from "../actions/apply.js";
 import { queryLegality } from "../legality/query.js";
 import { createInitialState } from "../state/createGame.js";
 import { seedRng } from "../state/rng.js";
-import { gripRevealed } from "../state/cardDeclarations.js";
+import { gripRevealed } from "../state/cardFlags/cardDeclarations.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import {
   choiceHiddenFrom,

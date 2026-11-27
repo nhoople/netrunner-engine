@@ -9,7 +9,7 @@ import {
   runnerCreditPoolLocked,
   subtractRunnerCreditPool,
 } from "../state/costs.js";
-import { onCorpAbilityGainedCredits } from "../state/cardDeclarations.js";
+import { onCorpAbilityGainedCredits } from "../state/cardFlags/cardDeclarations.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import {

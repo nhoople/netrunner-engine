@@ -438,12 +438,15 @@ export {
   hostedCreditsSpendableToUseProgramsDuringRuns,
 } from "./state/costs.js";
 export { startingHandSizeFor } from "./state/startingHand.js";
-export { agendaPointBand, deckbuildingReport } from "./state/staticFlags.js";
+export {
+  agendaPointBand,
+  deckbuildingReport,
+} from "./state/cardFlags/staticFlags.js";
 export type {
   DeckEntry,
   DeckIdentity,
   DeckbuildingReport,
-} from "./state/staticFlags.js";
+} from "./state/cardFlags/staticFlags.js";
 export type { RecurringSpendPurpose } from "./state/types.js";
 export { abilitiesSuppressed } from "./state/continuous/abilities.js";
 export {

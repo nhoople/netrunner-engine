@@ -2,19 +2,19 @@
  * Static declarations the loader copies onto a card. Each function runs at
  * the moment that declaration names.
  */
-import { trashCard } from "./procedures/trash.js";
-import { log } from "./createGame.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { agendaPointsFor } from "./scoring.js";
-import type { CardInstance, GameState, ServerId } from "./types.js";
-import { CR } from "../timing/labels.js";
-import { fireWouldTakeBadPublicity } from "./triggers/storedTriggers.js";
-import { fireFirstBadPublicityTake } from "./badPublicityHooks.js";
+import { trashCard } from "../procedures/trash.js";
+import { log } from "../createGame.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { agendaPointsFor } from "../scoring.js";
+import type { CardInstance, GameState, ServerId } from "../types.js";
+import { CR } from "../../timing/labels.js";
+import { fireWouldTakeBadPublicity } from "../triggers/storedTriggers.js";
+import { fireFirstBadPublicityTake } from "../badPublicityHooks.js";
 import { onIceRezzed } from "./cardDeclarations.js";
 import {
   corpIceInstalledThisTurn,
   corpMaxIceInstallsPerTurnFromCurrents,
-} from "./continuous/currents.js";
+} from "../continuous/currents.js";
 
 function rezzedWith<K extends keyof CardInstance>(
   state: GameState,

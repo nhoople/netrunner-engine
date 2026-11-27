@@ -3,7 +3,7 @@
  * Graph applies the lists; collectors own the continuous math.
  */
 import { abilitiesSuppressed } from "./abilities.js";
-import { badPublicityConsidered } from "../cardDeclarations.js";
+import { badPublicityConsidered } from "../cardFlags/cardDeclarations.js";
 import {
   iceCannotGainAbilities,
   resolveIceSubtypes,
