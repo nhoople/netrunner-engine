@@ -14,7 +14,10 @@ import {
 import type { CardInstance, GameState, Side } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { noteIceUninstalled } from "./runPosition.js";
-import { onAgendaScored, runnerHeapLocked } from "./cardDeclarations.js";
+import {
+  onAgendaScored,
+  runnerHeapLocked,
+} from "./cardFlags/cardDeclarations.js";
 import {
   allocateEffectIdentity,
   tryApplyReplacement,

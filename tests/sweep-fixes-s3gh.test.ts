@@ -31,7 +31,7 @@ import { trashCorpCardSet } from "../src/effects/kinds/trashKinds.js";
 import { stealForbiddenThisAccess } from "../src/actions/access.js";
 import { usePaidAbility } from "../src/actions/paidAbility.js";
 import { breakSubroutine } from "../src/actions/breakSubroutine.js";
-import { onRunnerTurnEnds } from "../src/state/staticFlags.js";
+import { onRunnerTurnEnds } from "../src/state/cardFlags/staticFlags.js";
 import { fireSiAfterPaidAbilityClicks } from "../src/effects/primitives/lookTrashAdd.js";
 import { blankAbilitiesUntilCorpTurnEnd } from "../src/state/continuous/lingeringEffects.js";
 import { iceAtRunnerPosition } from "../src/state/runPosition.js";

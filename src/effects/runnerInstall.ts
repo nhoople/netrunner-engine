@@ -30,7 +30,7 @@ import { noteVirusProgramInstalled } from "../state/install/virusInstall.js";
 import {
   daemonInstallDiscount,
   hostLimitReason,
-} from "../state/cardDeclarations.js";
+} from "../state/cardFlags/cardDeclarations.js";
 import { CR } from "../timing/labels.js";
 import { type EvalResult } from "./eval.js";
 import { fireOnInstallProgramFromHeap } from "../state/triggers/miscConditionalHooks.js";

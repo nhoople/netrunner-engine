@@ -16,7 +16,7 @@ import {
 } from "../state/triggers/cardLifecycleHooks.js";
 import { resumePendingStoredConditionals } from "../state/triggers/storedTriggers.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
-import { onRunnerEventPlayed } from "../state/cardDeclarations.js";
+import { onRunnerEventPlayed } from "../state/cardFlags/cardDeclarations.js";
 import {
   fireSiAfterCorpRezOrPlay,
   fireSiAfterPaidAbilityClicks,

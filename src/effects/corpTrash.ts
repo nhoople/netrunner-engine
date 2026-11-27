@@ -15,11 +15,11 @@ import {
   noteTrashMatchingRunnerIdentityFaction,
 } from "../state/trashHooks.js";
 import type { GameState } from "../state/types.js";
-import { onInstalledCorpCardTrashed } from "../state/staticFlags.js";
+import { onInstalledCorpCardTrashed } from "../state/cardFlags/staticFlags.js";
 import {
   onRunnerTrashedFromServer,
   runnerCannotTrashWhileRezzed,
-} from "../state/cardDeclarations.js";
+} from "../state/cardFlags/cardDeclarations.js";
 import { evalEffect, maybeFireNuvemFirstRdTrash } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
 import { createPendingAbilityInstance } from "../state/triggers/pendingAbilities.js";

@@ -34,11 +34,14 @@ import {
   firstClickMustBlocks,
   firstClickMustIsActive,
 } from "../state/firstClickMust.js";
-import { basicDrawBonus, remoteRootAccessTax } from "../state/staticFlags.js";
+import {
+  basicDrawBonus,
+  remoteRootAccessTax,
+} from "../state/cardFlags/staticFlags.js";
 import {
   onTagsRemoved,
   resolveDeclaration,
-} from "../state/cardDeclarations.js";
+} from "../state/cardFlags/cardDeclarations.js";
 import {
   checkpointAfterInstruction,
   declareRootEntry,

@@ -17,7 +17,7 @@ import {
   onFullBreak,
   onPassedAllIce,
   onProgramOrHardwareInstalled,
-} from "../src/state/cardDeclarations.js";
+} from "../src/state/cardFlags/cardDeclarations.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 

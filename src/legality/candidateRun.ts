@@ -33,7 +33,7 @@ import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
   naviMumbaiBlocksPaidAbilities,
   paidAbilitiesIncludingHosted,
-} from "../state/cardDeclarations.js";
+} from "../state/cardFlags/cardDeclarations.js";
 import {
   breakActionCost,
   declaredBreakBlock,

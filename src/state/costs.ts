@@ -33,7 +33,7 @@ export function subtractRunnerCreditPool(
 export function emptyRunnerCreditPool(state: GameState): void {
   subtractRunnerCreditPool(state, state.runner.credits);
 }
-import { onTrashAbility } from "./cardDeclarations.js";
+import { onTrashAbility } from "./cardFlags/cardDeclarations.js";
 import type {
   CardInstance,
   CostSpec,

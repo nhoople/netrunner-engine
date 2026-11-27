@@ -12,7 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
-import { breachCreditGain } from "../src/state/staticFlags.js";
+import { breachCreditGain } from "../src/state/cardFlags/staticFlags.js";
 import type { GameState, ServerId } from "../src/index.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 

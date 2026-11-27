@@ -37,7 +37,7 @@ import {
 
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { noteProgramOrHardwareInstalled } from "../src/state/install/programHardwareInstall.js";
-import { onRunnerTurnEnds } from "../src/state/staticFlags.js";
+import { onRunnerTurnEnds } from "../src/state/cardFlags/staticFlags.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";

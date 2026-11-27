@@ -15,7 +15,7 @@ import {
   getCardDef,
   validateEffectTree,
 } from "../src/index.js";
-import { onAccessed } from "../src/state/cardDeclarations.js";
+import { onAccessed } from "../src/state/cardFlags/cardDeclarations.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { runnerPsiSpendable } from "../src/state/psi.js";
 import { CR } from "../src/timing/labels.js";

@@ -13,7 +13,7 @@ import {
   runnerAbilityCarrierIds,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { syncLongTermInvestment } from "../src/state/cardDeclarations.js";
+import { syncLongTermInvestment } from "../src/state/cardFlags/cardDeclarations.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {

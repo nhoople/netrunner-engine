@@ -18,7 +18,7 @@ import { runnerInstallCost } from "../src/actions/installRunner.js";
 import {
   agendaPointMu,
   agendaPointHandSize,
-} from "../src/state/staticFlags.js";
+} from "../src/state/cardFlags/staticFlags.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {

@@ -37,7 +37,7 @@ import { removeCardFromCurrentZone } from "../scoring.js";
 import { endEffectsOnPreviousObject } from "../turn.js";
 import { cancelPendingIfSourceInactive } from "../triggers/pendingAbilities.js";
 import { maybeOpenTrashPrevent } from "../trashPrevent.js";
-import { onInstalledProgramTrashed } from "../staticFlags.js";
+import { onInstalledProgramTrashed } from "../cardFlags/staticFlags.js";
 import {
   fireOnUninstall,
   noteRunnerCardTrashedToHeap,

@@ -9,12 +9,12 @@ import { addBreakerStrengthBoostThisTurn } from "../state/continuous/lingeringEf
 import { creditsAvailableForInstall, payInstallCost } from "../state/costs.js";
 import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
 import { noteVirusProgramInstalled } from "../state/install/virusInstall.js";
-import { installBlockReason } from "../state/staticFlags.js";
+import { installBlockReason } from "../state/cardFlags/staticFlags.js";
 import {
   daemonInstallDiscount,
   hostLimitReason,
   onProgramOrHardwareInstalled,
-} from "../state/cardDeclarations.js";
+} from "../state/cardFlags/cardDeclarations.js";
 import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,

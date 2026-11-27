@@ -13,7 +13,7 @@ import {
 } from "../src/index.js";
 import { usePaidAbility } from "../src/actions/paidAbility.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { paidAbilitiesIncludingHosted } from "../src/state/cardDeclarations.js";
+import { paidAbilitiesIncludingHosted } from "../src/state/cardFlags/cardDeclarations.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {

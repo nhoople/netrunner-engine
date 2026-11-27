@@ -17,7 +17,7 @@ import {
   gripRevealed,
   runnerCannotTrashWhileRezzed,
   virusCountersAvailable,
-} from "../src/state/cardDeclarations.js";
+} from "../src/state/cardFlags/cardDeclarations.js";
 import { offTheGridBlocksServer } from "../src/state/run/runLegality.js";
 import type { ServerId } from "../src/index.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";

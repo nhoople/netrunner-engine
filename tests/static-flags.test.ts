@@ -18,7 +18,10 @@ import type { GameState } from "../src/state/types.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { memoryLimit } from "../src/state/turn.js";
 import { recomputeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
-import { installBlockReason, onCardRezzed } from "../src/state/staticFlags.js";
+import {
+  installBlockReason,
+  onCardRezzed,
+} from "../src/state/cardFlags/staticFlags.js";
 import { CR } from "../src/timing/labels.js";
 
 describe("static declarations", () => {

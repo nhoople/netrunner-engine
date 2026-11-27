@@ -383,7 +383,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onAccessed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAccessed",
           "kinds": []
         }
       ],
@@ -529,7 +529,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onAccessed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAccessed",
           "kinds": []
         }
       ],
@@ -567,7 +567,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onSuccessfulRunEnded",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onSuccessfulRunEnded",
           "kinds": []
         }
       ],
@@ -626,7 +626,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#remoteRootAccessTax",
+          "site": "src/state/cardFlags/staticFlags.ts#remoteRootAccessTax",
           "kinds": []
         }
       ],
@@ -986,7 +986,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onRunnerTurnBegan",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onRunnerTurnBegan",
           "kinds": []
         }
       ],
@@ -1142,6 +1142,13 @@
           "kinds": []
         },
         {
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
+          "kinds": [],
+          "mirrors": [
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
+          ]
+        },
+        {
           "site": "src/state/scoring.ts#agendaPointsFor",
           "kinds": []
         },
@@ -1152,13 +1159,6 @@
         {
           "site": "src/state/scoring.ts#stealAgenda",
           "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
-          "kinds": [],
-          "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
-          ]
         }
       ],
       "kinds": []
@@ -1423,7 +1423,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onAgendaScored",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAgendaScored",
           "kinds": []
         }
       ],
@@ -1484,7 +1484,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#startIdentitySetup",
+          "site": "src/state/cardFlags/cardDeclarations.ts#startIdentitySetup",
           "kinds": []
         }
       ],
@@ -1528,7 +1528,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#onCardRezzed",
+          "site": "src/state/cardFlags/staticFlags.ts#onCardRezzed",
           "kinds": []
         }
       ],
@@ -1567,7 +1567,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#basicDrawBonus",
+          "site": "src/state/cardFlags/staticFlags.ts#basicDrawBonus",
           "kinds": []
         }
       ],
@@ -1889,7 +1889,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#naviMumbaiBlocksPaidAbilities",
+          "site": "src/state/cardFlags/cardDeclarations.ts#naviMumbaiBlocksPaidAbilities",
           "kinds": []
         }
       ],
@@ -2141,11 +2141,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onProgramOrHardwareInstalled",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onProgramOrHardwareInstalled",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#paidAbilitiesIncludingHosted",
+          "site": "src/state/cardFlags/cardDeclarations.ts#paidAbilitiesIncludingHosted",
           "kinds": []
         },
         {
@@ -2358,7 +2358,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#runnerCannotTrashWhileRezzed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#runnerCannotTrashWhileRezzed",
           "kinds": []
         }
       ],
@@ -2492,7 +2492,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#installBlockReason",
+          "site": "src/state/cardFlags/staticFlags.ts#installBlockReason",
           "kinds": []
         }
       ],
@@ -2633,7 +2633,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#runnerHeapLocked",
+          "site": "src/state/cardFlags/cardDeclarations.ts#runnerHeapLocked",
           "kinds": []
         }
       ],
@@ -2951,7 +2951,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#badPublicityConsidered",
+          "site": "src/state/cardFlags/cardDeclarations.ts#badPublicityConsidered",
           "kinds": []
         }
       ],
@@ -2970,7 +2970,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#badPublicityConsidered",
+          "site": "src/state/cardFlags/cardDeclarations.ts#badPublicityConsidered",
           "kinds": []
         }
       ],
@@ -3226,7 +3226,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#onCorpDrew",
+          "site": "src/state/cardFlags/staticFlags.ts#onCorpDrew",
           "kinds": []
         }
       ],
@@ -3283,7 +3283,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#corpStartsWithBadPublicity",
+          "site": "src/state/cardFlags/staticFlags.ts#corpStartsWithBadPublicity",
           "kinds": []
         }
       ],
@@ -3589,7 +3589,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#daemonInstallDiscount",
+          "site": "src/state/cardFlags/cardDeclarations.ts#daemonInstallDiscount",
           "kinds": []
         }
       ],
@@ -3633,7 +3633,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#hostLimitReason",
+          "site": "src/state/cardFlags/cardDeclarations.ts#hostLimitReason",
           "kinds": []
         }
       ],
@@ -3652,7 +3652,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#hostLimitReason",
+          "site": "src/state/cardFlags/cardDeclarations.ts#hostLimitReason",
           "kinds": []
         }
       ],
@@ -3669,10 +3669,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
           "kinds": [],
           "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
           ]
         }
       ],
@@ -3695,10 +3695,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
           "kinds": [],
           "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
           ]
         }
       ],
@@ -4160,19 +4160,19 @@
           "kinds": []
         },
         {
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
+          "kinds": [],
+          "mirrors": [
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
+          ]
+        },
+        {
           "site": "src/state/fenris.ts#legalFenrisHostIds",
           "kinds": []
         },
         {
           "site": "src/state/fenris.ts#legalRebirthIdentityIds",
           "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
-          "kinds": [],
-          "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
-          ]
         },
         {
           "site": "src/state/trashHooks.ts#noteTrashMatchingRunnerIdentityFaction",
@@ -4745,7 +4745,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#onRunnerDrew",
+          "site": "src/state/cardFlags/staticFlags.ts#onRunnerDrew",
           "kinds": []
         }
       ],
@@ -4787,7 +4787,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onTrashAbility",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onTrashAbility",
           "kinds": []
         }
       ],
@@ -5080,7 +5080,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#breachCreditGain",
+          "site": "src/state/cardFlags/staticFlags.ts#breachCreditGain",
           "kinds": []
         }
       ],
@@ -5156,7 +5156,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#ensureConditionalSubroutine",
+          "site": "src/state/cardFlags/cardDeclarations.ts#ensureConditionalSubroutine",
           "kinds": [
             "end_the_run"
           ]
@@ -5183,7 +5183,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#paidAbilitiesIncludingHosted",
+          "site": "src/state/cardFlags/cardDeclarations.ts#paidAbilitiesIncludingHosted",
           "kinds": []
         }
       ],
@@ -5408,7 +5408,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#agendaPointHandSize",
+          "site": "src/state/cardFlags/staticFlags.ts#agendaPointHandSize",
           "kinds": []
         }
       ],
@@ -5564,11 +5564,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#spendVirusCounters",
+          "site": "src/state/cardFlags/cardDeclarations.ts#spendVirusCounters",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#virusCountersAvailable",
+          "site": "src/state/cardFlags/cardDeclarations.ts#virusCountersAvailable",
           "kinds": []
         }
       ],
@@ -5648,7 +5648,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#hostLimitReason",
+          "site": "src/state/cardFlags/cardDeclarations.ts#hostLimitReason",
           "kinds": []
         }
       ],
@@ -5667,7 +5667,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#hostLimitReason",
+          "site": "src/state/cardFlags/cardDeclarations.ts#hostLimitReason",
           "kinds": []
         }
       ],
@@ -6035,7 +6035,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#onRunnerInstalledProgramOrHardware",
+          "site": "src/state/cardFlags/staticFlags.ts#onRunnerInstalledProgramOrHardware",
           "kinds": []
         }
       ],
@@ -6340,7 +6340,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#installBlockReason",
+          "site": "src/state/cardFlags/staticFlags.ts#installBlockReason",
           "kinds": []
         }
       ],
@@ -6424,7 +6424,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#consideredAdvancement",
+          "site": "src/state/cardFlags/cardDeclarations.ts#consideredAdvancement",
           "kinds": []
         }
       ],
@@ -6745,11 +6745,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#hostLimitReason",
+          "site": "src/state/cardFlags/cardDeclarations.ts#hostLimitReason",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onProgramOrHardwareInstalled",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onProgramOrHardwareInstalled",
           "kinds": []
         },
         {
@@ -6994,10 +6994,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
           "kinds": [],
           "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
           ]
         }
       ],
@@ -7013,10 +7013,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
           "kinds": [],
           "mirrors": [
-            "src/state/staticFlags.ts#DeckIdentity"
+            "src/state/cardFlags/staticFlags.ts#DeckIdentity"
           ]
         }
       ],
@@ -7432,7 +7432,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#installBlockReason",
+          "site": "src/state/cardFlags/staticFlags.ts#installBlockReason",
           "kinds": []
         }
       ],
@@ -7451,7 +7451,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#installBlockReason",
+          "site": "src/state/cardFlags/staticFlags.ts#installBlockReason",
           "kinds": []
         }
       ],
@@ -7905,7 +7905,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#syncLongTermInvestment",
+          "site": "src/state/cardFlags/cardDeclarations.ts#syncLongTermInvestment",
           "kinds": []
         }
       ],
@@ -7962,7 +7962,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onAccessFinishedWithoutStealOrTrash",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAccessFinishedWithoutStealOrTrash",
           "kinds": []
         }
       ],
@@ -8205,7 +8205,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#noteApproachIce",
+          "site": "src/state/cardFlags/cardDeclarations.ts#noteApproachIce",
           "kinds": []
         }
       ],
@@ -8276,7 +8276,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onCorpAbilityGainedCredits",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onCorpAbilityGainedCredits",
           "kinds": []
         }
       ],
@@ -8573,7 +8573,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onIceRezzed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onIceRezzed",
           "kinds": []
         }
       ],
@@ -8592,7 +8592,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onRunnerTrashedFromServer",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onRunnerTrashedFromServer",
           "kinds": []
         }
       ],
@@ -8677,7 +8677,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onFullBreak",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onFullBreak",
           "kinds": []
         }
       ],
@@ -8786,7 +8786,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#maybeBetterCitizen",
+          "site": "src/state/cardFlags/cardDeclarations.ts#maybeBetterCitizen",
           "kinds": []
         }
       ],
@@ -8912,7 +8912,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#hostLimitReason",
+          "site": "src/state/cardFlags/cardDeclarations.ts#hostLimitReason",
           "kinds": []
         },
         {
@@ -8996,10 +8996,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
           "kinds": [],
           "mirrors": [
-            "src/state/staticFlags.ts#DeckIdentity"
+            "src/state/cardFlags/staticFlags.ts#DeckIdentity"
           ]
         }
       ],
@@ -9135,7 +9135,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#agendaPointMu",
+          "site": "src/state/cardFlags/staticFlags.ts#agendaPointMu",
           "kinds": []
         }
       ],
@@ -9283,7 +9283,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onTagsRemoved",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onTagsRemoved",
           "kinds": []
         }
       ],
@@ -9390,7 +9390,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onCardAdvanced",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onCardAdvanced",
           "kinds": []
         }
       ],
@@ -10664,7 +10664,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#noteEncounterIce",
+          "site": "src/state/cardFlags/cardDeclarations.ts#noteEncounterIce",
           "kinds": []
         }
       ],
@@ -11040,7 +11040,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onRunnerEventPlayed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onRunnerEventPlayed",
           "kinds": []
         }
       ],
@@ -12080,7 +12080,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onProgramOrHardwareInstalled",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onProgramOrHardwareInstalled",
           "kinds": []
         }
       ],
@@ -12988,7 +12988,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onSuccessfulRunEnded",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onSuccessfulRunEnded",
           "kinds": []
         }
       ],
@@ -13343,7 +13343,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#onInstalledCorpCardTrashed",
+          "site": "src/state/cardFlags/staticFlags.ts#onInstalledCorpCardTrashed",
           "kinds": []
         }
       ],
@@ -13357,7 +13357,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onRunnerTurnBegan",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onRunnerTurnBegan",
           "kinds": []
         },
         {
@@ -13799,11 +13799,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#paidAbilitiesIncludingHosted",
+          "site": "src/state/cardFlags/cardDeclarations.ts#paidAbilitiesIncludingHosted",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#syncLongTermInvestment",
+          "site": "src/state/cardFlags/cardDeclarations.ts#syncLongTermInvestment",
           "kinds": []
         },
         {
@@ -13969,7 +13969,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#onRunnerTurnEnds",
+          "site": "src/state/cardFlags/staticFlags.ts#onRunnerTurnEnds",
           "kinds": []
         },
         {
@@ -14069,7 +14069,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onRunnerTurnBegan",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onRunnerTurnBegan",
           "kinds": []
         }
       ],
@@ -14126,7 +14126,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#onCardRezzed",
+          "site": "src/state/cardFlags/staticFlags.ts#onCardRezzed",
           "kinds": []
         }
       ],
@@ -14145,7 +14145,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onCorpCardInstalledInRemote",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onCorpCardInstalledInRemote",
           "kinds": []
         }
       ],
@@ -14183,7 +14183,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onSuccessfulRunEnded",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onSuccessfulRunEnded",
           "kinds": []
         }
       ],
@@ -14297,14 +14297,14 @@
       ],
       "readers": [
         {
+          "site": "src/state/cardFlags/staticFlags.ts#onInstalledCorpCardTrashed",
+          "kinds": []
+        },
+        {
           "site": "src/state/procedures/trash.ts#noteOtherCardsTrashTriggers",
           "kinds": [
             "add_virus_counter"
           ]
-        },
-        {
-          "site": "src/state/staticFlags.ts#onInstalledCorpCardTrashed",
-          "kinds": []
         }
       ],
       "kinds": [
@@ -14497,7 +14497,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onAccessed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAccessed",
           "kinds": []
         }
       ],
@@ -15678,7 +15678,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onPassedAllIce",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onPassedAllIce",
           "kinds": []
         }
       ],
@@ -15884,7 +15884,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onProgramOrHardwareInstalled",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onProgramOrHardwareInstalled",
           "kinds": []
         }
       ],
@@ -16233,7 +16233,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onSuccessfulRunEnded",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onSuccessfulRunEnded",
           "kinds": []
         },
         {
@@ -16812,7 +16812,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#gripRevealed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#gripRevealed",
           "kinds": []
         }
       ],
@@ -17091,7 +17091,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onAccessed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAccessed",
           "kinds": []
         },
         {
@@ -17423,7 +17423,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#maybeRipDeal",
+          "site": "src/state/cardFlags/cardDeclarations.ts#maybeRipDeal",
           "kinds": []
         }
       ],
@@ -17585,7 +17585,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#geneticsPavilionDrawLimit",
+          "site": "src/state/cardFlags/staticFlags.ts#geneticsPavilionDrawLimit",
           "kinds": []
         }
       ],
@@ -17868,7 +17868,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#prepareTraceSpendOrder",
+          "site": "src/state/cardFlags/cardDeclarations.ts#prepareTraceSpendOrder",
           "kinds": []
         }
       ],
@@ -17966,7 +17966,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#notePowerCounters",
+          "site": "src/state/cardFlags/cardDeclarations.ts#notePowerCounters",
           "kinds": []
         }
       ],
@@ -18033,7 +18033,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/staticFlags.ts#onRunnerTurnEnds",
+          "site": "src/state/cardFlags/staticFlags.ts#onRunnerTurnEnds",
           "kinds": []
         },
         {
@@ -18388,7 +18388,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onTrashAbility",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onTrashAbility",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#corpIceInstallBlockReason",
           "kinds": []
         },
         {
@@ -18504,10 +18508,6 @@
         },
         {
           "site": "src/state/scoring.ts#canScoreAgenda",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#corpIceInstallBlockReason",
           "kinds": []
         },
         {
@@ -18764,7 +18764,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#startIdentitySetup",
+          "site": "src/state/cardFlags/cardDeclarations.ts#startIdentitySetup",
           "kinds": []
         }
       ],
@@ -19636,7 +19636,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/staticFlags.ts#traceBaseBonus",
+          "site": "src/state/cardFlags/staticFlags.ts#traceBaseBonus",
           "kinds": []
         }
       ],
@@ -19785,7 +19785,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#ensureConditionalSubroutine",
+          "site": "src/state/cardFlags/cardDeclarations.ts#ensureConditionalSubroutine",
           "kinds": []
         },
         {
@@ -20347,43 +20347,47 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#ensureConditionalSubroutine",
+          "site": "src/state/cardFlags/cardDeclarations.ts#ensureConditionalSubroutine",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#hostLimitReason",
+          "site": "src/state/cardFlags/cardDeclarations.ts#hostLimitReason",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onAgendaScored",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAgendaScored",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onFullBreak",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onFullBreak",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onProgramOrHardwareInstalled",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onProgramOrHardwareInstalled",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onRunnerEventPlayed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onRunnerEventPlayed",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#paidAbilitiesIncludingHosted",
+          "site": "src/state/cardFlags/cardDeclarations.ts#paidAbilitiesIncludingHosted",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#resolveDeclaration",
+          "site": "src/state/cardFlags/cardDeclarations.ts#resolveDeclaration",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#startIdentitySetup",
+          "site": "src/state/cardFlags/cardDeclarations.ts#startIdentitySetup",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#virusCountersAvailable",
+          "site": "src/state/cardFlags/cardDeclarations.ts#virusCountersAvailable",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#installBlockReason",
           "kinds": []
         },
         {
@@ -20534,10 +20538,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/staticFlags.ts#installBlockReason",
-          "kinds": []
-        },
-        {
           "site": "src/state/turn.ts#isCaissaProgram",
           "kinds": []
         },
@@ -20596,7 +20596,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onFullBreak",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onFullBreak",
           "kinds": []
         }
       ],
@@ -22041,75 +22041,119 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#ensureConditionalSubroutine",
+          "site": "src/state/cardFlags/cardDeclarations.ts#ensureConditionalSubroutine",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#hostLimitReason",
+          "site": "src/state/cardFlags/cardDeclarations.ts#hostLimitReason",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#maybeBetterCitizen",
+          "site": "src/state/cardFlags/cardDeclarations.ts#maybeBetterCitizen",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#noteApproachIce",
+          "site": "src/state/cardFlags/cardDeclarations.ts#noteApproachIce",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#notePowerCounters",
+          "site": "src/state/cardFlags/cardDeclarations.ts#notePowerCounters",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onAccessFinishedWithoutStealOrTrash",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAccessFinishedWithoutStealOrTrash",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onAccessed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAccessed",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onAgendaScored",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAgendaScored",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onCardAdvanced",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onCardAdvanced",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onCorpCardInstalledInRemote",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onCorpCardInstalledInRemote",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onFullBreak",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onFullBreak",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onIceRezzed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onIceRezzed",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onProgramOrHardwareInstalled",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onProgramOrHardwareInstalled",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onRunnerTurnBegan",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onRunnerTurnBegan",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onSuccessfulRunEnded",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onSuccessfulRunEnded",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onTrashAbility",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onTrashAbility",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#resolveDeclaration",
+          "site": "src/state/cardFlags/cardDeclarations.ts#resolveDeclaration",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#startIdentitySetup",
+          "site": "src/state/cardFlags/cardDeclarations.ts#startIdentitySetup",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#breachCreditGain",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#corpStartsWithBadPublicity",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#iceInstallCapRefuses",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#installBlockReason",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#onCardRezzed",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#onCorpDrew",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#onInstalledCorpCardTrashed",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#onInstalledProgramTrashed",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#onRunnerDrew",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#onRunnerInstalledProgramOrHardware",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#onRunnerTurnEnds",
           "kinds": []
         },
         {
@@ -22485,50 +22529,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/staticFlags.ts#breachCreditGain",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#corpStartsWithBadPublicity",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#iceInstallCapRefuses",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#installBlockReason",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#onCardRezzed",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#onCorpDrew",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#onInstalledCorpCardTrashed",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#onInstalledProgramTrashed",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#onRunnerDrew",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#onRunnerInstalledProgramOrHardware",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#onRunnerTurnEnds",
-          "kinds": []
-        },
-        {
           "site": "src/state/trace.ts#resolveTrace",
           "kinds": []
         },
@@ -22860,7 +22860,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#traceBaseBonus",
+          "site": "src/state/cardFlags/staticFlags.ts#traceBaseBonus",
           "kinds": []
         }
       ],
@@ -23093,7 +23093,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#onRunnerTurnEnds",
+          "site": "src/state/cardFlags/staticFlags.ts#onRunnerTurnEnds",
           "kinds": []
         }
       ],
@@ -23263,14 +23263,14 @@
       ],
       "readers": [
         {
+          "site": "src/state/cardFlags/staticFlags.ts#onInstalledProgramTrashed",
+          "kinds": []
+        },
+        {
           "site": "src/state/procedures/trash.ts#noteOtherCardsTrashTriggers",
           "kinds": [
             "trash_self"
           ]
-        },
-        {
-          "site": "src/state/staticFlags.ts#onInstalledProgramTrashed",
-          "kinds": []
         }
       ],
       "kinds": [
@@ -23451,7 +23451,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#notePowerCounters",
+          "site": "src/state/cardFlags/cardDeclarations.ts#notePowerCounters",
           "kinds": []
         }
       ],
@@ -23486,7 +23486,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#notePowerCounters",
+          "site": "src/state/cardFlags/cardDeclarations.ts#notePowerCounters",
           "kinds": []
         },
         {
@@ -23509,7 +23509,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/cardDeclarations.ts#onProgramOrHardwareInstalled",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onProgramOrHardwareInstalled",
           "kinds": []
         }
       ],
@@ -24212,27 +24212,50 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#consideredAdvancement",
+          "site": "src/state/cardFlags/cardDeclarations.ts#consideredAdvancement",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#hostLimitReason",
+          "site": "src/state/cardFlags/cardDeclarations.ts#hostLimitReason",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onAccessed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onAccessed",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onIceRezzed",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onIceRezzed",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#onProgramOrHardwareInstalled",
+          "site": "src/state/cardFlags/cardDeclarations.ts#onProgramOrHardwareInstalled",
           "kinds": []
         },
         {
-          "site": "src/state/cardDeclarations.ts#virusCountersAvailable",
+          "site": "src/state/cardFlags/cardDeclarations.ts#virusCountersAvailable",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#corpIceInstallBlockReason",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
+          "kinds": [],
+          "mirrors": [
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
+          ]
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#installBlockReason",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#onCardRezzed",
+          "kinds": []
+        },
+        {
+          "site": "src/state/cardFlags/staticFlags.ts#onRunnerTurnEnds",
           "kinds": []
         },
         {
@@ -24397,29 +24420,6 @@
         },
         {
           "site": "src/state/scoring.ts#canScoreAgenda",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#corpIceInstallBlockReason",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
-          "kinds": [],
-          "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
-          ]
-        },
-        {
-          "site": "src/state/staticFlags.ts#installBlockReason",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#onCardRezzed",
-          "kinds": []
-        },
-        {
-          "site": "src/state/staticFlags.ts#onRunnerTurnEnds",
           "kinds": []
         },
         {
@@ -24759,10 +24759,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
           "kinds": [],
           "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
           ]
         }
       ],
@@ -24781,10 +24781,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
           "kinds": [],
           "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
           ]
         }
       ],
@@ -24803,10 +24803,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
           "kinds": [],
           "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
           ]
         }
       ],
@@ -24825,10 +24825,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
           "kinds": [],
           "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
           ]
         }
       ],
@@ -24854,10 +24854,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#deckbuildingReport",
+          "site": "src/state/cardFlags/staticFlags.ts#deckbuildingReport",
           "kinds": [],
           "mirrors": [
-            "src/state/staticFlags.ts#DeckEntry"
+            "src/state/cardFlags/staticFlags.ts#DeckEntry"
           ]
         }
       ],

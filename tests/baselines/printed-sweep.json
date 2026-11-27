@@ -737,7 +737,7 @@
       "abilities": [
         "Whenever you rez a piece of ice, you may move any number of advancement tokens from Anson Rose to that ice."
       ],
-      "note": "Fix-now: the decl:anson handler (src/state/cardDeclarations.ts ~1016) splits the option id 'decl:anson:<ansonId>:<iceId>' as [, sourceId, iceId], so sourceId is 'anson' and accepting moves nothing (cr-checker). Even when fixed it moves all tokens; the Corp should choose a number. Unique and 1 advancement token at turn begin match.",
+      "note": "Fix-now: the decl:anson handler (src/state/cardFlags/cardDeclarations.ts ~1016) splits the option id 'decl:anson:<ansonId>:<iceId>' as [, sourceId, iceId], so sourceId is 'anson' and accepting moves nothing (cr-checker). Even when fixed it moves all tokens; the Corp should choose a number. Unique and 1 advancement token at turn begin match.",
       "cr": [
         "1.2.1",
         "9.6.9"
@@ -4224,7 +4224,7 @@
       "abilities": [
         "Once per turn → When you encounter a piece of ice, you may pay 2[credit]. If you do, it gains code gate for the remainder of that encounter."
       ],
-      "note": "noteEncounterIce (src/state/cardDeclarations.ts) sets the shared turn flag engoloUsedThisTurn when the offer opens, so a decline uses the once per turn (9.1.6b) and Laamb's ability too; the decl:engolo handler writes code gate into ice.subtypes permanently instead of for the encounter (9.10.1). Breaker field read by FX-pump: strength 2, interface 1: break 1 code gate subroutine, 2: +4 strength — matches.",
+      "note": "noteEncounterIce (src/state/cardFlags/cardDeclarations.ts) sets the shared turn flag engoloUsedThisTurn when the offer opens, so a decline uses the once per turn (9.1.6b) and Laamb's ability too; the decl:engolo handler writes code gate into ice.subtypes permanently instead of for the encounter (9.10.1). Breaker field read by FX-pump: strength 2, interface 1: break 1 code gate subroutine, 2: +4 strength — matches.",
       "cr": [
         "9.1.6b",
         "9.3.6g",
@@ -5337,7 +5337,7 @@
       "abilities": [
         "Whenever you approach a piece of ice, you may expose it. You may then trash GPI Net Tap to jack out."
       ],
-      "note": "The expose handler (src/state/cardDeclarations.ts) reads the option id decl:gpi-expose:<gpi>:<ice> at index 2, which is GPI Net Tap's own id, so the ice is never exposed; it sets faceup directly instead of beginExpose (1.21.3, 1.21.4). The offer label names facedown ice to the Runner before any expose (10.2.2a, area 4). The trash-to-jack-out offer matches.",
+      "note": "The expose handler (src/state/cardFlags/cardDeclarations.ts) reads the option id decl:gpi-expose:<gpi>:<ice> at index 2, which is GPI Net Tap's own id, so the ice is never exposed; it sets faceup directly instead of beginExpose (1.21.3, 1.21.4). The offer label names facedown ice to the Runner before any expose (10.2.2a, area 4). The trash-to-jack-out offer matches.",
       "cr": [
         "1.21.3",
         "1.21.4",
@@ -6244,7 +6244,7 @@
       "abilities": [
         "When the Runner trashes this asset (while it is rezzed), take 1 bad publicity."
       ],
-      "note": "onInstalledCorpCardTrashed (src/state/staticFlags.ts), called for every installed Corp trash, gives the bad publicity whenever it was rezzed without checking who trashed it, so the Corp trashing it also takes 1 (1.14.5). Gain 1 and draw 1 at turn begin match.",
+      "note": "onInstalledCorpCardTrashed (src/state/cardFlags/staticFlags.ts), called for every installed Corp trash, gives the bad publicity whenever it was rezzed without checking who trashed it, so the Corp trashing it also takes 1 (1.14.5). Gain 1 and draw 1 at turn begin match.",
       "cr": [
         "1.14.5",
         "1.2.1"
@@ -12787,7 +12787,7 @@
       "abilities": [
         "Whenever the Corp draws 1 or more cards, if it is not the first time they have drawn cards this turn, they lose 1[credit]."
       ],
-      "note": "The only reader, onCorpDrew (src/state/staticFlags.ts), walks rezzedWith(): rezzed cards in server roots and ice. A Runner current in the play area is never found, so it never fires (1.8.3a). The current's lifetime matches.",
+      "note": "The only reader, onCorpDrew (src/state/cardFlags/staticFlags.ts), walks rezzedWith(): rezzed cards in server roots and ice. A Runner current in the play area is never found, so it never fires (1.8.3a). The current's lifetime matches.",
       "cr": [
         "1.8.3a",
         "3.7.1b"

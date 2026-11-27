@@ -8,7 +8,7 @@ import { abilitiesSuppressed } from "../continuous/abilities.js";
 import type { Effect } from "../../effects/ir.js";
 import type { GameState, ServerId } from "../types.js";
 import { CR } from "../../timing/labels.js";
-import { maybeRipDeal } from "../cardDeclarations.js";
+import { maybeRipDeal } from "../cardFlags/cardDeclarations.js";
 import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import { fireOnArchivesFacedownTurnedFaceupGte } from "../triggers/miscConditionalHooks.js";

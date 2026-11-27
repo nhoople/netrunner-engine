@@ -12,7 +12,7 @@ import {
 } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
-import { onCardAdvanced } from "../state/cardDeclarations.js";
+import { onCardAdvanced } from "../state/cardFlags/cardDeclarations.js";
 import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.js";
 import { noteStoredConditional } from "../state/triggers/storedConditionalHooks.js";
 import { fireFirstAdvancementOnServer } from "../state/triggers/storedTriggers.js";

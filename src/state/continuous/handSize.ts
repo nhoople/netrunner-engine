@@ -2,7 +2,7 @@
 
 import type { GameState } from "../types.js";
 import { abilitiesSuppressed } from "./abilities.js";
-import { agendaPointHandSize } from "../staticFlags.js";
+import { agendaPointHandSize } from "../cardFlags/staticFlags.js";
 import { corpHandSizeFromCurrents } from "./currents.js";
 
 /**

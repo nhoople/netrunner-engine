@@ -2,7 +2,10 @@
  * Seat visibility policy (standardization S5).
  * What a seat may see for faces, counters, and hosted cards (CR 1.18 / 4.6 / 4.8).
  */
-import { consideredAdvancement, gripRevealed } from "../cardDeclarations.js";
+import {
+  consideredAdvancement,
+  gripRevealed,
+} from "../cardFlags/cardDeclarations.js";
 import { isInstalled } from "../procedures/uninstall.js";
 import type {
   CardInstance,

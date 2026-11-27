@@ -29,7 +29,7 @@ import {
   serversMatchingSpec,
 } from "../state/run/runStart.js";
 import { trashInstalledLegalTargets } from "../effects/eval.js";
-import { syncLongTermInvestment } from "../state/cardDeclarations.js";
+import { syncLongTermInvestment } from "../state/cardFlags/cardDeclarations.js";
 import {
   memoryLimit,
   usedMemory,
@@ -41,7 +41,7 @@ import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { hasActiveLockdown } from "../state/continuous/lockdowns.js";
 import { corpMayScore } from "../cards/stubs.js";
-import { corpIceInstallBlockReason } from "../state/staticFlags.js";
+import { corpIceInstallBlockReason } from "../state/cardFlags/staticFlags.js";
 import { mayAdvanceInstalledCard } from "../state/advanceable.js";
 import { isForbidden } from "./checkpoints.js";
 import type { TimingStepDef } from "../timing/graph.js";

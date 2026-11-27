@@ -2,22 +2,22 @@
  * Static declarations that name one card's procedure. Each function runs
  * at the moment that declaration describes.
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { subtractRunnerCreditPool } from "./costs.js";
-import { noteTargetedMarketing } from "./continuous/currents.js";
-import { noteAzmariNamedTypeMatch } from "./install/programHardwareInstall.js";
-import { log } from "./createGame.js";
-import type { CardInstance, GameState, ServerId, Side } from "./types.js";
-import { runnerWinsOnEmptyRnd } from "./emptyRnd.js";
-import { CR } from "../timing/labels.js";
-import { fx } from "../effects/ir.js";
-import { startTrace } from "./trace.js";
-import { memoryLimit, usedMemory } from "./turn.js";
-import { openPendingChoose } from "./triggers/pendingChoice.js";
-import { pickRandomSubset } from "./rng.js";
-import { trashCard } from "./procedures/trash.js";
-import { unhostCard } from "./procedures/host.js";
-import { uninstallCard } from "./procedures/uninstall.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { subtractRunnerCreditPool } from "../costs.js";
+import { noteTargetedMarketing } from "../continuous/currents.js";
+import { noteAzmariNamedTypeMatch } from "../install/programHardwareInstall.js";
+import { log } from "../createGame.js";
+import type { CardInstance, GameState, ServerId, Side } from "../types.js";
+import { runnerWinsOnEmptyRnd } from "../emptyRnd.js";
+import { CR } from "../../timing/labels.js";
+import { fx } from "../../effects/ir.js";
+import { startTrace } from "../trace.js";
+import { memoryLimit, usedMemory } from "../turn.js";
+import { openPendingChoose } from "../triggers/pendingChoice.js";
+import { pickRandomSubset } from "../rng.js";
+import { trashCard } from "../procedures/trash.js";
+import { unhostCard } from "../procedures/host.js";
+import { uninstallCard } from "../procedures/uninstall.js";
 
 const noop = (side: Side) => fx.do({ kind: "gain_credits", side, amount: 0 });
 
