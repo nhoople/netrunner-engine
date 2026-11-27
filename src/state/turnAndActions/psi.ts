@@ -1,22 +1,22 @@
 /** Psi games (CR 10.14.6) — v0 sequential bids like trace boost. */
 
-import { evalEffect } from "../effects/eval.js";
-import { firePsiCreditsRevealed } from "./triggers/storedTriggers.js";
-import type { Effect } from "../effects/ir.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./setupAndEnd/createGame.js";
+import { evalEffect } from "../../effects/eval.js";
+import { firePsiCreditsRevealed } from "../triggers/storedTriggers.js";
+import type { Effect } from "../../effects/ir.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../setupAndEnd/createGame.js";
 import {
   activeCorpCurrentIds,
   activeRunnerCurrentIds,
-} from "./continuous/currents.js";
-import { dealDamage } from "./damageAndPrevention/damage.js";
+} from "../continuous/currents.js";
+import { dealDamage } from "../damageAndPrevention/damage.js";
 import {
   hostedCreditsSpendableDuringRuns,
   subtractRunnerCreditPool,
-} from "./keywordsAndCredits/costs.js";
-import type { GameState } from "./types.js";
-import { CR } from "../timing/labels.js";
-import { nextId } from "./ids.js";
+} from "../keywordsAndCredits/costs.js";
+import type { GameState } from "../types.js";
+import { CR } from "../../timing/labels.js";
+import { nextId } from "../ids.js";
 
 function secretSpendBannedAmount(state: GameState): number | null {
   for (const id of [

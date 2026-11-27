@@ -3,7 +3,7 @@ import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { effectiveRunnerTags } from "../../state/keywordsAndCredits/tags.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";

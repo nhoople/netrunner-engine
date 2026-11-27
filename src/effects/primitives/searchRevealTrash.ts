@@ -6,7 +6,7 @@ import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { mayAdvanceInstalledCard } from "../../state/counters/advanceable.js";
 import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
-import { memoryLimit, usedMemory } from "../../state/turn.js";
+import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";
 import type { RuleCite } from "../../state/types.js";
 import { chooseCards } from "../chooseCards.js";
 import { evalEffect } from "../eval.js";
@@ -15,7 +15,7 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { enterSetAside } from "../../state/zones.js";
 import { corpCanInstallByAbility } from "../corpAbilityInstall.js";
 

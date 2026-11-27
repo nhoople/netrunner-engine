@@ -24,7 +24,7 @@ import {
   memoryLimit,
   memoryNeededToInstall,
   usedMemory,
-} from "../state/turn.js";
+} from "../state/turnAndActions/turn.js";
 import type { GameState } from "../state/types.js";
 import { noteVirusProgramInstalled } from "../state/install/virusInstall.js";
 import {

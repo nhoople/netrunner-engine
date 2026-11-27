@@ -1,4 +1,4 @@
-import { noteRunnerClickDuringRun } from "../state/clickHooks.js";
+import { noteRunnerClickDuringRun } from "../state/turnAndActions/clickHooks.js";
 import type { Effect } from "../effects/ir.js";
 import {
   endLooksAndReveals,
@@ -37,7 +37,7 @@ import {
 import {
   firstClickMustBlocks,
   firstClickMustIsActive,
-} from "../state/firstClickMust.js";
+} from "../state/turnAndActions/firstClickMust.js";
 import {
   basicDrawBonus,
   remoteRootAccessTax,
@@ -119,20 +119,24 @@ import {
   abandonExtraDifferentAction,
   noteCorpActionType,
   takeExtraDifferentAction,
-} from "../state/corpActionHooks.js";
+} from "../state/turnAndActions/corpActionHooks.js";
 import {
   noteAccessTrash,
   fireMeatDamageWhenRunnerTakesTags,
 } from "../state/hostingAndTrash/trashHooks.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
-import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
-import { psiCorpBid, psiRunnerBid } from "../state/psi.js";
-import { agendaPointsFor } from "../state/scoring.js";
+import {
+  boostTrace,
+  resolveTrace,
+  spendLink,
+} from "../state/turnAndActions/trace.js";
+import { psiCorpBid, psiRunnerBid } from "../state/turnAndActions/psi.js";
+import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import {
   markAbilityUsed,
   programBannedThisRun,
   wasAbilityUsed,
-} from "../state/turn.js";
+} from "../state/turnAndActions/turn.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { resolvePendingOnEncounter } from "../state/run/onEncounter.js";
 import { runnerAbilityCarrierIds } from "../state/setupAndEnd/additionalIdentities.js";

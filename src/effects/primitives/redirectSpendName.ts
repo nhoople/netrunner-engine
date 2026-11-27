@@ -3,7 +3,7 @@ import {
   breakNextSubroutines,
   interfaceBlock,
   runnerBreakBlock,
-} from "../../state/procedures/break.js";
+} from "../../state/turnAndActions/break.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";

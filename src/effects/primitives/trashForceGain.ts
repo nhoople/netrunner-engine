@@ -2,7 +2,7 @@
 import { CR } from "../../timing/labels.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { addIceStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
-import { startTrace } from "../../state/trace.js";
+import { startTrace } from "../../state/turnAndActions/trace.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect, grantAbilityCredits } from "../eval.js";

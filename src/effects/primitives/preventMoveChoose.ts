@@ -9,7 +9,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

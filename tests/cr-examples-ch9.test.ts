@@ -38,7 +38,7 @@ import {
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { noteProgramOrHardwareInstalled } from "../src/state/install/programHardwareInstall.js";
 import { onRunnerTurnEnds } from "../src/state/cardFlags/staticFlags.js";
-import { beginRunnerTurnFlags } from "../src/state/turn.js";
+import { beginRunnerTurnFlags } from "../src/state/turnAndActions/turn.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { passIdle } from "../src/demo/passIdle.js";
@@ -1868,7 +1868,7 @@ describe("CR examples, chapter 9", () => {
     tagged = must(tagged, { type: "choose_option", optionId: "247:mr-1" });
 
     const forfeited = at(tagged.log, "Forfeit AstroScript Pilot Program");
-    // The when-scored ability resolves as when scored (state/whenScored.ts).
+    // The when-scored ability resolves as when scored (state/turnAndActions/whenScored.ts).
     const resolved = at(
       tagged.log,
       "Add 1 agenda counter(s) to Market Research",

@@ -35,13 +35,13 @@ import {
   canScoreAgenda,
   agendaPointsFor,
   effectiveAdvancementRequirement,
-} from "../state/scoring.js";
+} from "../state/turnAndActions/scoring.js";
 import { enterSetAside } from "../state/zones.js";
 import {
   memoryLimit,
   memoryNeededToInstall,
   usedMemory,
-} from "../state/turn.js";
+} from "../state/turnAndActions/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import {
@@ -181,7 +181,7 @@ import { hostCard } from "../state/hostingAndTrash/host.js";
 import {
   allSubroutinesBrokenByRunner,
   subroutinesBrokenByRunnerCount,
-} from "../state/procedures/break.js";
+} from "../state/turnAndActions/break.js";
 export {
   fireOnBypassTriggers,
   fireHostRezStateTriggers,

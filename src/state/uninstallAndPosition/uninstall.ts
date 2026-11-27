@@ -32,8 +32,8 @@
 import { log } from "../setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import type { CardInstance, GameState, ServerId } from "../types.js";
-import { removeCardFromCurrentZone } from "../scoring.js";
-import { endEffectsOnPreviousObject } from "../turn.js";
+import { removeCardFromCurrentZone } from "../turnAndActions/scoring.js";
+import { endEffectsOnPreviousObject } from "../turnAndActions/turn.js";
 import { cancelPendingIfSourceInactive } from "../triggers/pendingAbilities.js";
 import {
   fireOnUninstall,

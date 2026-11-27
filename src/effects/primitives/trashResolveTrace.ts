@@ -9,8 +9,8 @@ import {
   addLingeringEffect,
   LINGERING_KIND_RUNNER_MU,
 } from "../../state/continuous/lingeringEffects.js";
-import { autoResolveTrace } from "../../state/trace.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { GameState, RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
@@ -20,7 +20,7 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { shiftEncounterBreaks } from "../../state/procedures/break.js";
+import { shiftEncounterBreaks } from "../../state/turnAndActions/break.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

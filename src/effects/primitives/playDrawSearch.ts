@@ -1,15 +1,15 @@
 /** Data and Destiny (dad) deluxe primitives — v1.115.0. */
-import { whenScoredEffect } from "../../state/whenScored.js";
+import { whenScoredEffect } from "../../state/turnAndActions/whenScored.js";
 import {
   markSubroutineBroken,
   subroutineBreakBlock,
-} from "../../state/procedures/break.js";
+} from "../../state/turnAndActions/break.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { startTrace } from "../../state/trace.js";
+import { startTrace } from "../../state/turnAndActions/trace.js";
 import { applyEncounterPrimitive } from "../encounterPrimitives.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { placeCurrentAfterPlay } from "../../state/continuous/currents.js";
-import { markAbilityUsed } from "../../state/turn.js";
+import { markAbilityUsed } from "../../state/turnAndActions/turn.js";
 import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";

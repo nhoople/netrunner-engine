@@ -13,7 +13,7 @@ import {
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import { canPayTakeTagsNestedCost } from "../src/effects/tagPrimitives.js";
-import { runnerPsiSpendable } from "../src/state/psi.js";
+import { runnerPsiSpendable } from "../src/state/turnAndActions/psi.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {

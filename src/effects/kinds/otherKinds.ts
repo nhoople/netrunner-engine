@@ -28,7 +28,7 @@ import {
   markSubroutineBroken,
   nextBreakableSubroutine,
   runnerBreakBlock,
-} from "../../state/procedures/break.js";
+} from "../../state/turnAndActions/break.js";
 import { applyRunAccessRestrictions } from "../../state/access/accessFilter.js";
 import {
   corpInstallCost,
@@ -38,7 +38,7 @@ import {
   subtractRunnerCreditPool,
 } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { beginExtraDifferentAction } from "../../state/corpActionHooks.js";
+import { beginExtraDifferentAction } from "../../state/turnAndActions/corpActionHooks.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import {
   beginExpose,
@@ -77,7 +77,7 @@ import {
   checkWinConditions,
   scoreAgenda,
   stealAgenda,
-} from "../../state/scoring.js";
+} from "../../state/turnAndActions/scoring.js";
 import { effectiveRunnerTags } from "../../state/keywordsAndCredits/tags.js";
 import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
 import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
@@ -118,7 +118,7 @@ import { iceFaceVisible } from "../../state/visibility/seatVisibility.js";
 import {
   allSubroutinesBrokenByRunner,
   resetEncounterBreaks,
-} from "../../state/procedures/break.js";
+} from "../../state/turnAndActions/break.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,

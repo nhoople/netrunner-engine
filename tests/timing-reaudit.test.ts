@@ -439,7 +439,7 @@ describe("replacement order (CR 9.9.11a)", () => {
 
 describe("conditional ability classes (CR 9.6.14)", () => {
   // Fixed in RF-1: the when-scored ability includes the field
-  // badPublicityOnScore (state/whenScored.ts), whoever resolves it.
+  // badPublicityOnScore (state/turnAndActions/whenScored.ts), whoever resolves it.
   it("24/7 News Cycle resolving Hostile Takeover's when-scored ability gives 7 credits and 1 bad publicity (CR 9.6.14c, 9.6.14d)", () => {
     let s = base();
     s.cards["news-1"] = instantiateCard(

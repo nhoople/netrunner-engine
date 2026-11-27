@@ -11,8 +11,8 @@ import {
   dealDamage,
   removePendingDamageEntirely,
 } from "../../state/damageAndPrevention/damage.js";
-import { autoResolveTrace } from "../../state/trace.js";
-import { memoryLimit, usedMemory } from "../../state/turn.js";
+import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
+import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import { evalEffect, grantAbilityCredits, type EffectCtx } from "../eval.js";

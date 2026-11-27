@@ -17,7 +17,7 @@ import {
   memoryLimit,
   usedMemory,
   effectiveMemoryCost,
-} from "../../state/turn.js";
+} from "../../state/turnAndActions/turn.js";
 import { enterSetAside } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
 import { corpCardInstallable } from "../corpInstall.js";
@@ -41,7 +41,7 @@ import { fireOnInstall, fireHostRezStateTriggers, fireOnRez } from "../eval.js";
 import { random } from "../../state/rng.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 
 export function applySearchKinds(
   ctx: EffectCtx,

@@ -4,7 +4,7 @@ import { likeCardsAtDestination } from "../actions/installCorp.js";
 import {
   actionMeetsFirstClickMust,
   firstClickMustIsActive,
-} from "../state/firstClickMust.js";
+} from "../state/turnAndActions/firstClickMust.js";
 import {
   abilityCost,
   basicTrashResourceCreditCost,
@@ -21,7 +21,10 @@ import {
 } from "../state/keywordsAndCredits/costs.js";
 import { runnerInstallCost } from "../actions/installRunner.js";
 import { eventClicksToPlay } from "../actions/play.js";
-import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
+import {
+  agendaPointsFor,
+  canScoreAgenda,
+} from "../state/turnAndActions/scoring.js";
 import { isRunTargetAllowed } from "../state/run/runLegality.js";
 import { additionalRunInitiateTax } from "../state/run/runInitiateTax.js";
 import {
@@ -35,7 +38,7 @@ import {
   usedMemory,
   effectiveMemoryCost,
   wasAbilityUsed,
-} from "../state/turn.js";
+} from "../state/turnAndActions/turn.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/setupAndEnd/additionalIdentities.js";
 import {

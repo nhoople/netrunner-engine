@@ -266,7 +266,7 @@
           ]
         },
         {
-          "site": "src/state/procedures/break.ts#printedTest",
+          "site": "src/state/turnAndActions/break.ts#printedTest",
           "kinds": []
         },
         {
@@ -807,7 +807,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -826,7 +826,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -845,7 +845,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -868,7 +868,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -887,7 +887,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -906,7 +906,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -925,7 +925,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -944,7 +944,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -1026,7 +1026,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -1045,7 +1045,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -1064,7 +1064,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         }
       ],
@@ -1149,15 +1149,15 @@
           ]
         },
         {
-          "site": "src/state/scoring.ts#agendaPointsFor",
+          "site": "src/state/turnAndActions/scoring.ts#agendaPointsFor",
           "kinds": []
         },
         {
-          "site": "src/state/scoring.ts#scoreAgenda",
+          "site": "src/state/turnAndActions/scoring.ts#scoreAgenda",
           "kinds": []
         },
         {
-          "site": "src/state/scoring.ts#stealAgenda",
+          "site": "src/state/turnAndActions/scoring.ts#stealAgenda",
           "kinds": []
         }
       ],
@@ -1178,7 +1178,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#agendaPointsFor",
+          "site": "src/state/turnAndActions/scoring.ts#agendaPointsFor",
           "kinds": []
         }
       ],
@@ -1199,7 +1199,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#agendaCounterPoints",
+          "site": "src/state/turnAndActions/scoring.ts#agendaCounterPoints",
           "kinds": []
         }
       ],
@@ -1218,7 +1218,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#checkWinConditions",
+          "site": "src/state/turnAndActions/scoring.ts#checkWinConditions",
           "kinds": []
         }
       ],
@@ -1237,7 +1237,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#checkWinConditions",
+          "site": "src/state/turnAndActions/scoring.ts#checkWinConditions",
           "kinds": []
         }
       ],
@@ -1256,7 +1256,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#agendaCounterPoints",
+          "site": "src/state/turnAndActions/scoring.ts#agendaCounterPoints",
           "kinds": []
         }
       ],
@@ -1548,7 +1548,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/whenScored.ts#whenScoredEffect",
+          "site": "src/state/turnAndActions/whenScored.ts#whenScoredEffect",
           "kinds": []
         }
       ],
@@ -2153,15 +2153,15 @@
           "kinds": []
         },
         {
-          "site": "src/state/procedures/break.ts#breakActionCost",
+          "site": "src/state/turnAndActions/break.ts#breakActionCost",
           "kinds": []
         },
         {
-          "site": "src/state/procedures/break.ts#declaredBreakBlock",
+          "site": "src/state/turnAndActions/break.ts#declaredBreakBlock",
           "kinds": []
         },
         {
-          "site": "src/state/procedures/break.ts#interfaceBlock",
+          "site": "src/state/turnAndActions/break.ts#interfaceBlock",
           "kinds": []
         }
       ],
@@ -2180,7 +2180,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/procedures/break.ts#interfaceBlock",
+          "site": "src/state/turnAndActions/break.ts#interfaceBlock",
           "kinds": []
         }
       ],
@@ -2199,7 +2199,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/procedures/break.ts#interfaceBlock",
+          "site": "src/state/turnAndActions/break.ts#interfaceBlock",
           "kinds": []
         }
       ],
@@ -2450,7 +2450,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/procedures/break.ts#runnerBreakBlock",
+          "site": "src/state/turnAndActions/break.ts#runnerBreakBlock",
           "kinds": []
         }
       ],
@@ -3027,7 +3027,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#checkWinConditions",
+          "site": "src/state/turnAndActions/scoring.ts#checkWinConditions",
           "kinds": []
         }
       ],
@@ -3539,11 +3539,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#memoryNeededToInstall",
+          "site": "src/state/turnAndActions/turn.ts#memoryNeededToInstall",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#programMemoryCosts",
+          "site": "src/state/turnAndActions/turn.ts#programMemoryCosts",
           "kinds": []
         }
       ],
@@ -4236,7 +4236,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/firstClickMust.ts#firstClickMustIsActive",
+          "site": "src/state/turnAndActions/firstClickMust.ts#firstClickMustIsActive",
           "kinds": []
         }
       ],
@@ -4453,7 +4453,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/psi.ts#resolvePsi",
+          "site": "src/state/turnAndActions/psi.ts#resolvePsi",
           "kinds": []
         }
       ],
@@ -4554,7 +4554,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/trace.ts#startTrace",
+          "site": "src/state/turnAndActions/trace.ts#startTrace",
           "kinds": []
         }
       ],
@@ -4985,7 +4985,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/clickHooks.ts#maybeFireSundewOnClickSpend",
+          "site": "src/state/turnAndActions/clickHooks.ts#maybeFireSundewOnClickSpend",
           "kinds": []
         }
       ],
@@ -5061,7 +5061,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/trace.ts#startTrace",
+          "site": "src/state/turnAndActions/trace.ts#startTrace",
           "kinds": []
         }
       ],
@@ -5137,7 +5137,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/trace.ts#spendLink",
+          "site": "src/state/turnAndActions/trace.ts#spendLink",
           "kinds": []
         }
       ],
@@ -5629,7 +5629,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#agendaPointsFor",
+          "site": "src/state/turnAndActions/scoring.ts#agendaPointsFor",
           "kinds": []
         }
       ],
@@ -6168,11 +6168,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#memoryNeededToInstall",
+          "site": "src/state/turnAndActions/turn.ts#memoryNeededToInstall",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#programMemoryCosts",
+          "site": "src/state/turnAndActions/turn.ts#programMemoryCosts",
           "kinds": []
         }
       ],
@@ -6196,11 +6196,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#memoryNeededToInstall",
+          "site": "src/state/turnAndActions/turn.ts#memoryNeededToInstall",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#programMemoryCosts",
+          "site": "src/state/turnAndActions/turn.ts#programMemoryCosts",
           "kinds": []
         }
       ],
@@ -6789,18 +6789,18 @@
           "kinds": []
         },
         {
-          "site": "src/state/procedures/break.ts#printedTest",
-          "kinds": [],
-          "mirrors": [
-            "src/state/procedures/break.ts#{}"
-          ]
-        },
-        {
-          "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
+          "site": "src/state/triggers/storedTriggers.ts#sameAbility",
           "kinds": []
         },
         {
-          "site": "src/state/triggers/storedTriggers.ts#sameAbility",
+          "site": "src/state/turnAndActions/break.ts#printedTest",
+          "kinds": [],
+          "mirrors": [
+            "src/state/turnAndActions/break.ts#{}"
+          ]
+        },
+        {
+          "site": "src/state/turnAndActions/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         },
         {
@@ -7592,11 +7592,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/procedures/break.ts#interfaceBlock",
+          "site": "src/state/turnAndActions/break.ts#interfaceBlock",
           "kinds": []
         },
         {
-          "site": "src/state/procedures/break.ts#paidAbilityBreakBlock",
+          "site": "src/state/turnAndActions/break.ts#paidAbilityBreakBlock",
           "kinds": []
         }
       ],
@@ -7615,7 +7615,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/procedures/break.ts#interfaceBlock",
+          "site": "src/state/turnAndActions/break.ts#interfaceBlock",
           "kinds": []
         }
       ],
@@ -7634,7 +7634,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/procedures/break.ts#interfaceBlock",
+          "site": "src/state/turnAndActions/break.ts#interfaceBlock",
           "kinds": []
         }
       ],
@@ -8124,7 +8124,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/procedures/break.ts#breakerExemptFromCap",
+          "site": "src/state/turnAndActions/break.ts#breakerExemptFromCap",
           "kinds": []
         }
       ],
@@ -8143,7 +8143,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/procedures/break.ts#printedBreakCap",
+          "site": "src/state/turnAndActions/break.ts#printedBreakCap",
           "kinds": []
         }
       ],
@@ -8892,7 +8892,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/psi.ts#resolvePsi",
+          "site": "src/state/turnAndActions/psi.ts#resolvePsi",
           "kinds": []
         }
       ],
@@ -8916,7 +8916,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#effectiveMemoryCost",
+          "site": "src/state/turnAndActions/turn.ts#effectiveMemoryCost",
           "kinds": []
         }
       ],
@@ -8935,7 +8935,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/turn.ts#effectiveMemoryCost",
+          "site": "src/state/turnAndActions/turn.ts#effectiveMemoryCost",
           "kinds": []
         }
       ],
@@ -8961,7 +8961,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/turn.ts#effectiveMemoryCost",
+          "site": "src/state/turnAndActions/turn.ts#effectiveMemoryCost",
           "kinds": []
         }
       ],
@@ -8980,7 +8980,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/turn.ts#memoryLimit",
+          "site": "src/state/turnAndActions/turn.ts#memoryLimit",
           "kinds": []
         }
       ],
@@ -9020,7 +9020,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/corpActionHooks.ts#noteCorpActionType",
+          "site": "src/state/turnAndActions/corpActionHooks.ts#noteCorpActionType",
           "kinds": []
         }
       ],
@@ -9057,11 +9057,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/turn.ts#memoryLimit",
+          "site": "src/state/turnAndActions/turn.ts#memoryLimit",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#restrictedMuBonusAvailable",
+          "site": "src/state/turnAndActions/turn.ts#restrictedMuBonusAvailable",
           "kinds": []
         }
       ],
@@ -9080,15 +9080,15 @@
       ],
       "readers": [
         {
-          "site": "src/state/turn.ts#caissaMuBonusAvailable",
+          "site": "src/state/turnAndActions/turn.ts#caissaMuBonusAvailable",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#memoryLimit",
+          "site": "src/state/turnAndActions/turn.ts#memoryLimit",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#memoryNeededToInstall",
+          "site": "src/state/turnAndActions/turn.ts#memoryNeededToInstall",
           "kinds": []
         }
       ],
@@ -9108,15 +9108,15 @@
       ],
       "readers": [
         {
-          "site": "src/state/turn.ts#memoryLimit",
+          "site": "src/state/turnAndActions/turn.ts#memoryLimit",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#memoryNeededToInstall",
+          "site": "src/state/turnAndActions/turn.ts#memoryNeededToInstall",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#programMemoryCosts",
+          "site": "src/state/turnAndActions/turn.ts#programMemoryCosts",
           "kinds": []
         }
       ],
@@ -9810,7 +9810,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/trace.ts#resolveTrace",
+          "site": "src/state/turnAndActions/trace.ts#resolveTrace",
           "kinds": []
         }
       ],
@@ -10140,7 +10140,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/phaseEndHooks.ts#noteCorpActionPhaseEnd",
+          "site": "src/state/turnAndActions/phaseEndHooks.ts#noteCorpActionPhaseEnd",
           "kinds": []
         }
       ],
@@ -10239,7 +10239,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/corpTurnBeginHooks.ts#noteOnCorpTurnBegin",
+          "site": "src/state/turnAndActions/corpTurnBeginHooks.ts#noteOnCorpTurnBegin",
           "kinds": []
         }
       ],
@@ -10256,7 +10256,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/corpTurnBeginHooks.ts#noteOnCorpTurnBeginIfRunnerUntagged",
+          "site": "src/state/turnAndActions/corpTurnBeginHooks.ts#noteOnCorpTurnBeginIfRunnerUntagged",
           "kinds": []
         }
       ],
@@ -10282,7 +10282,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/corpTurnEndHooks.ts#noteOnCorpTurnEnd",
+          "site": "src/state/turnAndActions/corpTurnEndHooks.ts#noteOnCorpTurnEnd",
           "kinds": []
         },
         {
@@ -10784,7 +10784,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/agendaHooks.ts#fireFirstAgendaScoredOrStolenThisTurn",
+          "site": "src/state/turnAndActions/agendaHooks.ts#fireFirstAgendaScoredOrStolenThisTurn",
           "kinds": []
         }
       ],
@@ -10881,7 +10881,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/clickHooks.ts#noteRunnerClickLose",
+          "site": "src/state/turnAndActions/clickHooks.ts#noteRunnerClickLose",
           "kinds": []
         }
       ],
@@ -11423,7 +11423,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/clickHooks.ts#maybeFireSeidrOnClickSpendOrLose",
+          "site": "src/state/turnAndActions/clickHooks.ts#maybeFireSeidrOnClickSpendOrLose",
           "kinds": []
         }
       ],
@@ -12652,7 +12652,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/phaseEndHooks.ts#noteRunnerActionPhaseEnd",
+          "site": "src/state/turnAndActions/phaseEndHooks.ts#noteRunnerActionPhaseEnd",
           "kinds": []
         }
       ],
@@ -12749,7 +12749,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/runnerTurnBeginHooks.ts#noteOnRunnerTurnBegin",
+          "site": "src/state/turnAndActions/runnerTurnBeginHooks.ts#noteOnRunnerTurnBegin",
           "kinds": []
         },
         {
@@ -12784,7 +12784,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/runnerTurnEndHooks.ts#noteOnRunnerTurnEnd",
+          "site": "src/state/turnAndActions/runnerTurnEndHooks.ts#noteOnRunnerTurnEnd",
           "kinds": []
         }
       ],
@@ -12810,7 +12810,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/whenScored.ts#whenScoredEffect",
+          "site": "src/state/turnAndActions/whenScored.ts#whenScoredEffect",
           "kinds": []
         }
       ],
@@ -12837,7 +12837,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/whenScored.ts#whenScoredEffect",
+          "site": "src/state/turnAndActions/whenScored.ts#whenScoredEffect",
           "kinds": [
             "add_agenda_counter"
           ]
@@ -12862,7 +12862,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/corpTurnEndHooks.ts#noteOnScoreTurnEnd",
+          "site": "src/state/turnAndActions/corpTurnEndHooks.ts#noteOnScoreTurnEnd",
           "kinds": []
         }
       ],
@@ -13212,11 +13212,11 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/trace.ts#resolveTrace.fireTraceHook",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnSuccessfulTraceDuringRun",
           "kinds": []
         },
         {
-          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnSuccessfulTraceDuringRun",
+          "site": "src/state/turnAndActions/trace.ts#resolveTrace.fireTraceHook",
           "kinds": []
         }
       ],
@@ -13361,19 +13361,19 @@
           "kinds": []
         },
         {
-          "site": "src/state/corpTurnBeginHooks.ts#noteCorpOnTurnBegin",
+          "site": "src/state/turnAndActions/corpTurnBeginHooks.ts#noteCorpOnTurnBegin",
           "kinds": []
         },
         {
-          "site": "src/state/runnerTurnBeginHooks.ts#noteRunnerIdentityOnTurnBegin",
+          "site": "src/state/turnAndActions/runnerTurnBeginHooks.ts#noteRunnerIdentityOnTurnBegin",
           "kinds": []
         },
         {
-          "site": "src/state/runnerTurnBeginHooks.ts#noteRunnerRigTurnBegin",
+          "site": "src/state/turnAndActions/runnerTurnBeginHooks.ts#noteRunnerRigTurnBegin",
           "kinds": []
         },
         {
-          "site": "src/state/runnerTurnBeginHooks.ts#noteRunnerScoreOnTurnBegin",
+          "site": "src/state/turnAndActions/runnerTurnBeginHooks.ts#noteRunnerScoreOnTurnBegin",
           "kinds": []
         },
         {
@@ -13413,7 +13413,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/runnerTurnBeginHooks.ts#noteRunnerRigTurnBegin",
+          "site": "src/state/turnAndActions/runnerTurnBeginHooks.ts#noteRunnerRigTurnBegin",
           "kinds": []
         }
       ],
@@ -13430,7 +13430,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/corpTurnBeginHooks.ts#noteCorpTenninTurnBegin",
+          "site": "src/state/turnAndActions/corpTurnBeginHooks.ts#noteCorpTenninTurnBegin",
           "kinds": []
         }
       ],
@@ -13447,7 +13447,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/corpTurnBeginHooks.ts#noteCorpOnTurnBeginIfRunnerTagged",
+          "site": "src/state/turnAndActions/corpTurnBeginHooks.ts#noteCorpOnTurnBeginIfRunnerTagged",
           "kinds": []
         }
       ],
@@ -13931,7 +13931,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/procedures/break.ts#breakActionCost",
+          "site": "src/state/turnAndActions/break.ts#breakActionCost",
           "kinds": []
         }
       ],
@@ -14042,11 +14042,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/agendaHooks.ts#fireFirstAgendaScoredOrStolenThisTurn",
+          "site": "src/state/turnAndActions/agendaHooks.ts#fireFirstAgendaScoredOrStolenThisTurn",
           "kinds": []
         },
         {
-          "site": "src/state/phaseEndHooks.ts#noteCorpActionPhaseEnd",
+          "site": "src/state/turnAndActions/phaseEndHooks.ts#noteCorpActionPhaseEnd",
           "kinds": []
         }
       ],
@@ -16515,11 +16515,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/trace.ts#corpCreditsForTrace",
+          "site": "src/state/turnAndActions/trace.ts#corpCreditsForTrace",
           "kinds": []
         },
         {
-          "site": "src/state/trace.ts#spendCorpCreditsForTrace.trySpend",
+          "site": "src/state/turnAndActions/trace.ts#spendCorpCreditsForTrace.trySpend",
           "kinds": []
         }
       ],
@@ -16561,7 +16561,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/clickHooks.ts#maybeFireSundewOnClickSpend",
+          "site": "src/state/turnAndActions/clickHooks.ts#maybeFireSundewOnClickSpend",
           "kinds": []
         }
       ],
@@ -16709,7 +16709,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#removeCardFromCurrentZone",
+          "site": "src/state/turnAndActions/scoring.ts#removeCardFromCurrentZone",
           "kinds": []
         }
       ],
@@ -17099,7 +17099,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/procedures/break.ts#declaredBreakBlock",
+          "site": "src/state/turnAndActions/break.ts#declaredBreakBlock",
           "kinds": []
         },
         {
@@ -17508,10 +17508,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/firstClickMust.ts#actionMeetsFirstClickMust",
-          "kinds": []
-        },
-        {
           "site": "src/state/keywordsAndCredits/costs.ts#abilityCost",
           "kinds": []
         },
@@ -17525,6 +17521,10 @@
         },
         {
           "site": "src/state/triggers/storedTriggers.ts#effectFromKey",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/firstClickMust.ts#actionMeetsFirstClickMust",
           "kinds": []
         }
       ],
@@ -17769,7 +17769,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/procedures/break.ts#midwayStationBreakTax",
+          "site": "src/state/turnAndActions/break.ts#midwayStationBreakTax",
           "kinds": []
         }
       ],
@@ -17807,7 +17807,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/clickHooks.ts#noteRunnerClickDuringRun",
+          "site": "src/state/turnAndActions/clickHooks.ts#noteRunnerClickDuringRun",
           "kinds": []
         }
       ],
@@ -17849,7 +17849,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#runnerScoredAgendaPointsModifier",
+          "site": "src/state/turnAndActions/scoring.ts#runnerScoredAgendaPointsModifier",
           "kinds": []
         }
       ],
@@ -17928,7 +17928,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/scoring.ts#canScoreAgenda",
+          "site": "src/state/turnAndActions/scoring.ts#canScoreAgenda",
           "kinds": []
         }
       ],
@@ -18010,7 +18010,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/psi.ts#secretSpendBannedAmount",
+          "site": "src/state/turnAndActions/psi.ts#secretSpendBannedAmount",
           "kinds": []
         }
       ],
@@ -18495,14 +18495,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/procedures/break.ts#runnerBreakBlock",
-          "kinds": []
-        },
-        {
-          "site": "src/state/scoring.ts#canScoreAgenda",
-          "kinds": []
-        },
-        {
           "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnPlay",
           "kinds": []
         },
@@ -18520,6 +18512,14 @@
         },
         {
           "site": "src/state/triggers/storedTriggers.ts#fireCardConditional",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/break.ts#runnerBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/scoring.ts#canScoreAgenda",
           "kinds": []
         },
         {
@@ -18680,7 +18680,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/psi.ts#spendRunnerPsiBid",
+          "site": "src/state/turnAndActions/psi.ts#spendRunnerPsiBid",
           "kinds": []
         }
       ],
@@ -19813,15 +19813,15 @@
           "kinds": []
         },
         {
-          "site": "src/state/procedures/break.ts#declaredBreakBlock",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/break.ts#printedTest",
-          "kinds": []
-        },
-        {
           "site": "src/state/run/onEncounter.ts#chosenIceBypassOffered",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/break.ts#declaredBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/break.ts#printedTest",
           "kinds": []
         },
         {
@@ -20450,10 +20450,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/firstClickMust.ts#actionMeetsFirstClickMust",
-          "kinds": []
-        },
-        {
           "site": "src/state/install/firstInstallDiscount.ts#isJobConnectionOrHardware",
           "kinds": []
         },
@@ -20510,27 +20506,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/procedures/break.ts#breakActionCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/break.ts#breakerExemptFromCap",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/break.ts#interfaceBlock",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/break.ts#runnerBreakBlock",
-          "kinds": []
-        },
-        {
           "site": "src/state/run/firstEncounterPassHooks.ts#noteSisyphusFirstPass",
-          "kinds": []
-        },
-        {
-          "site": "src/state/scoring.ts#checkWinConditions",
           "kinds": []
         },
         {
@@ -20538,15 +20514,39 @@
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#isCaissaProgram",
+          "site": "src/state/turnAndActions/break.ts#breakActionCost",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#memoryNeededToInstall.matches",
+          "site": "src/state/turnAndActions/break.ts#breakerExemptFromCap",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#programMemoryCosts",
+          "site": "src/state/turnAndActions/break.ts#interfaceBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/break.ts#runnerBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/firstClickMust.ts#actionMeetsFirstClickMust",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/scoring.ts#checkWinConditions",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/turn.ts#isCaissaProgram",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/turn.ts#memoryNeededToInstall.matches",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/turn.ts#programMemoryCosts",
           "kinds": []
         },
         {
@@ -22149,14 +22149,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/clickHooks.ts#maybeFireSundewOnClickSpend",
-          "kinds": []
-        },
-        {
-          "site": "src/state/clickHooks.ts#noteRunnerClickDuringRun",
-          "kinds": []
-        },
-        {
           "site": "src/state/continuous/currents.ts#enhancedLoginProtocolClick",
           "kinds": []
         },
@@ -22186,34 +22178,6 @@
         },
         {
           "site": "src/state/continuous/lockdowns.ts#trashActiveLockdownsAtCorpTurnBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/state/corpActionHooks.ts#abandonExtraDifferentAction",
-          "kinds": []
-        },
-        {
-          "site": "src/state/corpActionHooks.ts#beginExtraDifferentAction",
-          "kinds": []
-        },
-        {
-          "site": "src/state/corpActionHooks.ts#noteCorpActionType",
-          "kinds": []
-        },
-        {
-          "site": "src/state/corpTurnBeginHooks.ts#noteCorpOnTurnBeginIfRunnerTagged",
-          "kinds": []
-        },
-        {
-          "site": "src/state/corpTurnBeginHooks.ts#noteCorpTenninTurnBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/state/corpTurnBeginHooks.ts#noteOnCorpTurnBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/state/corpTurnBeginHooks.ts#noteOnCorpTurnBeginIfRunnerUntagged",
           "kinds": []
         },
         {
@@ -22473,42 +22437,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/phaseEndHooks.ts#noteCorpActionPhaseEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/state/phaseEndHooks.ts#noteRunnerActionPhaseEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/break.ts#declaredBreakBlock",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/break.ts#interfaceBlock",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/break.ts#paidAbilityBreakBlock",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/break.ts#runnerBreakBlock",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/break.ts#subroutineBreakBlock",
-          "kinds": []
-        },
-        {
-          "site": "src/state/psi.ts#resolvePsi",
-          "kinds": []
-        },
-        {
-          "site": "src/state/psi.ts#spendRunnerPsiBid",
-          "kinds": []
-        },
-        {
           "site": "src/state/rez/iceRezHooks.ts#noteHostRezStateTriggers",
           "kinds": []
         },
@@ -22545,38 +22473,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/runnerTurnBeginHooks.ts#noteOnRunnerTurnBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runnerTurnBeginHooks.ts#noteRunnerIdentityOnTurnBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runnerTurnBeginHooks.ts#noteRunnerRigTurnBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runnerTurnBeginHooks.ts#noteRunnerScoreOnTurnBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/state/scoring.ts#checkWinConditions",
-          "kinds": []
-        },
-        {
-          "site": "src/state/scoring.ts#removeCardFromCurrentZone",
-          "kinds": []
-        },
-        {
-          "site": "src/state/scoring.ts#scoreAgenda",
-          "kinds": []
-        },
-        {
-          "site": "src/state/scoring.ts#stealAgenda",
-          "kinds": []
-        },
-        {
           "site": "src/state/setupAndEnd/additionalIdentities.ts#hostFenrisIdentity",
           "kinds": []
         },
@@ -22598,18 +22494,6 @@
         },
         {
           "site": "src/state/setupAndEnd/identityFlipHooks.ts#fireCorpIdentityFlippedSuccessfulHqOrRdRun",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trace.ts#resolveTrace",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trace.ts#spendCorpCreditsForTrace.trySpend",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trace.ts#startTrace",
           "kinds": []
         },
         {
@@ -22738,6 +22622,122 @@
         },
         {
           "site": "src/state/triggers/strengthIncrease.ts#applyBreakerStrengthIncrease",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/break.ts#declaredBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/break.ts#interfaceBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/break.ts#paidAbilityBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/break.ts#runnerBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/break.ts#subroutineBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/clickHooks.ts#maybeFireSundewOnClickSpend",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/clickHooks.ts#noteRunnerClickDuringRun",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/corpActionHooks.ts#abandonExtraDifferentAction",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/corpActionHooks.ts#beginExtraDifferentAction",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/corpActionHooks.ts#noteCorpActionType",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/corpTurnBeginHooks.ts#noteCorpOnTurnBeginIfRunnerTagged",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/corpTurnBeginHooks.ts#noteCorpTenninTurnBegin",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/corpTurnBeginHooks.ts#noteOnCorpTurnBegin",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/corpTurnBeginHooks.ts#noteOnCorpTurnBeginIfRunnerUntagged",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/phaseEndHooks.ts#noteCorpActionPhaseEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/phaseEndHooks.ts#noteRunnerActionPhaseEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/psi.ts#resolvePsi",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/psi.ts#spendRunnerPsiBid",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/runnerTurnBeginHooks.ts#noteOnRunnerTurnBegin",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/runnerTurnBeginHooks.ts#noteRunnerIdentityOnTurnBegin",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/runnerTurnBeginHooks.ts#noteRunnerRigTurnBegin",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/runnerTurnBeginHooks.ts#noteRunnerScoreOnTurnBegin",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/scoring.ts#checkWinConditions",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/scoring.ts#removeCardFromCurrentZone",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/scoring.ts#scoreAgenda",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/scoring.ts#stealAgenda",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/trace.ts#resolveTrace",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/trace.ts#spendCorpCreditsForTrace.trySpend",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/trace.ts#startTrace",
           "kinds": []
         },
         {
@@ -24423,14 +24423,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/runnerTurnEndHooks.ts#noteOnRunnerTurnEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/state/scoring.ts#canScoreAgenda",
-          "kinds": []
-        },
-        {
           "site": "src/state/setupAndEnd/additionalIdentities.ts#legalFenrisHostIds",
           "kinds": []
         },
@@ -24451,11 +24443,19 @@
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#memoryNeededToInstall",
+          "site": "src/state/turnAndActions/runnerTurnEndHooks.ts#noteOnRunnerTurnEnd",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#programMemoryCosts",
+          "site": "src/state/turnAndActions/scoring.ts#canScoreAgenda",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/turn.ts#memoryNeededToInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turnAndActions/turn.ts#programMemoryCosts",
           "kinds": []
         },
         {
@@ -24563,7 +24563,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#stealAgenda",
+          "site": "src/state/turnAndActions/scoring.ts#stealAgenda",
           "kinds": []
         }
       ],
@@ -24601,7 +24601,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/corpActionHooks.ts#noteCorpActionType",
+          "site": "src/state/turnAndActions/corpActionHooks.ts#noteCorpActionType",
           "kinds": []
         }
       ],
@@ -24709,7 +24709,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/scoring.ts#checkWinConditions",
+          "site": "src/state/turnAndActions/scoring.ts#checkWinConditions",
           "kinds": []
         }
       ],
@@ -24732,15 +24732,15 @@
           "kinds": []
         },
         {
-          "site": "src/state/runnerTurnBeginHooks.ts#noteRunnerScoreOnTurnBegin",
+          "site": "src/state/turnAndActions/runnerTurnBeginHooks.ts#noteRunnerScoreOnTurnBegin",
           "kinds": []
         },
         {
-          "site": "src/state/scoring.ts#agendaPointsFor",
+          "site": "src/state/turnAndActions/scoring.ts#agendaPointsFor",
           "kinds": []
         },
         {
-          "site": "src/state/scoring.ts#stealAgenda",
+          "site": "src/state/turnAndActions/scoring.ts#stealAgenda",
           "kinds": []
         }
       ],

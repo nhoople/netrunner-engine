@@ -16,7 +16,7 @@ import {
   legalActions,
 } from "../src/index.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
-import { memoryLimit, usedMemory } from "../src/state/turn.js";
+import { memoryLimit, usedMemory } from "../src/state/turnAndActions/turn.js";
 import type { GameState, ServerId } from "../src/state/types.js";
 import { applyIntent } from "../src/index.js";
 import {

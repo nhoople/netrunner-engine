@@ -2,7 +2,7 @@
  * Card lifecycle conditionals (install / rez / play / access / forfeit /
  * break-subroutine) marked onto the pending bag (CR 9.6.2).
  */
-import { whenScoredEffect } from "../whenScored.js";
+import { whenScoredEffect } from "../turnAndActions/whenScored.js";
 import { playEffectFromCard } from "../../effects/abilityRecord.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import type { GameState } from "../types.js";

@@ -12,7 +12,7 @@ import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
-import { resetEncounterBreaks } from "../../state/procedures/break.js";
+import { resetEncounterBreaks } from "../../state/turnAndActions/break.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

@@ -4,7 +4,7 @@ import {
   breakNextSubroutines,
   interfaceBlock,
   runnerBreakBlock,
-} from "../../state/procedures/break.js";
+} from "../../state/turnAndActions/break.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import {
   corpInstallCost,

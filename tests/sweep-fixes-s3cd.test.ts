@@ -28,7 +28,7 @@ import { effectiveBreakerStrength } from "../src/cards/stubs.js";
 import {
   declaredBreakBlock,
   interfaceBlock,
-} from "../src/state/procedures/break.js";
+} from "../src/state/turnAndActions/break.js";
 import {
   mayAdvanceInstalledCard,
   printsCanBeAdvanced,
@@ -37,13 +37,17 @@ import { paidAbilityOpenIn } from "../src/state/keywordsAndCredits/costs.js";
 import { operationAndEventPlayCostIncreaseTotal } from "../src/state/keywordsAndCredits/costs.js";
 import { firePowerCounterOnAnyCorpInstall } from "../src/state/counters/powerCounters.js";
 import { computeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
-import { effectiveAdvancementRequirement } from "../src/state/scoring.js";
+import { effectiveAdvancementRequirement } from "../src/state/turnAndActions/scoring.js";
 import { collectBadPublicityGainedSubs } from "../src/state/continuous/continuousSubs.js";
-import { psiCorpBid, psiRunnerBid, startPsiGame } from "../src/state/psi.js";
+import {
+  psiCorpBid,
+  psiRunnerBid,
+  startPsiGame,
+} from "../src/state/turnAndActions/psi.js";
 import { effectiveIceSubtypes } from "../src/cards/stubs.js";
 import { stealDecision } from "../src/legality/candidatePending.js";
 import { hostCard } from "../src/state/hostingAndTrash/host.js";
-import { usedMemory } from "../src/state/turn.js";
+import { usedMemory } from "../src/state/turnAndActions/turn.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";
 import {
   atRunnerAction,

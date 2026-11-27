@@ -10,7 +10,7 @@ import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =

@@ -2,7 +2,7 @@
 import {
   markSubroutineBroken,
   subroutineBreakBlock,
-} from "../../state/procedures/break.js";
+} from "../../state/turnAndActions/break.js";
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";

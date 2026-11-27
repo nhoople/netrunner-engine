@@ -2,7 +2,7 @@
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { startPsiGame } from "../../state/psi.js";
+import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { chooseCards } from "../chooseCards.js";
 import { evalEffect } from "../eval.js";

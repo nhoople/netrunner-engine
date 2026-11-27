@@ -1,14 +1,14 @@
 /** Richer cost model + recurring credit refill (CR 1.10 / 1.16). */
 
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import { noteRunnerClickDuringRun } from "../clickHooks.js";
+import { noteRunnerClickDuringRun } from "../turnAndActions/clickHooks.js";
 import { iceAtRunnerPosition } from "../uninstallAndPosition/runPosition.js";
 import { log } from "../setupAndEnd/createGame.js";
 import { dealDamage } from "../damageAndPrevention/damage.js";
 import {
   moveForfeitedAgendaOutOfGame,
   removeCardFromCurrentZone,
-} from "../scoring.js";
+} from "../turnAndActions/scoring.js";
 import { enterSetAside } from "../zones.js";
 import {
   fireOnRemoveTags,

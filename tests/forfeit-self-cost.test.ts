@@ -15,7 +15,7 @@ import {
   loadCardCatalog,
   queryLegality,
 } from "../src/index.js";
-import { agendaPointsFor } from "../src/state/scoring.js";
+import { agendaPointsFor } from "../src/state/turnAndActions/scoring.js";
 import type { GameState } from "../src/state/types.js";
 import {
   syncPaidAbilitiesFromRecords,

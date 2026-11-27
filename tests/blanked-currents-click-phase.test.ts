@@ -11,7 +11,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { noteRunnerClickLose } from "../src/state/clickHooks.js";
+import { noteRunnerClickLose } from "../src/state/turnAndActions/clickHooks.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {

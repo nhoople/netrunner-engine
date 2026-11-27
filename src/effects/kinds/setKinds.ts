@@ -9,7 +9,7 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { enterSetAside } from "../../state/zones.js";
 import { serverHostingCard } from "../eval.js";
-import { markAbilityUsedThisRun } from "../../state/turn.js";
+import { markAbilityUsedThisRun } from "../../state/turnAndActions/turn.js";
 
 export function applySetKinds(
   ctx: EffectCtx,

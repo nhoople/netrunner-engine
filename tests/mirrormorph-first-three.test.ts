@@ -18,7 +18,7 @@ import {
   instantiateCard,
   loadCardCatalog,
 } from "../src/index.js";
-import { noteCorpActionType } from "../src/state/corpActionHooks.js";
+import { noteCorpActionType } from "../src/state/turnAndActions/corpActionHooks.js";
 import type { Action, GameState } from "../src/state/types.js";
 
 beforeAll(() => {

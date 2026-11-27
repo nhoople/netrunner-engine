@@ -530,7 +530,7 @@
     "src/state/uninstallAndPosition/runPosition.ts": {
       "ice": 1
     },
-    "src/state/scoring.ts": {
+    "src/state/turnAndActions/scoring.ts": {
       "deck": 2,
       "discardPile": 2,
       "hand": 2,

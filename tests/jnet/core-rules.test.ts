@@ -12,7 +12,10 @@ import {
   cardsDataPresent,
   crDataPresent,
 } from "../../src/index.js";
-import { memoryLimit, usedMemory } from "../../src/state/turn.js";
+import {
+  memoryLimit,
+  usedMemory,
+} from "../../src/state/turnAndActions/turn.js";
 import {
   installedCards,
   must,

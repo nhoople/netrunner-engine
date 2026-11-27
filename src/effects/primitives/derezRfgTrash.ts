@@ -1,7 +1,7 @@
 /** Free Mars (fm) Red Sand pack primitives — v1.133.0. */
 import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { RuleCite, Server, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import { chooseCards } from "../chooseCards.js";

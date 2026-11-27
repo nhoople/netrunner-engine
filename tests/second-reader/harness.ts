@@ -20,8 +20,11 @@ import {
   legalActions,
 } from "../../src/index.js";
 import type { Action, GameState } from "../../src/index.js";
-import { agendaPointsFor } from "../../src/state/scoring.js";
-import { memoryLimit, usedMemory } from "../../src/state/turn.js";
+import { agendaPointsFor } from "../../src/state/turnAndActions/scoring.js";
+import {
+  memoryLimit,
+  usedMemory,
+} from "../../src/state/turnAndActions/turn.js";
 import { hostCard } from "../../src/state/hostingAndTrash/host.js";
 import { isInstalled } from "../../src/state/uninstallAndPosition/uninstall.js";
 import {

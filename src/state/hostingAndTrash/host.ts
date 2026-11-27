@@ -17,7 +17,7 @@
  * trashes them at CR 10.3.1g (CR 1.13.13), so no code clears `hostId` on a
  * host's behalf.
  */
-import { removeCardFromCurrentZone } from "../scoring.js";
+import { removeCardFromCurrentZone } from "../turnAndActions/scoring.js";
 import type { GameState } from "../types.js";
 
 export interface HostOptions {

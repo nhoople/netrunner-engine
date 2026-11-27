@@ -144,45 +144,45 @@ Card abilities are a hand-authored effect language evaluated by `evalEffect`, no
 Every top-level folder and every folder under `src/` is listed here; `tests/readme-layout.test.ts` fails on a folder this map leaves out or names wrongly. No `src/` file may pass 2,000 lines (`tests/src-file-size.test.ts`); the files already over it are on a shrink-only list, `tests/baselines/src-file-size.json`.
 
 ```
-data/                # pins: cr-pin.json (CR tag), cards-pin.json (cards-data tag); cr-term-map.json
-docs/                # Effect IR grammar and generated kind reference, CR adherence gate, pin bump checklist, mutation scores
-scripts/             # fetch the pinned data, seeded playouts, generators for baselines and the kind reference
-stryker/             # mutation-test configs, one per CR audit area (local runs only)
-src/                 # index.ts: the package entry; cli.ts: the development host
-  actions/           # apply.ts: applyAction and choice dispatch; install, run, rez, break, play, score, access, phase
-  api/               # library.ts: createGame / queryLegality / applyIntent / getPublicView
-  cards/             # load.ts: the card loader; short-game setup and runtime helpers
-  cr/                # reads the pinned CR data in vendor/cr-data/
-  debug/             # hooks tests set: invariants after each action, timing steps, legality agreement
-  demo/              # scripted games and test drivers for the demos
-  effects/           # eval.ts: the evaluator; ir.ts: points to ir/; shared rules (credits, damage, tags, runs, counters, …)
-    ir/              # the Effect IR types: one Primitive file per kind family (matching kinds/), conditions, effect tree, known kinds, fx builders, validation
-    kinds/           # one file per procedure in the kind switch
-    primitives/      # printed procedures grouped by verb, not by pack
-  legality/          # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries
-  state/             # types.ts: points to types/; costs, run position, seat visibility, and the hooks each timing point fires
-    access/          # accessing cards (CR ch. 7): access candidates and filters, access-step abilities, abilities that replace a breach
-    cardFlags/       # card flags and static declarations: what the loader copies onto a card and when each declaration runs
-    continuous/      # continuous effects (CR 9.12): whether a card is active (1.8), blanking, lingering effects (9.10), currents and lockdowns in the play area, continuous cost, subroutine, strength and hand-size modifiers
-    counters/        # counters and advancement: which cards may be advanced, power-counter thresholds
-    damageAndPrevention/# damage and its prevention (CR 10.4)
-    hostingAndTrash/ # hosting and trashing (CR 1.13, 1.19): hostCard and trashCard, trash-triggered abilities, trash interrupts
-    install/         # installing cards (CR 8.5): install-triggered abilities and install discounts
-    keywordsAndCredits/# keywords and credits (CR 10.5–10.7, 10.9–10.13, 1.10): tags, bad publicity, sabotage, mark and charge (keywords.ts), spending credits, recurring and hosted credits, the cost model (costs.ts)
-    procedures/      # one shared helper per CR audit procedure: host, trash, uninstall, rearrange, break
-    rez/             # rezzing and derezzing (CR 8.1): rez-triggered abilities
-    run/             # run flow (CR ch. 6): starting a run and its legality and taxes, the hooks each run step fires (run begin, approach, encounter, pass, bypass, success, end), end the run
-    searchAndDeck/   # searching and deck order (CR 8.7): when a seat may look at a hidden zone during a search
-    setupAndEnd/     # game setup and end (CR 1.4–1.7): createGame, starting hands, identity faces and additional identities (CR 1.5.4), before-first-turn hooks, the empty R&D loss
-    triggers/        # conditional abilities and their machinery (CR 9.6): pending abilities, stored triggers, trigger predicates over checkpoint facts, the conditional collectors that span several areas; interrupts and replacements (9.9); pending choices
-    types/           # the game state types, one file per thing they describe: shared words, card (with its hooks and costs), abilities, servers, players, turn, run, restrictions, checkpoints, pending abilities, windows, lingering effects, pending choices, game, actions, public view
-    uninstallAndPosition/# uninstalling, rearranging ice, and the Runner's position in a run (CR 8.5.10, 8.3, 6.2)
-    visibility/      # what each seat may see (CR 1.21, 10.2): seat visibility, revealing, exposing
-  timing/            # graph.ts: the timing step graph (CR 11.2–11.5); machine.ts: stepping through it
-tests/               # vitest suites, grouped by file name prefix (confidence-*, cr-*, blanked-*, …)
-  baselines/         # shrink-only baselines the guard tests read
-  fixtures/          # goldens/: regression transcripts (see the README there); game exports, playout seeds
-vendor/              # pinned data, fetched by npm run prepare-data
-  cr-data/           # Comprehensive Rules JSON (nodes.json is gitignored)
-  cards-data/        # card definitions (gitignored)
+data/                     # pins: cr-pin.json (CR tag), cards-pin.json (cards-data tag); cr-term-map.json
+docs/                     # Effect IR grammar and generated kind reference, CR adherence gate, pin bump checklist, mutation scores
+scripts/                  # fetch the pinned data, seeded playouts, generators for baselines and the kind reference
+stryker/                  # mutation-test configs, one per CR audit area (local runs only)
+src/                      # index.ts: the package entry; cli.ts: the development host
+  actions/                # apply.ts: applyAction and choice dispatch; install, run, rez, break, play, score, access, phase
+  api/                    # library.ts: createGame / queryLegality / applyIntent / getPublicView
+  cards/                  # load.ts: the card loader; short-game setup and runtime helpers
+  cr/                     # reads the pinned CR data in vendor/cr-data/
+  debug/                  # hooks tests set: invariants after each action, timing steps, legality agreement
+  demo/                   # scripted games and test drivers for the demos
+  effects/                # eval.ts: the evaluator; ir.ts: points to ir/; shared rules (credits, damage, tags, runs, counters, …)
+    ir/                   # the Effect IR types: one Primitive file per kind family (matching kinds/), conditions, effect tree, known kinds, fx builders, validation
+    kinds/                # one file per procedure in the kind switch
+    primitives/           # printed procedures grouped by verb, not by pack
+  legality/               # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries
+  state/                  # ids.ts, rng.ts, zones.ts: shared plumbing; types.ts: points to types/. Every other file is in a folder: one per CR audit area, plus continuous/ and triggers/ for the rules no single area owns
+    access/               # accessing cards (CR ch. 7): access candidates and filters, access-step abilities, abilities that replace a breach
+    cardFlags/            # card flags and static declarations: what the loader copies onto a card and when each declaration runs
+    continuous/           # continuous effects (CR 9.12): whether a card is active (1.8), blanking, lingering effects (9.10), currents and lockdowns in the play area, continuous cost, subroutine, strength and hand-size modifiers
+    counters/             # counters and advancement: which cards may be advanced, power-counter thresholds
+    damageAndPrevention/  # damage and its prevention (CR 10.4)
+    hostingAndTrash/      # hosting and trashing (CR 1.13, 1.19): hostCard and trashCard, trash-triggered abilities, trash interrupts
+    install/              # installing cards (CR 8.5): install-triggered abilities and install discounts
+    keywordsAndCredits/   # keywords and credits (CR 10.5–10.7, 10.9–10.13, 1.10): tags, bad publicity, sabotage, mark and charge (keywords.ts), spending credits, recurring and hosted credits, the cost model (costs.ts)
+    rez/                  # rezzing and derezzing (CR 8.1): rez-triggered abilities
+    run/                  # run flow (CR ch. 6): starting a run and its legality and taxes, the hooks each run step fires (run begin, approach, encounter, pass, bypass, success, end), end the run
+    searchAndDeck/        # searching and deck order (CR 8.7): when a seat may look at a hidden zone during a search
+    setupAndEnd/          # game setup and end (CR 1.4–1.7): createGame, starting hands, identity faces and additional identities (CR 1.5.4), before-first-turn hooks, the empty R&D loss
+    triggers/             # conditional abilities and their machinery (CR 9.6): pending abilities, stored triggers, trigger predicates over checkpoint facts, the conditional collectors that span several areas; interrupts and replacements (9.9); pending choices
+    turnAndActions/       # turn structure and actions (CR ch. 5): per-turn bookkeeping, turn begin and end and phase-end hooks, clicks, scoring and stealing agendas, breaking subroutines (break.ts), psi games and traces
+    types/                # the game state types, one file per thing they describe: shared words, card (with its hooks and costs), abilities, servers, players, turn, run, restrictions, checkpoints, pending abilities, windows, lingering effects, pending choices, game, actions, public view
+    uninstallAndPosition/ # uninstalling, rearranging ice, and the Runner's position in a run (CR 8.5.10, 8.3, 6.2)
+    visibility/           # what each seat may see (CR 1.21, 10.2): seat visibility, revealing, exposing
+  timing/                 # graph.ts: the timing step graph (CR 11.2–11.5); machine.ts: stepping through it
+tests/                    # vitest suites, grouped by file name prefix (confidence-*, cr-*, blanked-*, …)
+  baselines/              # shrink-only baselines the guard tests read
+  fixtures/               # goldens/: regression transcripts (see the README there); game exports, playout seeds
+vendor/                   # pinned data, fetched by npm run prepare-data
+  cr-data/                # Comprehensive Rules JSON (nodes.json is gitignored)
+  cards-data/             # card definitions (gitignored)
 ```

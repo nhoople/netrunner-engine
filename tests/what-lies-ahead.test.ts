@@ -24,7 +24,10 @@ import {
   lingeringBreakerStrengthOfKind,
 } from "../src/state/continuous/lingeringEffects.js";
 
-import { effectiveMemoryCost, usedMemory } from "../src/state/turn.js";
+import {
+  effectiveMemoryCost,
+  usedMemory,
+} from "../src/state/turnAndActions/turn.js";
 import type { Action, GameState } from "../src/state/types.js";
 
 describe("what-lies-ahead", () => {

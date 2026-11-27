@@ -2,9 +2,9 @@
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
-import { startPsiGame } from "../../state/psi.js";
-import { startTrace } from "../../state/trace.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { startPsiGame } from "../../state/turnAndActions/psi.js";
+import { startTrace } from "../../state/turnAndActions/trace.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import {
   addLingeringEffect,
   LINGERING_KIND_GRANTED_SUBTYPES,

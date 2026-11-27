@@ -14,7 +14,7 @@ import {
   CR,
 } from "../src/index.js";
 import type { Action, GameState } from "../src/state/types.js";
-import { noteCorpActionType } from "../src/state/corpActionHooks.js";
+import { noteCorpActionType } from "../src/state/turnAndActions/corpActionHooks.js";
 import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {

@@ -16,7 +16,7 @@ There is one script per area: `mutate:hosting-trash`, `mutate:uninstall`, `mutat
 - `stryker/<area>.config.mjs` builds the Stryker config. Stryker uses the vitest runner with `stryker/vitest.config.mjs`, which narrows the suite to that area's tests and keeps the invariant hook.
 - Tests that scan source text (kind liveness, the flag inventory, effect IR names, and similar sweeps) are left out of every area. Stryker rewrites the files it mutates, so those tests fail its first clean run, and they can't kill a behavioral mutant anyway.
 - Reports go to `reports/mutation/<area>.html` and `.json` (gitignored). Read the HTML report for the full list of survivors.
-- When an area moves its procedure into `src/state/procedures/`, add that module to the area's `mutate` list. `tests/mutation-areas.test.ts` fails if a listed file goes missing.
+- When an area moves its procedure into its area folder (`src/state/<area>/`), add that module to the area's `mutate` list. `tests/mutation-areas.test.ts` fails if a listed file goes missing.
 
 A score is killed ÷ (killed + survived + no coverage). "Covered" leaves out the mutants that no selected test reaches.
 

@@ -352,7 +352,7 @@ export {
   effectiveAdvancementRequirement,
   scoreAgenda,
   stealAgenda,
-} from "./state/scoring.js";
+} from "./state/turnAndActions/scoring.js";
 export {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
@@ -418,7 +418,7 @@ export {
   traceStrength,
   traceSucceeds,
   runnerTraceLink,
-} from "./state/trace.js";
+} from "./state/turnAndActions/trace.js";
 export {
   refillRecurringCredits,
   abilityCost,

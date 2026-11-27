@@ -1,7 +1,7 @@
 /**
  * Breaking ice subroutines, including bioroid break and the Tyrs Hand interrupt.
  */
-import { noteRunnerClickDuringRun } from "../state/clickHooks.js";
+import { noteRunnerClickDuringRun } from "../state/turnAndActions/clickHooks.js";
 import { log } from "../state/setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { onFullBreak } from "../state/cardFlags/cardDeclarations.js";
@@ -31,7 +31,7 @@ import {
   runnerBreakBlock,
   subroutineBreakBlock,
   subroutineBrokenByRunner,
-} from "../state/procedures/break.js";
+} from "../state/turnAndActions/break.js";
 import {
   runnerAvailableCreditsForBreaker,
   spendRunnerCredits,

@@ -27,9 +27,9 @@ import {
   lingeringIceStrengthBoost,
 } from "../state/continuous/lingeringEffects.js";
 import { allIceStrengthBonusFromLockdowns } from "../state/continuous/lockdowns.js";
-import { agendaPointsFor } from "../state/scoring.js";
+import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import { runnerIsTagged } from "../state/keywordsAndCredits/tags.js";
-import { memoryLimit, usedMemory } from "../state/turn.js";
+import { memoryLimit, usedMemory } from "../state/turnAndActions/turn.js";
 import { applyCardDef, getCardDef } from "./load.js";
 
 /** Snapshot a card def for assertions (title, strength, abilities, …). */

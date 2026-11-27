@@ -40,7 +40,7 @@ import {
   shiftEncounterBreaks,
   subroutinesBrokenByRunnerCount,
   trimEncounterBreaks,
-} from "../state/procedures/break.js";
+} from "../state/turnAndActions/break.js";
 import {
   collectAdvancementGainedSubs,
   collectBadPublicityGainedSubs,
@@ -64,8 +64,8 @@ import {
   beginCorpTurnFlags,
   beginRunnerTurnFlags,
   wasAbilityUsedThisRun,
-} from "../state/turn.js";
-import { agendaPointsFor } from "../state/scoring.js";
+} from "../state/turnAndActions/turn.js";
+import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import { noteValSuccessfulRunTrigger } from "../effects/sansanValHooks.js";
 import {
   noteDaredevilFirstRun,
@@ -125,7 +125,7 @@ import {
 import {
   noteCorpActionPhaseEnd,
   noteRunnerActionPhaseEnd,
-} from "../state/phaseEndHooks.js";
+} from "../state/turnAndActions/phaseEndHooks.js";
 import { resumePendingStoredConditionals } from "../state/triggers/storedTriggers.js";
 import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.js";
 import {
@@ -167,21 +167,21 @@ import { noteOnRunBegin } from "../state/run/runBeginEffectHooks.js";
 import {
   noteOnCorpTurnEnd,
   noteOnScoreTurnEnd,
-} from "../state/corpTurnEndHooks.js";
-import { noteOnRunnerTurnEnd } from "../state/runnerTurnEndHooks.js";
+} from "../state/turnAndActions/corpTurnEndHooks.js";
+import { noteOnRunnerTurnEnd } from "../state/turnAndActions/runnerTurnEndHooks.js";
 import {
   noteCorpOnTurnBegin,
   noteCorpOnTurnBeginIfRunnerTagged,
   noteCorpTenninTurnBegin,
   noteOnCorpTurnBegin,
   noteOnCorpTurnBeginIfRunnerUntagged,
-} from "../state/corpTurnBeginHooks.js";
+} from "../state/turnAndActions/corpTurnBeginHooks.js";
 import {
   noteOnRunnerTurnBegin,
   noteRunnerIdentityOnTurnBegin,
   noteRunnerRigTurnBegin,
   noteRunnerScoreOnTurnBegin,
-} from "../state/runnerTurnBeginHooks.js";
+} from "../state/turnAndActions/runnerTurnBeginHooks.js";
 import { noteOnBeforeFirstTurn } from "../state/setupAndEnd/beforeFirstTurnHooks.js";
 import {
   breachCreditGain,
@@ -209,7 +209,7 @@ import {
   activeRunnerCurrentIds,
 } from "../state/continuous/currents.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
-import { noteRunnerClickLose } from "../state/clickHooks.js";
+import { noteRunnerClickLose } from "../state/turnAndActions/clickHooks.js";
 import {
   computeRunnerMaxHandSize,
   recomputeRunnerMaxHandSize,

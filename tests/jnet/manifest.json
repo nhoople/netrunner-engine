@@ -1159,7 +1159,7 @@
     "classification": "agrees",
     "crCite": "1.12.2",
     "classificationBasis": "code",
-    "classificationNote": "A reinstalled Imp is a new object; src/state/turn.ts drops once-per-turn uses of the old object, so the reinstalled Imp can trash again this turn, as jnet expects."
+    "classificationNote": "A reinstalled Imp is a new object; src/state/turnAndActions/turn.ts drops once-per-turn uses of the old object, so the reinstalled Imp can trash again this turn, as jnet expects."
   },
   "game.core.rules-test/trash-seen-and-unseen": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",

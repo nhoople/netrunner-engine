@@ -1,21 +1,21 @@
 /** Trace initiation and resolution (CR 10.8). */
 
-import { evalEffect, type EffectCtx } from "../effects/eval.js";
-import type { Effect } from "../effects/ir.js";
-import { occurCheckpoint } from "../legality/checkpoints.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./setupAndEnd/createGame.js";
-import type { GameState } from "./types.js";
-import { CR } from "../timing/labels.js";
+import { evalEffect, type EffectCtx } from "../../effects/eval.js";
+import type { Effect } from "../../effects/ir.js";
+import { occurCheckpoint } from "../../legality/checkpoints.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../setupAndEnd/createGame.js";
+import type { GameState } from "../types.js";
+import { CR } from "../../timing/labels.js";
 import {
   runnerCreditsFor,
   spendRunnerCreditsFor,
   subtractRunnerCreditPool,
-} from "./keywordsAndCredits/costs.js";
-import { traceBaseBonus } from "./cardFlags/staticFlags.js";
-import { prepareTraceSpendOrder } from "./cardFlags/cardDeclarations.js";
-import { fireOnSuccessfulTraceDuringRun } from "./triggers/miscConditionalHooks.js";
-import { nextId } from "./ids.js";
+} from "../keywordsAndCredits/costs.js";
+import { traceBaseBonus } from "../cardFlags/staticFlags.js";
+import { prepareTraceSpendOrder } from "../cardFlags/cardDeclarations.js";
+import { fireOnSuccessfulTraceDuringRun } from "../triggers/miscConditionalHooks.js";
+import { nextId } from "../ids.js";
 
 /** Credits available for Corp trace boosts (bank + Making News-class recurring). */
 export function corpCreditsForTrace(state: GameState): number {

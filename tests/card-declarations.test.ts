@@ -11,7 +11,7 @@ import {
 } from "../src/index.js";
 import { installCorp } from "../src/actions/installCorp.js";
 import { installRunner } from "../src/actions/installRunner.js";
-import { removeCardFromCurrentZone } from "../src/state/scoring.js";
+import { removeCardFromCurrentZone } from "../src/state/turnAndActions/scoring.js";
 import {
   badPublicityConsidered,
   consideredAdvancement,
@@ -20,7 +20,7 @@ import {
   runnerHeapLocked,
   startIdentitySetup,
 } from "../src/state/cardFlags/cardDeclarations.js";
-import { startTrace } from "../src/state/trace.js";
+import { startTrace } from "../src/state/turnAndActions/trace.js";
 import { fx } from "../src/effects/ir.js";
 
 describe("remaining static declarations", () => {

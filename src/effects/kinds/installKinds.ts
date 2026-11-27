@@ -38,7 +38,7 @@ import {
   usedMemory,
   memoryNeededToInstall,
   effectiveMemoryCost,
-} from "../../state/turn.js";
+} from "../../state/turnAndActions/turn.js";
 import { noteVirusProgramInstalled } from "../../state/install/virusInstall.js";
 import { CR } from "../../timing/labels.js";
 import { corpCardInstallable, resolveInstallServerId } from "../corpInstall.js";

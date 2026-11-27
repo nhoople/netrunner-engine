@@ -10,9 +10,15 @@ import {
   allButNDamageRelevant,
   firstNetDamageWouldAllows,
 } from "../state/damageAndPrevention/damage.js";
-import { corpCreditsForTrace } from "../state/trace.js";
-import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
-import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
+import { corpCreditsForTrace } from "../state/turnAndActions/trace.js";
+import {
+  corpPsiSpendable,
+  runnerPsiSpendable,
+} from "../state/turnAndActions/psi.js";
+import {
+  programBannedThisRun,
+  wasAbilityUsed,
+} from "../state/turnAndActions/turn.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerCannotTrashWhileRezzed } from "../state/cardFlags/cardDeclarations.js";
 import { conditionalInterruptRequiresActiveAtOpen } from "../state/keywordsAndCredits/tags.js";

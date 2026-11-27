@@ -17,9 +17,10 @@
  * Raising a count needs a hand edit of the baseline and a dated reason in
  * its `raised` list.
  *
- * The allowlist names the helper modules. A Phase 3 area adds its
- * `src/state/procedures/<procedure>.ts` module here, and the area's entries
- * leave the baseline. `src/state/uninstallAndPosition/runPosition.ts` is the run-position helper
+ * The allowlist names the helper modules. A Phase 3 area adds its helper
+ * module here, from its area folder (`src/state/<area>/<procedure>.ts`), and
+ * the area's entries leave the baseline.
+ * `src/state/uninstallAndPosition/runPosition.ts` is the run-position helper
  * already (CR 6.2.4, 6.2.6); this guard replaces the regex guard that was in
  * tests/ice-uninstalled-during-run.test.ts.
  */
@@ -44,9 +45,9 @@ const ALLOWLIST: Array<{
   why: string;
 }> = [
   {
-    path: "src/state/procedures/",
+    path: "src/state/turnAndActions/break.ts",
     properties: "*",
-    why: "Phase 3 procedure helpers (one per area)",
+    why: "the break helper (area 11)",
   },
   {
     path: "src/state/uninstallAndPosition/uninstall.ts",
