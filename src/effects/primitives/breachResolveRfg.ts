@@ -8,7 +8,7 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
-import { setAttackedServer } from "../../state/runPosition.js";
+import { setAttackedServer } from "../../state/uninstallAndPosition/runPosition.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

@@ -106,7 +106,7 @@ import {
   moveRunnerInward,
   setAttackedServer,
   setRunnerPosition,
-} from "../state/runPosition.js";
+} from "../state/uninstallAndPosition/runPosition.js";
 import {
   maybeOfferSubroutineOrder,
   takeNextSubroutineIndex,
@@ -229,7 +229,7 @@ import { unhostCard } from "../state/hostingAndTrash/host.js";
 import {
   removeCardFromGame,
   uninstallCard,
-} from "../state/procedures/uninstall.js";
+} from "../state/uninstallAndPosition/uninstall.js";
 
 const TLDR_COPY_SUFFIX = "-tldr-copy";
 

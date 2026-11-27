@@ -1,4 +1,4 @@
-import { ceaseVacantPositions } from "../state/procedures/uninstall.js";
+import { ceaseVacantPositions } from "../state/uninstallAndPosition/uninstall.js";
 import {
   FIRST_CORP_CARD_TRASH_ANY,
   FIRST_CORP_CARD_TRASH_INSTALLED,

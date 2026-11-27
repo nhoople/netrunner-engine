@@ -7,7 +7,7 @@ import type { EffectCtx, EvalResult } from "../eval.js";
 import {
   moveRunnerToIce,
   moveRunnerToOutermost,
-} from "../../state/runPosition.js";
+} from "../../state/uninstallAndPosition/runPosition.js";
 import type { Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
@@ -15,8 +15,8 @@ import { CR } from "../../timing/labels.js";
 import { applyPrimitive } from "../eval.js";
 
 import { fireOnMovedToServerRoot } from "../eval.js";
-import { uninstallCard } from "../../state/procedures/uninstall.js";
-import { moveIce } from "../../state/procedures/rearrange.js";
+import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import { moveIce } from "../../state/uninstallAndPosition/rearrange.js";
 
 export function applyMoveKinds(
   ctx: EffectCtx,

@@ -15,7 +15,7 @@ import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
 import { fireOnPowerCountersEmpty } from "../state/triggers/miscConditionalHooks.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";
-import { removeCardFromGame } from "../state/procedures/uninstall.js";
+import { removeCardFromGame } from "../state/uninstallAndPosition/uninstall.js";
 
 export function applyCounterPrimitive(
   ctx: EffectCtx,

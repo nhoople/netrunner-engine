@@ -54,7 +54,7 @@ No survivor changes the zone, face, host link, prevention window, or trash trigg
 
 ## 2. Uninstall and run position (2026-11-20)
 
-Files mutated: `src/state/procedures/uninstall.ts` (`uninstallCard`, `removeCardFromGame`, `ceaseVacantPositions`), `src/state/procedures/rearrange.ts` (`rearrangeIce`, `moveIce`) and `src/state/runPosition.ts`. Before area 2 the scope was `runPosition.ts` and `moveKinds.ts`, with no uninstall helper. The start score is the first draft against the area's tests; the branch tests in `tests/uninstall-and-run-position.test.ts` raised it to 93.43%.
+Files mutated: `src/state/uninstallAndPosition/uninstall.ts` (`uninstallCard`, `removeCardFromGame`, `ceaseVacantPositions`), `src/state/uninstallAndPosition/rearrange.ts` (`rearrangeIce`, `moveIce`) and `src/state/uninstallAndPosition/runPosition.ts`. Before area 2 the scope was `runPosition.ts` and `moveKinds.ts`, with no uninstall helper. The start score is the first draft against the area's tests; the branch tests in `tests/uninstall-and-run-position.test.ts` raised it to 93.43%.
 
 | File | Score | Covered | Killed | Survived | No coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |

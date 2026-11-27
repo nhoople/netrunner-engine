@@ -14,7 +14,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
-import { iceAtRunnerPosition } from "../src/state/runPosition.js";
+import { iceAtRunnerPosition } from "../src/state/uninstallAndPosition/runPosition.js";
 import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";

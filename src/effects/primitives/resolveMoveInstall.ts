@@ -1,6 +1,9 @@
 /** Whispers in Nalubaale (win) Kitara pack primitives — v1.140.0. */
 import { revealCards } from "../../state/visibility/reveal.js";
-import { addOutermostIce, moveRunnerToIce } from "../../state/runPosition.js";
+import {
+  addOutermostIce,
+  moveRunnerToIce,
+} from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { corpInstallCost } from "../../state/costs.js";
 import type { GameState, RuleCite } from "../../state/types.js";
@@ -12,7 +15,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
-import { uninstallCard } from "../../state/procedures/uninstall.js";
+import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

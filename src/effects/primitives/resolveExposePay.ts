@@ -12,7 +12,7 @@ import { fireOnAgendaAccessedOrScored } from "../../state/triggers/miscCondition
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../chooseCards.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { uninstallCard } from "../../state/procedures/uninstall.js";
+import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

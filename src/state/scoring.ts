@@ -13,7 +13,7 @@ import {
 } from "./hostingAndTrash/trashHooks.js";
 import type { CardInstance, GameState, Side } from "./types.js";
 import { CR } from "../timing/labels.js";
-import { noteIceUninstalled } from "./runPosition.js";
+import { noteIceUninstalled } from "./uninstallAndPosition/runPosition.js";
 import {
   onAgendaScored,
   runnerHeapLocked,

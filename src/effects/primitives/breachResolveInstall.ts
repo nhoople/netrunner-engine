@@ -1,7 +1,7 @@
 /** Kampala Ascendent (ka) Kitara pack primitives — v1.141.0. */
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
-import { setRunnerPosition } from "../../state/runPosition.js";
+import { setRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { effectiveIceStrength } from "../../cards/stubs.js";
 import { CR } from "../../timing/labels.js";

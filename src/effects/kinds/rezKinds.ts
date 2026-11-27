@@ -3,7 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { moveForfeitedAgendaOutOfGame } from "../../state/scoring.js";
-import { moveRunnerToIce } from "../../state/runPosition.js";
+import { moveRunnerToIce } from "../../state/uninstallAndPosition/runPosition.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
@@ -17,7 +17,7 @@ import {
   fireOnRez,
   fireOnAnyIceRez,
 } from "../eval.js";
-import { moveIce } from "../../state/procedures/rearrange.js";
+import { moveIce } from "../../state/uninstallAndPosition/rearrange.js";
 
 export function applyRezKinds(
   ctx: EffectCtx,

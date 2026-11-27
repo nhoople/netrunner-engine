@@ -41,7 +41,7 @@ import {
 import { fireHostRezStateTriggers } from "../eval.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { removeCardFromGame } from "../../state/procedures/uninstall.js";
+import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 
 export function applyResolveKinds(
   ctx: EffectCtx,

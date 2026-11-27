@@ -1,5 +1,5 @@
 import type { Action, GameState, Server } from "../state/types.js";
-import { iceAtRunnerPosition } from "../state/runPosition.js";
+import { iceAtRunnerPosition } from "../state/uninstallAndPosition/runPosition.js";
 import { currentMark } from "../state/msKeywords.js";
 import {
   corpMayRez,

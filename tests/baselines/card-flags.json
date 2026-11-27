@@ -17362,7 +17362,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/procedures/uninstall.ts#uninstallCard",
+          "site": "src/state/uninstallAndPosition/uninstall.ts#uninstallCard",
           "kinds": []
         }
       ],
@@ -18499,18 +18499,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/procedures/uninstall.ts#place",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/uninstall.ts#removeCardFromGame",
-          "kinds": []
-        },
-        {
-          "site": "src/state/procedures/uninstall.ts#uninstallCard",
-          "kinds": []
-        },
-        {
           "site": "src/state/scoring.ts#canScoreAgenda",
           "kinds": []
         },
@@ -18532,6 +18520,18 @@
         },
         {
           "site": "src/state/triggers/storedTriggers.ts#fireCardConditional",
+          "kinds": []
+        },
+        {
+          "site": "src/state/uninstallAndPosition/uninstall.ts#place",
+          "kinds": []
+        },
+        {
+          "site": "src/state/uninstallAndPosition/uninstall.ts#removeCardFromGame",
+          "kinds": []
+        },
+        {
+          "site": "src/state/uninstallAndPosition/uninstall.ts#uninstallCard",
           "kinds": []
         },
         {
@@ -22525,10 +22525,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/procedures/uninstall.ts#uninstallCard",
-          "kinds": []
-        },
-        {
           "site": "src/state/psi.ts#resolvePsi",
           "kinds": []
         },
@@ -22742,6 +22738,10 @@
         },
         {
           "site": "src/state/triggers/strengthIncrease.ts#applyBreakerStrengthIncrease",
+          "kinds": []
+        },
+        {
+          "site": "src/state/uninstallAndPosition/uninstall.ts#uninstallCard",
           "kinds": []
         },
         {

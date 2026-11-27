@@ -42,7 +42,7 @@ import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { fireOnInstallFromNonHq } from "../state/triggers/miscConditionalHooks.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { hostCard } from "../state/hostingAndTrash/host.js";
-import { addOutermostIce } from "../state/runPosition.js";
+import { addOutermostIce } from "../state/uninstallAndPosition/runPosition.js";
 
 /** How an install differs from the basic action. */
 export interface CorpInstallOptions {

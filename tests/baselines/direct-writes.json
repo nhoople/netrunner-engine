@@ -527,7 +527,7 @@
     "src/state/msKeywords.ts": {
       "deck": 1
     },
-    "src/state/runPosition.ts": {
+    "src/state/uninstallAndPosition/runPosition.ts": {
       "ice": 1
     },
     "src/state/scoring.ts": {

@@ -4,7 +4,7 @@
  */
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
-import { iceAtRunnerPosition } from "../../state/runPosition.js";
+import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import type { GameState, Server } from "../../state/types.js";
 import type { Effect, Primitive } from "../ir.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";

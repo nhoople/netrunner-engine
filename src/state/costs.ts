@@ -2,7 +2,7 @@
 
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { noteRunnerClickDuringRun } from "./clickHooks.js";
-import { iceAtRunnerPosition } from "./runPosition.js";
+import { iceAtRunnerPosition } from "./uninstallAndPosition/runPosition.js";
 import { log } from "./createGame.js";
 import { dealDamage } from "./damageAndPrevention/damage.js";
 import {
@@ -55,7 +55,7 @@ import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
 import { effectiveIceStrength } from "../cards/stubs.js";
 import { trashCard } from "./hostingAndTrash/trash.js";
 import { hostCard } from "./hostingAndTrash/host.js";
-import { removeCardFromGame } from "./procedures/uninstall.js";
+import { removeCardFromGame } from "./uninstallAndPosition/uninstall.js";
 
 /**
  * First time each turn the Runner spends credits from an installed card,

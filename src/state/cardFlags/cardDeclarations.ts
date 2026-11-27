@@ -17,7 +17,7 @@ import { openPendingChoose } from "../triggers/pendingChoice.js";
 import { pickRandomSubset } from "../rng.js";
 import { trashCard } from "../hostingAndTrash/trash.js";
 import { unhostCard } from "../hostingAndTrash/host.js";
-import { uninstallCard } from "../procedures/uninstall.js";
+import { uninstallCard } from "../uninstallAndPosition/uninstall.js";
 
 const noop = (side: Side) => fx.do({ kind: "gain_credits", side, amount: 0 });
 

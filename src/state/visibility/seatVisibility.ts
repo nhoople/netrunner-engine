@@ -6,7 +6,7 @@ import {
   consideredAdvancement,
   gripRevealed,
 } from "../cardFlags/cardDeclarations.js";
-import { isInstalled } from "../procedures/uninstall.js";
+import { isInstalled } from "../uninstallAndPosition/uninstall.js";
 import type {
   CardInstance,
   GameState,

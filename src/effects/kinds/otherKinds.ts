@@ -10,7 +10,7 @@ import {
   moveRunnerToIce,
   setAttackedServer,
   setRunnerPosition,
-} from "../../state/runPosition.js";
+} from "../../state/uninstallAndPosition/runPosition.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import { serverHostingCard } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
@@ -101,7 +101,7 @@ import {
 } from "../eval.js";
 import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx } from "../ir.js";
-import { rearrangeIce } from "../../state/procedures/rearrange.js";
+import { rearrangeIce } from "../../state/uninstallAndPosition/rearrange.js";
 import {
   canInstallSetAsideIgnoringCosts,
   shuffleRunnerSetAsideIntoStack,
@@ -113,7 +113,7 @@ import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
 import { openFace } from "../../state/visibility/seatVisibility.js";
 import { serverLabel } from "../corpAbilityInstall.js";
-import { removeCardFromGame } from "../../state/procedures/uninstall.js";
+import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 import { iceFaceVisible } from "../../state/visibility/seatVisibility.js";
 import {
   allSubroutinesBrokenByRunner,

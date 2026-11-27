@@ -19,7 +19,7 @@
  *
  * The allowlist names the helper modules. A Phase 3 area adds its
  * `src/state/procedures/<procedure>.ts` module here, and the area's entries
- * leave the baseline. `src/state/runPosition.ts` is the run-position helper
+ * leave the baseline. `src/state/uninstallAndPosition/runPosition.ts` is the run-position helper
  * already (CR 6.2.4, 6.2.6); this guard replaces the regex guard that was in
  * tests/ice-uninstalled-during-run.test.ts.
  */
@@ -49,6 +49,16 @@ const ALLOWLIST: Array<{
     why: "Phase 3 procedure helpers (one per area)",
   },
   {
+    path: "src/state/uninstallAndPosition/uninstall.ts",
+    properties: "*",
+    why: "the uninstall helper (area 2)",
+  },
+  {
+    path: "src/state/uninstallAndPosition/rearrange.ts",
+    properties: "*",
+    why: "the rearrange helper (area 2)",
+  },
+  {
     path: "src/state/hostingAndTrash/host.ts",
     properties: "*",
     why: "the hosting helper (area 1)",
@@ -59,7 +69,7 @@ const ALLOWLIST: Array<{
     why: "the trash helper (area 1)",
   },
   {
-    path: "src/state/runPosition.ts",
+    path: "src/state/uninstallAndPosition/runPosition.ts",
     properties: ["position", "attackedServerId"],
     why: "setRunnerPosition / noteIceUninstalled / addOutermostIce (CR 6.2.4, 6.2.6)",
   },
@@ -133,7 +143,9 @@ describe("procedure write guard (CR audit Phase 2)", () => {
     expect(inSample("position", /-=/)).toBe(true);
     expect(inSample("attackedServerId", /!\.attackedServerId/)).toBe(true);
     expect(sample.every((w) => w.property !== "label")).toBe(true);
-    expect(at("src/state/runPosition.ts", "position", /\+= 1/)).toBe(true);
+    expect(
+      at("src/state/uninstallAndPosition/runPosition.ts", "position", /\+= 1/),
+    ).toBe(true);
     expect(
       writes.some((w) => w.kind === "mutate" && w.property === "discardPile"),
     ).toBe(true);
