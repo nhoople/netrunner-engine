@@ -10,7 +10,7 @@ import {
   creditsAvailableForInstall,
   payInstallCost,
 } from "../state/costs.js";
-import { noteInstalledThisTurn } from "../state/programHardwareInstall.js";
+import { noteInstalledThisTurn } from "../state/install/programHardwareInstall.js";
 import { iceInstallCapRefuses } from "../state/staticFlags.js";
 import { cardBecameNewObject } from "../state/turn.js";
 import type { GameState, ServerId } from "../state/types.js";

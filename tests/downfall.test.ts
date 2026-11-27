@@ -27,13 +27,13 @@ import type { GameState } from "../src/state/types.js";
 import {
   noteProgramOrHardwareInstalled,
   fireRemainderOfTurnOnInstallPrintedCostGte,
-} from "../src/state/programHardwareInstall.js";
+} from "../src/state/install/programHardwareInstall.js";
 import { emptyTurnBookkeeping } from "../src/state/turn.js";
 import { dealDamage } from "../src/state/damage.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,
-} from "../src/state/azInstallDiscount.js";
+} from "../src/state/install/firstInstallDiscount.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import {

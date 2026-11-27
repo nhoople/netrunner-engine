@@ -7,7 +7,7 @@ import { log } from "./createGame.js";
 import { trashCard } from "./procedures/trash.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
-import { fireHardwareInstallOrTrash } from "./programHardwareInstall.js";
+import { fireHardwareInstallOrTrash } from "./install/programHardwareInstall.js";
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { type StoredConditionalMark } from "./triggers/storedTriggers.js";
 import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";

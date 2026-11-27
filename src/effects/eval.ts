@@ -12,13 +12,13 @@ import {
   addIceStrengthBoostThisRun,
 } from "../state/continuous/lingeringEffects.js";
 import { currentMark } from "../state/msKeywords.js";
-import { noteVirusProgramInstalled } from "../state/virusInstall.js";
+import { noteVirusProgramInstalled } from "../state/install/virusInstall.js";
 import { exposeLegalTargets } from "../state/expose.js";
 
 import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,
-} from "../state/programHardwareInstall.js";
+} from "../state/install/programHardwareInstall.js";
 
 import { syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";

@@ -5,7 +5,7 @@
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { subtractRunnerCreditPool } from "./costs.js";
 import { noteTargetedMarketing } from "./continuous/currents.js";
-import { noteAzmariNamedTypeMatch } from "./programHardwareInstall.js";
+import { noteAzmariNamedTypeMatch } from "./install/programHardwareInstall.js";
 import { log } from "./createGame.js";
 import type { CardInstance, GameState, ServerId, Side } from "./types.js";
 import { runnerWinsOnEmptyRnd } from "./emptyRnd.js";

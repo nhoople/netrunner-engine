@@ -3,25 +3,25 @@
  * (Environmental Testing–class; CR §9.6.14b when installed).
  */
 
-import { evalEffect } from "../effects/eval.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./createGame.js";
-import { maybeFireCompanionInstallOrSpendCredits } from "./triggers/companionHooks.js";
-import { noteJobConnectionOrHardwareInstalled } from "./azInstallDiscount.js";
-import type { GameState } from "./types.js";
-import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
-import { onRunnerInstalledProgramOrHardware } from "./staticFlags.js";
+import { evalEffect } from "../../effects/eval.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../createGame.js";
+import { maybeFireCompanionInstallOrSpendCredits } from "../triggers/companionHooks.js";
+import { noteJobConnectionOrHardwareInstalled } from "./firstInstallDiscount.js";
+import type { GameState } from "../types.js";
+import { fireRunnerValTrigger } from "../../effects/sansanValHooks.js";
+import { onRunnerInstalledProgramOrHardware } from "../staticFlags.js";
 import {
   activeCorpCurrentIds,
   noteTargetedMarketing,
-} from "./continuous/currents.js";
-import { chooseCards } from "../effects/chooseCards.js";
+} from "../continuous/currents.js";
+import { chooseCards } from "../../effects/chooseCards.js";
 import {
   deferContinuationAfter,
   effectResolutionBlocked,
-} from "../effects/continuation.js";
-import { noteStoredConditional } from "./triggers/storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+} from "../../effects/continuation.js";
+import { noteStoredConditional } from "../triggers/storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 
 /**
  * Azmari EdTech: the first time each turn the Runner plays or installs a

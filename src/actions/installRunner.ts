@@ -8,7 +8,7 @@ import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.
 import { addBreakerStrengthBoostThisTurn } from "../state/continuous/lingeringEffects.js";
 import { creditsAvailableForInstall, payInstallCost } from "../state/costs.js";
 import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
-import { noteVirusProgramInstalled } from "../state/virusInstall.js";
+import { noteVirusProgramInstalled } from "../state/install/virusInstall.js";
 import { installBlockReason } from "../state/staticFlags.js";
 import {
   daemonInstallDiscount,
@@ -18,11 +18,11 @@ import {
 import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,
-} from "../state/programHardwareInstall.js";
+} from "../state/install/programHardwareInstall.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,
-} from "../state/azInstallDiscount.js";
+} from "../state/install/firstInstallDiscount.js";
 import { recomputeRunnerMaxHandSize } from "../state/continuous/handSize.js";
 import { recomputeRunnerLink } from "../state/trashHooks.js";
 import {

@@ -3207,7 +3207,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/programHardwareInstall.ts#noteInstalledThisTurn",
+          "site": "src/state/install/programHardwareInstall.ts#noteInstalledThisTurn",
           "kinds": []
         }
       ],
@@ -4388,7 +4388,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/azInstallDiscount.ts#azJobConnectionOrHardwareInstallDiscount",
+          "site": "src/state/install/firstInstallDiscount.ts#azJobConnectionOrHardwareInstallDiscount",
           "kinds": []
         }
       ],
@@ -4491,7 +4491,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/programHardwareInstall.ts#noteFirstRunnerInstallThisTurn",
+          "site": "src/state/install/programHardwareInstall.ts#noteFirstRunnerInstallThisTurn",
           "kinds": []
         }
       ],
@@ -5004,7 +5004,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/programHardwareInstall.ts#noteAzmariNamedTypeMatch",
+          "site": "src/state/install/programHardwareInstall.ts#noteAzmariNamedTypeMatch",
           "kinds": []
         }
       ],
@@ -7167,7 +7167,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/programHardwareInstall.ts#fireRemainderOfTurnOnInstallPrintedCostGte",
+          "site": "src/state/install/programHardwareInstall.ts#fireRemainderOfTurnOnInstallPrintedCostGte",
           "kinds": []
         }
       ],
@@ -8295,7 +8295,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/programHardwareInstall.ts#noteInstalledThisTurn",
+          "site": "src/state/install/programHardwareInstall.ts#noteInstalledThisTurn",
           "kinds": []
         },
         {
@@ -8322,7 +8322,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/programHardwareInstall.ts#noteInstalledThisTurn",
+          "site": "src/state/install/programHardwareInstall.ts#noteInstalledThisTurn",
           "kinds": []
         }
       ],
@@ -11103,7 +11103,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/programHardwareInstall.ts#noteFirstHardwareInstall",
+          "site": "src/state/install/programHardwareInstall.ts#noteFirstHardwareInstall",
           "kinds": []
         }
       ],
@@ -11168,7 +11168,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/programHardwareInstall.ts#noteInstalledThisTurn",
+          "site": "src/state/install/programHardwareInstall.ts#noteInstalledThisTurn",
           "kinds": []
         }
       ],
@@ -11259,7 +11259,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/programHardwareInstall.ts#noteFirstProgramInstall",
+          "site": "src/state/install/programHardwareInstall.ts#noteFirstProgramInstall",
           "kinds": []
         }
       ],
@@ -11698,7 +11698,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/virusInstall.ts#noteFirstVirusInstall",
+          "site": "src/state/install/virusInstall.ts#noteFirstVirusInstall",
           "kinds": []
         }
       ],
@@ -11909,7 +11909,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/programHardwareInstall.ts#fireOnHardwareInstall.consider",
+          "site": "src/state/install/programHardwareInstall.ts#fireOnHardwareInstall.consider",
           "kinds": []
         }
       ],
@@ -11926,7 +11926,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/programHardwareInstall.ts#fireHardwareInstallOrTrash.consider",
+          "site": "src/state/install/programHardwareInstall.ts#fireHardwareInstallOrTrash.consider",
           "kinds": []
         }
       ],
@@ -12411,7 +12411,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/programHardwareInstall.ts#noteProgramOrHardwareInstalled.consider",
+          "site": "src/state/install/programHardwareInstall.ts#noteProgramOrHardwareInstalled.consider",
           "kinds": []
         }
       ],
@@ -13529,7 +13529,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/virusInstall.ts#noteVirusProgramInstalled.considerEvery",
+          "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled.considerEvery",
           "kinds": []
         }
       ],
@@ -14278,7 +14278,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/virusInstall.ts#noteVirusProgramInstalled.considerEvery",
+          "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled.considerEvery",
           "kinds": []
         }
       ],
@@ -16400,7 +16400,7 @@
           ]
         },
         {
-          "site": "src/state/virusInstall.ts#noteVirusProgramInstalled.considerEvery",
+          "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled.considerEvery",
           "kinds": []
         }
       ],
@@ -18455,6 +18455,14 @@
           "kinds": []
         },
         {
+          "site": "src/state/install/programHardwareInstall.ts#noteAzmariNamedTypeMatch",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#noteInstalledThisTurn",
+          "kinds": []
+        },
+        {
           "site": "src/state/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
           "kinds": []
         },
@@ -18500,14 +18508,6 @@
         },
         {
           "site": "src/state/procedures/uninstall.ts#uninstallCard",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#noteAzmariNamedTypeMatch",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#noteInstalledThisTurn",
           "kinds": []
         },
         {
@@ -20347,10 +20347,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/azInstallDiscount.ts#isJobConnectionOrHardware",
-          "kinds": []
-        },
-        {
           "site": "src/state/cardDeclarations.ts#ensureConditionalSubroutine",
           "kinds": []
         },
@@ -20490,6 +20486,22 @@
           "kinds": []
         },
         {
+          "site": "src/state/install/firstInstallDiscount.ts#isJobConnectionOrHardware",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#noteInstalledThisTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#noteProgramOrHardwareInstalled",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled",
+          "kinds": []
+        },
+        {
           "site": "src/state/powerCounters.ts#firePowerOnHarmonicIceRez",
           "kinds": []
         },
@@ -20514,14 +20526,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/programHardwareInstall.ts#noteInstalledThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#noteProgramOrHardwareInstalled",
-          "kinds": []
-        },
-        {
           "site": "src/state/run/firstEncounterPassHooks.ts#noteSisyphusFirstPass",
           "kinds": []
         },
@@ -20543,10 +20547,6 @@
         },
         {
           "site": "src/state/turn.ts#programMemoryCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/state/virusInstall.ts#noteVirusProgramInstalled",
           "kinds": []
         },
         {
@@ -22321,6 +22321,34 @@
           "kinds": []
         },
         {
+          "site": "src/state/install/programHardwareInstall.ts#fireHardwareInstallOrTrash.consider",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#fireOnHardwareInstall.consider",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#noteAzmariNamedTypeMatch",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#noteFirstRunnerInstallThisTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#noteInstalledThisTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#noteProgramOrHardwareInstalled.consider",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled.considerEvery",
+          "kinds": []
+        },
+        {
           "site": "src/state/msKeywords.ts#chargeCard",
           "kinds": []
         },
@@ -22410,30 +22438,6 @@
         },
         {
           "site": "src/state/procedures/uninstall.ts#uninstallCard",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#fireHardwareInstallOrTrash.consider",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#fireOnHardwareInstall.consider",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#noteAzmariNamedTypeMatch",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#noteFirstRunnerInstallThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#noteInstalledThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#noteProgramOrHardwareInstalled.consider",
           "kinds": []
         },
         {
@@ -22774,10 +22778,6 @@
         },
         {
           "site": "src/state/triggers/strengthIncrease.ts#applyBreakerStrengthIncrease",
-          "kinds": []
-        },
-        {
-          "site": "src/state/virusInstall.ts#noteVirusProgramInstalled.considerEvery",
           "kinds": []
         },
         {
@@ -24208,10 +24208,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/azInstallDiscount.ts#isJobConnectionOrHardware",
-          "kinds": []
-        },
-        {
           "site": "src/state/badPublicityHooks.ts#fireFirstBadPublicityTake",
           "kinds": []
         },
@@ -24364,6 +24360,26 @@
           "kinds": []
         },
         {
+          "site": "src/state/install/firstInstallDiscount.ts#isJobConnectionOrHardware",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#noteAzmariNamedTypeMatch",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#noteInstalledThisTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/programHardwareInstall.ts#noteProgramOrHardwareInstalled",
+          "kinds": []
+        },
+        {
+          "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled",
+          "kinds": []
+        },
+        {
           "site": "src/state/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
           "kinds": []
         },
@@ -24373,18 +24389,6 @@
         },
         {
           "site": "src/state/procedures/trash.ts#trashRunnerCard",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#noteAzmariNamedTypeMatch",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#noteInstalledThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/programHardwareInstall.ts#noteProgramOrHardwareInstalled",
           "kinds": []
         },
         {
@@ -24468,10 +24472,6 @@
         },
         {
           "site": "src/state/turn.ts#programMemoryCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/state/virusInstall.ts#noteVirusProgramInstalled",
           "kinds": []
         },
         {

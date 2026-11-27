@@ -15,18 +15,18 @@ import { recomputeRunnerMaxHandSize } from "../state/continuous/handSize.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,
-} from "../state/azInstallDiscount.js";
+} from "../state/install/firstInstallDiscount.js";
 import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,
-} from "../state/programHardwareInstall.js";
+} from "../state/install/programHardwareInstall.js";
 import {
   memoryLimit,
   memoryNeededToInstall,
   usedMemory,
 } from "../state/turn.js";
 import type { GameState } from "../state/types.js";
-import { noteVirusProgramInstalled } from "../state/virusInstall.js";
+import { noteVirusProgramInstalled } from "../state/install/virusInstall.js";
 import {
   daemonInstallDiscount,
   hostLimitReason,

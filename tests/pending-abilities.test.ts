@@ -455,7 +455,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first program install at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstProgramInstall } =
-      await import("../src/state/programHardwareInstall.js");
+      await import("../src/state/install/programHardwareInstall.js");
     const s = createInitialState();
     const pad = instantiateCard("lilypad", "pad-1", "runner:installed");
     s.cards["pad-1"] = pad;
@@ -481,7 +481,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first virus install at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstVirusInstall } =
-      await import("../src/state/virusInstall.js");
+      await import("../src/state/install/virusInstall.js");
     const s = createInitialState();
     const avg = instantiateCard(
       "avgustina-ivanovskaya",
