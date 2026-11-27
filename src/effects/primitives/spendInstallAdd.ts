@@ -8,13 +8,13 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
 import { agendaPointsFor } from "../../state/turnAndActions/scoring.js";
 import type { EffectCtx } from "../eval.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -226,71 +226,6 @@ export function applySpinHapPrimitive(
         });
       }
       openPendingChoose(state, { sourceId, chooser: "corp", options: opts });
-      return { ok: true };
-    }
-    case "install_mushin_from_hq_root": {
-      const hq = state.corp.hand.filter((id) => {
-        const t = state.cards[id]?.type;
-        return t === "asset" || t === "agenda" || t === "upgrade";
-      });
-      if (hq.length === 0) {
-        log(state, `Mushin — no asset/agenda/upgrade in HQ.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: hq.map((id) => ({
-          id: `mushin:${id}`,
-          label: `Install ${state.cards[id]!.title} from HQ in a server root`,
-          effect: fx.do({
-            kind: "install_mushin_hq_card_server_pick",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-    case "install_mushin_hq_card_server_pick": {
-      const cardId = action.cardId;
-      // Printed: "Install a card from HQ in a new remote server" —
-      // always a new remote, never an existing one.
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: `mushin-new:${cardId}`,
-            label: `Install ${state.cards[cardId]!.title} in a new remote`,
-            effect: fx.do({ kind: "install_mushin_new_remote", cardId }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-    case "install_mushin_new_remote": {
-      const { cardId } = action;
-      const idx = state.corp.hand.indexOf(cardId);
-      if (idx < 0) return { ok: true };
-      state.corp.hand.splice(idx, 1);
-      const card = state.cards[cardId]!;
-      const sid = `remote-${state.nextRemoteNumber++}` as ServerId;
-      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [cardId] };
-      card.zone = `server:${sid}:root`;
-      card.faceup = false;
-      card.rezzed = false;
-      card.advancementCounters = (card.advancementCounters ?? 0) + 3;
-      // Printed: it cannot be rezzed or scored until your next turn begins.
-      if (!state.cannotScoreOrRezUntilNextCorpTurnCardIds) {
-        state.cannotScoreOrRezUntilNextCorpTurnCardIds = [];
-      }
-      if (!state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)) {
-        state.cannotScoreOrRezUntilNextCorpTurnCardIds.push(cardId);
-      }
-      log(
-        state,
-        `Mushin — install ${card.title} in new ${sid} and place 3 advancement counters; it cannot be rezzed or scored until your next turn begins.`,
-      );
       return { ok: true };
     }
     case "pay_or_net": {

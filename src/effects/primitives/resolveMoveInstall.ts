@@ -1,11 +1,6 @@
 /** Whispers in Nalubaale (win) Kitara pack primitives — v1.140.0. */
 import { revealCards } from "../../state/visibility/reveal.js";
-import {
-  addOutermostIce,
-  moveRunnerToIce,
-} from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
@@ -16,20 +11,11 @@ import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import { moveRunnerToIce } from "../../state/uninstallAndPosition/runPosition.js";
+import { addCompileInstalledToBottom } from "../install/runnerInstallFromOtherZonesKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-/** Compile's run-end ability: the program it installed goes to the bottom of the stack. */
-function addCompileInstalledToBottom(state: GameState): void {
-  const id = state.run?.winCompileInstalledProgramId;
-  if (!id) return;
-  const card = state.cards[id];
-  if (!card || !state.runner.installed.includes(id)) return;
-  uninstallCard(state, id, "deck-bottom", {
-    logLine: `Compile — add ${card.title} to bottom of stack.`,
-  });
-}
 
 function resolveIndependentSourceTrash(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
@@ -290,26 +276,6 @@ export function applyKitaraWinPrimitive(
       return { ok: true };
     }
 
-    case "install_compile_program": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "stack",
-            label: "Search stack for a program",
-            effect: fx.do({ kind: "search_compile", zone: "stack" }),
-          },
-          {
-            id: "heap",
-            label: "Search heap for a program",
-            effect: fx.do({ kind: "search_compile", zone: "heap" }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
     case "search_compile": {
       const zoneIds =
         action.zone === "stack" ? state.runner.deck : state.runner.discardPile;
@@ -334,29 +300,6 @@ export function applyKitaraWinPrimitive(
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "install_compile_resolve": {
-      const card = state.cards[action.cardId];
-      if (!card) return { ok: true };
-      const zone =
-        action.zone === "stack" ? state.runner.deck : state.runner.discardPile;
-      const idx = zone.indexOf(action.cardId);
-      if (idx >= 0) zone.splice(idx, 1);
-      card.zone = "runner:installed";
-      card.rezzed = true;
-      state.runner.installed.push(action.cardId);
-      if (state.run) {
-        state.run.winCompileInstalledProgramId = action.cardId;
-      }
-      if (action.zone === "stack") shuffleInPlace(state, state.runner.deck);
-      log(state, `Compile — install ${card.title} ignoring costs.`);
-      return { ok: true };
-    }
-
-    case "win_compile_bottom_of_stack": {
-      addCompileInstalledToBottom(state);
       return { ok: true };
     }
 
@@ -415,113 +358,6 @@ export function applyKitaraWinPrimitive(
       source.hostedCredits = 0;
       trashCard(state, sourceId);
       log(state, `Jackpot! — take ${take}¢ and trash.`);
-      return { ok: true };
-    }
-
-    case "win_remote_enforcement": {
-      const ice = state.corp.deck.filter(
-        (id) => state.cards[id]?.type === "ice",
-      );
-      if (ice.length === 0) {
-        log(state, `Remote Enforcement — no ice in R&D.`);
-        shuffleInPlace(state, state.corp.deck);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: ice.map((id) => ({
-          id: `re:${id}`,
-          label: `Install and rez ${state.cards[id]!.title} protecting a remote`,
-          effect: fx.do({ kind: "win_remote_enforcement_pick_ice", iceId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "win_remote_enforcement_pick_ice": {
-      // Printed: install protecting a remote server — Corp chooses which
-      // remote, including creating a new one (CR 1.2.1).
-      const options: {
-        id: string;
-        label: string;
-        effect: ReturnType<typeof fx.do>;
-      }[] = [];
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (server.kind !== "remote") continue;
-        options.push({
-          id: `re-install:${action.iceId}:${sid}`,
-          label: `Install protecting ${sid}`,
-          effect: fx.do({
-            kind: "install_remote_enforcement",
-            iceId: action.iceId,
-            serverId: sid,
-          }),
-        });
-      }
-      options.push({
-        id: `re-install:${action.iceId}:new`,
-        label: `Install protecting a new remote`,
-        effect: fx.do({
-          kind: "install_remote_enforcement",
-          iceId: action.iceId,
-          serverId: "new-remote",
-        }),
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options,
-      });
-      return { ok: true };
-    }
-
-    case "install_remote_enforcement": {
-      const ice = state.cards[action.iceId];
-      if (!ice) return { ok: true };
-      let serverId = action.serverId as import("../../state/types.js").ServerId;
-      if (action.serverId === "new-remote") {
-        let n = state.nextRemoteNumber ?? 1;
-        while (
-          state.servers[
-            `remote-${n}` as import("../../state/types.js").ServerId
-          ]
-        ) {
-          n += 1;
-        }
-        serverId = `remote-${n}` as import("../../state/types.js").ServerId;
-        state.servers[serverId] = {
-          id: serverId,
-          kind: "remote",
-          root: [],
-          ice: [],
-        };
-        state.nextRemoteNumber = n + 1;
-      }
-      const server = state.servers[serverId];
-      if (!server) {
-        shuffleInPlace(state, state.corp.deck);
-        return { ok: true };
-      }
-      const cost = corpInstallCost(ice, server.ice.length);
-      if (state.corp.credits < cost) {
-        log(state, `Remote Enforcement — cannot pay install cost ${cost}.`);
-        shuffleInPlace(state, state.corp.deck);
-        return { ok: true };
-      }
-      state.corp.credits -= cost;
-      const idx = state.corp.deck.indexOf(action.iceId);
-      if (idx >= 0) state.corp.deck.splice(idx, 1);
-      ice.zone = `server:${serverId}:ice`;
-      ice.rezzed = true;
-      ice.faceup = true;
-      // Outermost, as the text names no other position (CR 6.2.2a).
-      addOutermostIce(state, serverId, action.iceId);
-      shuffleInPlace(state, state.corp.deck);
-      log(
-        state,
-        `Remote Enforcement — install and rez ${ice.title} on ${serverId} (paid ${cost}¢ install, ignored rez).`,
-      );
       return { ok: true };
     }
 

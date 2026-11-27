@@ -7,8 +7,8 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import { revealCards } from "../../state/visibility/reveal.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -263,76 +263,6 @@ export function applyMumbadDagPrimitive(
       log(
         state,
         `Sensie Actors Union — add ${card.title} from HQ to bottom of R&D.`,
-      );
-      return { ok: true };
-    }
-
-    case "may_install_drawn_agenda": {
-      const agendaId = action.cardId;
-      const setAside =
-        state.pendingDrawSetAside?.cardIds.includes(agendaId) ?? false;
-      if (
-        !state.corp.hand.includes(agendaId) &&
-        !setAside &&
-        state.corp.deck.includes(agendaId)
-      ) {
-        return { ok: true };
-      }
-      if (!state.cards[agendaId]) return { ok: true };
-      const agenda = state.cards[agendaId]!;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "pd:install",
-            label: `Reveal and install ${agenda.title}`,
-            effect: fx.do({
-              kind: "install_agenda",
-              cardId: agendaId,
-            }),
-          },
-          {
-            id: "pd:decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "install_agenda": {
-      const agendaId = action.cardId;
-      const inHand = state.corp.hand.includes(agendaId);
-      const setAside =
-        state.pendingDrawSetAside?.cardIds.includes(agendaId) ?? false;
-      if (!inHand && !setAside) return { ok: true };
-      if (inHand) {
-        state.corp.hand = state.corp.hand.filter((id) => id !== agendaId);
-      } else if (state.pendingDrawSetAside) {
-        state.pendingDrawSetAside.cardIds =
-          state.pendingDrawSetAside.cardIds.filter((id) => id !== agendaId);
-      }
-      const agenda = state.cards[agendaId]!;
-      let n = 1;
-      while (state.servers[`remote-${n}` as ServerId]) n += 1;
-      const serverId = `remote-${n}` as ServerId;
-      state.servers[serverId] = {
-        id: serverId,
-        kind: "remote",
-        ice: [],
-        root: [],
-      };
-      state.corp.hand = state.corp.hand.filter((id) => id !== agendaId);
-      agenda.zone = `server:${serverId}:root`;
-      agenda.faceup = false;
-      agenda.rezzed = false;
-      state.servers[serverId]!.root.push(agendaId);
-      revealCards(state, [agenda.id], sourceId);
-      log(
-        state,
-        `Political Dealings — reveal and install ${agenda.title} in ${serverId}.`,
       );
       return { ok: true };
     }

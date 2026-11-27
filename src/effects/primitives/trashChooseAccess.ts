@@ -1,12 +1,9 @@
-/** Station One (so) Red Sand pack primitives — v1.129.0. */
-import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { effectiveRunnerTags } from "../../state/keywordsAndCredits/tags.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
@@ -345,85 +342,6 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "install_customized_secretary_hosted_program": {
-      const hosted = (source?.hostedCardIds ?? []).filter(
-        (id) => state.cards[id]?.type === "program",
-      );
-      if (hosted.length === 0) {
-        log(state, `Customized Secretary — no hosted program.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: hosted.map((cardId) => ({
-          id: `install:${cardId}`,
-          label: `Install ${state.cards[cardId]!.title}`,
-          effect: fx.do({ kind: "install_hosted_program", cardId }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "may_install_ice_from_hq_inward_of_source_ignore_costs": {
-      if (!state.run || source?.type !== "ice") {
-        log(state, `Bloom inward — not during ice encounter.`);
-        return { ok: true };
-      }
-      const iceInHq = state.corp.hand.filter(
-        (id) => state.cards[id]?.type === "ice",
-      );
-      if (iceInHq.length === 0) {
-        log(state, `Bloom inward — no ice in HQ.`);
-        return { ok: true };
-      }
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "decline",
-          label: "Decline",
-          effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-        },
-      ];
-      for (const iceId of iceInHq) {
-        options.push({
-          id: `inward:${iceId}`,
-          label: `Install ${state.cards[iceId]!.title} inward`,
-          effect: fx.do({
-            kind: "install_ice_inward",
-            cardId: iceId,
-          }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
-    case "install_ice_inward": {
-      if (!state.run || source?.type !== "ice") return { ok: true };
-      const iceId = action.cardId;
-      if (!iceId || !state.corp.hand.includes(iceId)) return { ok: true };
-      if (iceInstallCapRefuses(state, state.cards[iceId])) return { ok: true };
-      const serverId = state.run.attackedServerId;
-      const server = state.servers[serverId];
-      const pos = server.ice.indexOf(sourceId);
-      if (pos < 0) {
-        log(state, `Bloom — source not on attacked server.`);
-        return { ok: true };
-      }
-      state.corp.hand = state.corp.hand.filter((id) => id !== iceId);
-      const card = state.cards[iceId]!;
-      server.ice.splice(pos + 1, 0, iceId);
-      card.zone = `server:${serverId}:ice`;
-      card.rezzed = false;
-      card.faceup = false;
-      card.advancementCounters = card.advancementCounters ?? 0;
-      log(
-        state,
-        `Bloom — install ${card.title} inward of ${source.title} (ignore costs).`,
-      );
-      return { ok: true };
-    }
-
     case "add_installed_to_hq": {
       const installed = installedCorpCards(state);
       if (installed.length === 0) {
@@ -458,104 +376,6 @@ export function applyRedsandSoPrimitive(
       card.advancementCounters = 0;
       state.corp.hand.push(cardId);
       log(state, `Replanting — add ${card.title} to HQ.`);
-      return { ok: true };
-    }
-
-    case "install_2_from_hq_ignore_costs": {
-      return evalEffect(
-        ctx,
-        fx.do({ kind: "install_from_hq_continue", remaining: 2 }),
-      );
-    }
-
-    case "install_from_hq_continue": {
-      const remaining = action.remaining ?? 0;
-      if (remaining <= 0) return { ok: true };
-      const hq = [...state.corp.hand];
-      if (hq.length === 0) {
-        log(state, `Replanting — HQ empty.`);
-        return { ok: true };
-      }
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (const cardId of hq) {
-        const card = state.cards[cardId]!;
-        if (card.type === "ice") {
-          for (const server of Object.values(state.servers)) {
-            options.push({
-              id: `ice:${cardId}:${server.id}`,
-              label: `Install ${card.title} protecting ${server.id}`,
-              effect: {
-                op: "seq",
-                effects: [
-                  fx.do({
-                    kind: "install_hq_ice_protecting_server_ignore_costs",
-                    cardId,
-                    serverId: server.id,
-                  }),
-                  fx.do({
-                    kind: "install_from_hq_continue",
-                    remaining: remaining - 1,
-                  }),
-                ],
-              },
-            });
-          }
-        } else if (
-          card.type === "asset" ||
-          card.type === "agenda" ||
-          card.type === "upgrade"
-        ) {
-          options.push({
-            id: `root:${cardId}`,
-            label: `Install ${card.title} in a new remote`,
-            effect: {
-              op: "seq",
-              effects: [
-                fx.do({
-                  kind: "install_root_ignore_costs",
-                  cardId,
-                }),
-                fx.do({
-                  kind: "install_from_hq_continue",
-                  remaining: remaining - 1,
-                }),
-              ],
-            },
-          });
-        } else {
-          // operations etc — skip installables only
-        }
-      }
-      if (options.length === 0) {
-        log(state, `Replanting — no installable cards in HQ.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
-    case "install_root_ignore_costs": {
-      const cardId = action.cardId;
-      if (!cardId || !state.corp.hand.includes(cardId)) return { ok: true };
-      const card = state.cards[cardId]!;
-      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-      let n = 1;
-      while (state.servers[`remote${n}` as ServerId]) n += 1;
-      const serverId = `remote${n}` as ServerId;
-      state.servers[serverId] = {
-        id: serverId,
-        kind: "remote",
-        root: [cardId],
-        ice: [],
-      };
-      card.zone = `server:${serverId}:root`;
-      card.rezzed = false;
-      card.faceup = false;
-      card.advancementCounters = card.advancementCounters ?? 0;
-      log(
-        state,
-        `Replanting — install ${card.title} in ${serverId} (ignore costs).`,
-      );
       return { ok: true };
     }
 

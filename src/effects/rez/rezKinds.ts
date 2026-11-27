@@ -21,7 +21,7 @@ import { syncEtrPerPowerCounterSubs } from "../../state/counters/powerCounters.j
 import { CR } from "../../timing/labels.js";
 import { moveIce } from "../../state/uninstallAndPosition/rearrange.js";
 import { openCardName } from "../../state/visibility/seatVisibility.js";
-import { rezInstalledIgnoringCosts } from "../corpAbilityInstall.js";
+import { rezInstalledIgnoringCosts } from "../install/corpAbilityInstall.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import type { ServerId, RuleCite, GameState } from "../../state/types.js";

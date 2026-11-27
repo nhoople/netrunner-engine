@@ -1,17 +1,16 @@
 /** Breaker Bay (bb) SanSan pack primitives. */
 import { revealCards } from "../../state/visibility/reveal.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import type { Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -37,75 +36,6 @@ export function applySansanBbPrimitive(
       });
       if (!r.ok) return r;
       log(state, `Dorm Computer — run; prevent all tags this run.`);
-      return { ok: true };
-    }
-
-    case "install_hayley_same_type_from_grip": {
-      const lastId = state.turn.installedThisTurn.at(-1);
-      const last = lastId ? state.cards[lastId] : null;
-      if (!last?.type) {
-        log(state, `Hayley — no install this turn.`);
-        return { ok: true };
-      }
-      const typ = last.type;
-      const grip = state.runner.hand.filter(
-        (id) => state.cards[id]?.type === typ,
-      );
-      if (grip.length === 0) {
-        log(state, `Hayley — no ${typ} in grip.`);
-        return { ok: true };
-      }
-      const options: Array<{ id: string; label: string; effect: Effect }> =
-        grip.map((id) => ({
-          id: `hayley:${id}`,
-          label: `Install ${state.cards[id]!.title}`,
-          effect: {
-            op: "do",
-            action: { kind: "install_hayley_grip_card", cardId: id },
-          },
-        }));
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: {
-          op: "do",
-          action: { kind: "gain_credits", side: "runner", amount: 0 },
-        },
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `Hayley — may install another ${typ} from grip.`,
-      });
-      return { ok: true };
-    }
-
-    case "install_hayley_grip_card": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      if (!card || !state.runner.hand.includes(cardId)) {
-        return {
-          ok: false,
-          error: "Hayley install — card not in grip.",
-          cites: [],
-        };
-      }
-      const cost = card.installCost ?? 0;
-      if (state.runner.credits < cost) {
-        return {
-          ok: false,
-          error: "Hayley install — insufficient credits.",
-          cites: [],
-        };
-      }
-      subtractRunnerCreditPool(state, cost);
-      state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      state.runner.installed.push(cardId);
-      card.zone = "runner:installed";
-      card.faceup = true;
-      state.turn.installedThisTurn.push(cardId);
-      log(state, `Hayley — install ${card.title} for ${cost}¢.`);
       return { ok: true };
     }
 

@@ -1,4 +1,3 @@
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
@@ -91,80 +90,6 @@ export function applyMumbadKgPrimitive(
         })),
         logLine: `Artist Colony — search stack to install.`,
       });
-      return { ok: true };
-    }
-
-    case "install_from_stack": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      if (!card || !state.runner.deck.includes(cardId)) {
-        log(state, `Artist Colony — card not in stack.`);
-        return { ok: true };
-      }
-      state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-      // Shuffle remaining stack.
-      for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = state.runner.deck[i]!;
-        state.runner.deck[i] = state.runner.deck[j]!;
-        state.runner.deck[j] = tmp;
-      }
-      state.runner.installed.push(cardId);
-      card.zone = "runner:installed";
-      log(state, `Artist Colony — install ${card.title} from stack.`);
-      return { ok: true };
-    }
-
-    case "install_chatterjee_program_discount": {
-      if (!source) return { ok: true };
-      const discount = source.powerCounters ?? 0;
-      const programs = state.runner.hand.filter(
-        (id) => state.cards[id]?.type === "program",
-      );
-      if (programs.length === 0) {
-        log(state, `Chatterjee University — no program in grip.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: programs.map((id) => ({
-          id: `chatterjee-install:${id}`,
-          label: `Install ${state.cards[id]!.title} (−${discount}¢)`,
-          effect: fx.do({
-            kind: "install_chatterjee_program_resolve",
-            cardId: id,
-            discount,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "install_chatterjee_program_resolve": {
-      if (!source) return { ok: true };
-      const card = state.cards[action.cardId];
-      if (!card || !state.runner.hand.includes(action.cardId)) {
-        return { ok: true };
-      }
-      const cost = Math.max(0, (card.installCost ?? 0) - action.discount);
-      if (state.runner.credits < cost) {
-        log(state, `Chatterjee University — cannot afford ${card.title}.`);
-        return { ok: true };
-      }
-      subtractRunnerCreditPool(state, cost);
-      state.runner.hand = state.runner.hand.filter(
-        (id) => id !== action.cardId,
-      );
-      state.runner.installed.push(action.cardId);
-      card.zone = "runner:installed";
-      if ((source.powerCounters ?? 0) > 0) {
-        source.powerCounters = (source.powerCounters ?? 0) - 1;
-      }
-      log(
-        state,
-        `Chatterjee University — install ${card.title} for ${cost}¢; remove 1 power.`,
-      );
       return { ok: true };
     }
 

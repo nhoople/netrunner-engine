@@ -1092,11 +1092,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/addKinds.ts#applyAddKinds",
+          "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds",
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/kinds/addKinds.ts#applyAddKinds",
           "kinds": []
         },
         {
@@ -1511,7 +1511,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
+          "site": "src/effects/install/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
           "kinds": []
         }
       ],
@@ -2093,6 +2093,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/install/runnerInstall.ts#countInstalledIcebreakersForCost",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
@@ -2114,10 +2118,6 @@
         },
         {
           "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#countInstalledIcebreakersForCost",
           "kinds": []
         },
         {
@@ -3523,11 +3523,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKinds",
           "kinds": []
         },
         {
@@ -3581,7 +3581,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKinds",
           "kinds": []
         },
         {
@@ -4403,11 +4403,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/runnerInstall.ts#gripInstallCostAfterDiscount",
+          "site": "src/effects/install/runnerInstall.ts#gripInstallCostAfterDiscount",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#stackProgramInstallCost",
+          "site": "src/effects/install/runnerInstall.ts#stackProgramInstallCost",
           "kinds": []
         },
         {
@@ -5296,31 +5296,31 @@
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installHeapCardDiscounted",
+          "site": "src/effects/install/runnerInstall.ts#installHeapCardDiscounted",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installSetAsideIgnoringCosts",
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideIgnoringCosts",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installSetAsideProgramPaying",
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideProgramPaying",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installStackCardPaying",
+          "site": "src/effects/install/runnerInstall.ts#installStackCardPaying",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installStackProgramPaying",
+          "site": "src/effects/install/runnerInstall.ts#installStackProgramPaying",
           "kinds": []
         },
         {
@@ -5459,31 +5459,31 @@
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installHeapCardDiscounted",
+          "site": "src/effects/install/runnerInstall.ts#installHeapCardDiscounted",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installSetAsideIgnoringCosts",
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideIgnoringCosts",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installSetAsideProgramPaying",
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideProgramPaying",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installStackCardPaying",
+          "site": "src/effects/install/runnerInstall.ts#installStackCardPaying",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installStackProgramPaying",
+          "site": "src/effects/install/runnerInstall.ts#installStackProgramPaying",
           "kinds": []
         },
         {
@@ -5964,10 +5964,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
-          "kinds": []
-        },
-        {
           "site": "src/effects/eval.ts#finishMuseInstall",
           "kinds": []
         },
@@ -5976,43 +5972,51 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installHeapCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideProgramPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installStackCardPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installStackProgramPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
           "kinds": []
         },
         {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/shuffleInstall.ts#applyMagnumOpusPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installHeapCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideIgnoringCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideProgramPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installStackCardPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installStackProgramPaying",
           "kinds": []
         }
       ],
@@ -6653,6 +6657,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
@@ -6662,10 +6670,6 @@
         },
         {
           "site": "src/effects/primitives/chooseGainShuffle.ts#canAdvance",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/givePayTrash.ts#applyRedsandCdPrimitive",
           "kinds": []
         },
         {
@@ -7028,15 +7032,43 @@
           "kinds": []
         },
         {
+          "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#gripInstallCostAfterDiscount",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#stackProgramInstallCost",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKinds.build",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds.build",
           "kinds": []
         },
         {
@@ -7056,27 +7088,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/boostRezTrace.ts#applyLunarTsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/breachResolveInstall.ts#applyKitaraKaPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/breachResolveRfg.ts#applyLunarFcPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainCannotSwap.ts#applySansanUotPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/hostInstallExpose.ts#applySansanUwPrimitive",
           "kinds": []
         },
         {
@@ -7092,31 +7104,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/preventInstallDraw.ts#applySansanBbPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventMoveChoose.ts#applyMumbadKgPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/preventSpendTrash.ts#applyLunarUaoPrimitive",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/trashResolveDerez.ts#applyRedsandEasPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#gripInstallCostAfterDiscount",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#stackProgramInstallCost",
           "kinds": []
         },
         {
@@ -7170,11 +7162,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/runnerInstall.ts#gripInstallCostAfterDiscount",
+          "site": "src/effects/install/runnerInstall.ts#gripInstallCostAfterDiscount",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#stackProgramInstallCost",
+          "site": "src/effects/install/runnerInstall.ts#stackProgramInstallCost",
           "kinds": []
         },
         {
@@ -7197,11 +7189,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/runnerInstall.ts#gripInstallCostAfterDiscount",
+          "site": "src/effects/install/runnerInstall.ts#gripInstallCostAfterDiscount",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#stackProgramInstallCost",
+          "site": "src/effects/install/runnerInstall.ts#stackProgramInstallCost",
           "kinds": []
         },
         {
@@ -7224,11 +7216,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/runnerInstall.ts#gripInstallCostAfterDiscount",
+          "site": "src/effects/install/runnerInstall.ts#gripInstallCostAfterDiscount",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#stackProgramInstallCost",
+          "site": "src/effects/install/runnerInstall.ts#stackProgramInstallCost",
           "kinds": []
         },
         {
@@ -7306,7 +7298,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/rezBreachPlace.ts#applyMumbadBfPrimitive",
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
           "kinds": []
         }
       ],
@@ -7349,51 +7341,59 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallHeapCard",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallSetAsideIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallSetAsideProgram",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallStackCard",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallStackProgram",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installHeapCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#searchStackProgramInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#searchStackTypeInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
           "kinds": []
         },
         {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallHeapCard",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallSetAsideIgnoringCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallSetAsideProgram",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallStackCard",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallStackProgram",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installHeapCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#searchStackProgramInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#searchStackTypeInstall",
           "kinds": []
         },
         {
@@ -8042,15 +8042,19 @@
           "kinds": []
         },
         {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainCannotSwap.ts#applySansanUotPrimitive",
           "kinds": []
         },
         {
@@ -8059,10 +8063,6 @@
         },
         {
           "site": "src/effects/rez/rezKinds.ts#applyRezKindsWhenSourceExists",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
           "kinds": []
         },
         {
@@ -9442,7 +9442,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/primitives/shuffleLookPick.ts#applySansanOhPrimitive",
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKindsWhenSourceExists",
           "kinds": []
         },
         {
@@ -11134,7 +11134,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/corpIceInstallKinds.ts#applyCorpIceInstallKinds",
           "kinds": []
         },
         {
@@ -12045,7 +12045,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpInstall.ts#applyCorpInstallPrimitive",
+          "site": "src/effects/install/corpInstall.ts#applyCorpInstallPrimitive",
           "kinds": []
         },
         {
@@ -12085,11 +12085,11 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/runnerInstall.ts#installHeapCardDiscounted",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installHeapCardDiscounted",
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
           "kinds": []
         },
         {
@@ -14611,7 +14611,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#patchworkInstallDiscount",
+          "site": "src/effects/install/runnerInstall.ts#patchworkInstallDiscount",
           "kinds": []
         },
         {
@@ -15815,35 +15815,35 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
+          "site": "src/effects/install/runnerInstall.ts#installHeapCardDiscounted",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installHeapCardDiscounted",
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideIgnoringCosts",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installSetAsideIgnoringCosts",
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideProgramPaying",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installSetAsideProgramPaying",
+          "site": "src/effects/install/runnerInstall.ts#installStackCardPaying",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installStackCardPaying",
+          "site": "src/effects/install/runnerInstall.ts#installStackProgramPaying",
           "kinds": []
         },
         {
-          "site": "src/effects/runnerInstall.ts#installStackProgramPaying",
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
           "kinds": []
         }
       ],
@@ -16177,47 +16177,55 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
-          "kinds": []
-        },
-        {
           "site": "src/effects/eval.ts#finishMuseInstall",
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installHeapCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideProgramPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installStackCardPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installStackProgramPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
           "kinds": []
         },
         {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installHeapCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideIgnoringCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideProgramPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installStackCardPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installStackProgramPaying",
           "kinds": []
         },
         {
@@ -16842,7 +16850,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpAbilityInstall.ts#rezAfterInstall",
+          "site": "src/effects/install/corpAbilityInstall.ts#rezAfterInstall",
           "kinds": []
         }
       ],
@@ -16873,7 +16881,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpAbilityInstall.ts#rezAfterInstall",
+          "site": "src/effects/install/corpAbilityInstall.ts#rezAfterInstall",
           "kinds": []
         }
       ],
@@ -16908,7 +16916,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpAbilityInstall.ts#rezAfterInstall",
+          "site": "src/effects/install/corpAbilityInstall.ts#rezAfterInstall",
           "kinds": []
         },
         {
@@ -17013,7 +17021,15 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
           "kinds": []
         },
         {
@@ -17026,14 +17042,6 @@
         },
         {
           "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/givePayTrash.ts#applyRedsandCdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
           "kinds": []
         },
         {
@@ -18158,11 +18166,15 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
+          "site": "src/effects/install/corpIceInstallKinds.ts#applyCorpIceInstallKinds",
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
         {
@@ -19992,6 +20004,90 @@
           "kinds": []
         },
         {
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallHeapCard",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallSetAsideIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallSetAsideProgram",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallStackCard",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallStackProgram",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#countInstalledIcebreakersForCost",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installHeapCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideProgramPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installStackCardPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installStackProgramPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#searchStackProgramInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#searchStackTypeInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#trashOtherConsoles",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/addKinds.ts#applyAddKinds",
           "kinds": []
         },
@@ -20001,10 +20097,6 @@
         },
         {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
           "kinds": []
         },
         {
@@ -20037,10 +20129,6 @@
         },
         {
           "site": "src/effects/primitives/boostRezTrace.ts#applyLunarTsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/breachResolveInstall.ts#applyKitaraKaPrimitive",
           "kinds": []
         },
         {
@@ -20161,70 +20249,6 @@
         },
         {
           "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallHeapCard",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallSetAsideIgnoringCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallSetAsideProgram",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallStackCard",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallStackProgram",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#countInstalledIcebreakersForCost",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installHeapCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideIgnoringCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideProgramPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installStackCardPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installStackProgramPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#searchStackProgramInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#searchStackTypeInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#trashOtherConsoles",
           "kinds": []
         },
         {
@@ -21017,18 +21041,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpAbilityInstall.ts#rezAfterInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpInstall.ts#applyCorpInstallPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/corpTrash.ts#corpTrashRefused",
           "kinds": []
         },
@@ -21181,6 +21193,110 @@
           "kinds": []
         },
         {
+          "site": "src/effects/install/corpAbilityInstall.ts#rezAfterInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpIceInstallKinds.ts#applyCorpIceInstallKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstall.ts#applyCorpInstallPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds.installUnrezzed",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKindsWhenSourceExists.addInstallable",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds.buildOption",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installHeapCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideProgramPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installStackCardPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installStackProgramPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#searchStackProgramInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#searchStackTypeInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#trashOtherConsoles",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#addCompileInstalledToBottom",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/addKinds.ts#applyAddKinds",
           "kinds": []
         },
@@ -21194,18 +21310,6 @@
         },
         {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds.buildOption",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds.installUnrezzed",
           "kinds": []
         },
         {
@@ -21325,10 +21429,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/gainCannotSwap.ts#applySansanUotPrimitive.addInstallable",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/gainCannotSwap.ts#offerBookmarkHostChoice",
           "kinds": []
         },
@@ -21422,10 +21522,6 @@
         },
         {
           "site": "src/effects/primitives/resolveExposePay.ts#applyKitaraTdatdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#addCompileInstalledToBottom",
           "kinds": []
         },
         {
@@ -21542,46 +21638,6 @@
         },
         {
           "site": "src/effects/runPrimitives.ts#applyRunPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installHeapCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideIgnoringCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideProgramPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installStackCardPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installStackProgramPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#searchStackProgramInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#searchStackTypeInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#trashOtherConsoles",
           "kinds": []
         },
         {
@@ -23684,34 +23740,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpAbilityInstall.ts#applyInstallCorpCard",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpAbilityInstall.ts#corpAbilityInstallDestinations",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpAbilityInstall.ts#corpInstallableIds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpAbilityInstall.ts#destinationFor",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpAbilityInstall.ts#rezAfterInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpInstall.ts#applyCorpInstallPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
           "kinds": []
         },
@@ -23756,6 +23784,146 @@
           "kinds": []
         },
         {
+          "site": "src/effects/install/corpAbilityInstall.ts#applyInstallCorpCard",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpAbilityInstall.ts#corpAbilityInstallDestinations",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpAbilityInstall.ts#corpInstallableIds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpAbilityInstall.ts#destinationFor",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpAbilityInstall.ts#rezAfterInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpIceInstallKinds.ts#applyCorpIceInstallKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstall.ts#applyCorpInstallPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKindsWhenSourceExists.addInstallable",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#iceCandidatesFromHqOrArchives",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds.buildOption",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallHeapCard",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallSetAsideIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallSetAsideProgram",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallStackCard",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#canInstallStackProgram",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#gripInstallCostAfterDiscount",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installGripCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installHeapCardDiscounted",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideIgnoringCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installSetAsideProgramPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installStackCardPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#installStackProgramPaying",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#searchStackProgramInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#searchStackTypeInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstall.ts#stackProgramInstallCost",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/addKinds.ts#applyAddKinds",
           "kinds": []
         },
@@ -23765,14 +23933,6 @@
         },
         {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds.buildOption",
           "kinds": []
         },
         {
@@ -23820,10 +23980,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/breachResolveInstall.ts#applyKitaraKaPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/breachResolveRfg.ts#applyLunarFcPrimitive",
           "kinds": []
         },
@@ -23848,23 +24004,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/gainCannotSwap.ts#applySansanUotPrimitive.addInstallable",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/givePayTrash.ts#applyRedsandCdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/hostInstallExpose.ts#applySansanUwPrimitive",
           "kinds": []
         },
         {
@@ -23956,10 +24100,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/shuffleInstall.ts#iceCandidatesFromHqOrArchives",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/shuffleLookPick.ts#applySansanOhPrimitive",
           "kinds": []
         },
@@ -23980,19 +24120,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashChooseAccess.ts#applyRedsandSoPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/trashChooseAccess.ts#connectionResources",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashGiveSwap.ts#applySpinFalDtPrimitive",
           "kinds": []
         },
         {
@@ -24005,10 +24137,6 @@
         },
         {
           "site": "src/effects/primitives/trashResolveDerez.ts#canAdvance",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
           "kinds": []
         },
         {
@@ -24029,70 +24157,6 @@
         },
         {
           "site": "src/effects/rez/rezKinds.ts#rezzedIceIds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallHeapCard",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallSetAsideIgnoringCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallSetAsideProgram",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallStackCard",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#canInstallStackProgram",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#gripInstallCostAfterDiscount",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installGripCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installHeapCardDiscounted",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideCardPayingNoShuffle",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideIgnoringCosts",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installSetAsideProgramPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installStackCardPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#installStackProgramPaying",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#searchStackProgramInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#searchStackTypeInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/runnerInstall.ts#stackProgramInstallCost",
           "kinds": []
         },
         {
@@ -24503,7 +24567,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
+          "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
           "kinds": []
         },
         {

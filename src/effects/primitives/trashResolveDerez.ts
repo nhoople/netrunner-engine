@@ -2,7 +2,6 @@ import {
   iceAtRunnerPosition,
   moveRunnerToOutermost,
 } from "../../state/uninstallAndPosition/runPosition.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
@@ -160,42 +159,6 @@ export function applyRedsandEasPrimitive(
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "install_rosetta_from_stack": {
-      const cardId = action.cardId;
-      const discount = action.discount ?? 0;
-      const card = state.cards[cardId];
-      if (!card || !state.runner.deck.includes(cardId)) {
-        log(state, `Rosetta 2.0 — install target not in stack.`);
-        return { ok: true };
-      }
-      state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-      for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = state.runner.deck[i]!;
-        state.runner.deck[i] = state.runner.deck[j]!;
-        state.runner.deck[j] = tmp;
-      }
-      const cost = Math.max(0, (card.installCost ?? 0) - discount);
-      if (state.runner.credits < cost) {
-        state.runner.hand.push(cardId);
-        card.zone = "runner:grip";
-        log(
-          state,
-          `Rosetta 2.0 — cannot pay ${cost}¢; ${card.title} added to grip.`,
-        );
-        return { ok: true };
-      }
-      subtractRunnerCreditPool(state, cost);
-      state.runner.installed.push(cardId);
-      card.zone = "runner:installed";
-      card.faceup = true;
-      log(
-        state,
-        `Rosetta 2.0 — install ${card.title} for ${cost}¢ (−${discount}).`,
-      );
       return { ok: true };
     }
 

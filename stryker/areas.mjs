@@ -69,8 +69,8 @@ export const areas = {
     title: "5. Corp install",
     mutate: [
       "src/actions/installCorp.ts",
-      "src/effects/corpInstall.ts",
-      "src/effects/corpAbilityInstall.ts",
+      "src/effects/install/corpInstall.ts",
+      "src/effects/install/corpAbilityInstall.ts",
     ],
     tests: ["tests/corp-install*.test.ts", "tests/*corp-install*.test.ts"],
     grep: /applyCorpInstallPrimitive|\b(8\.5\.(1|2|3|4|5|7|8|9|11)|4\.6\.8)\b|Architect|Jinja City Grid|Casting Call|Mushin/,
@@ -79,7 +79,7 @@ export const areas = {
     title: "6. Runner install",
     mutate: [
       "src/actions/installRunner.ts",
-      "src/effects/runnerInstall.ts",
+      "src/effects/install/runnerInstall.ts",
       "src/state/install/programHardwareInstall.ts",
       "src/state/install/virusInstall.ts",
     ],

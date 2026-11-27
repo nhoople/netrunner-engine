@@ -16,7 +16,7 @@ import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { enterSetAside } from "../../state/zones.js";
-import { corpCanInstallByAbility } from "../corpAbilityInstall.js";
+import { corpCanInstallByAbility } from "../install/corpAbilityInstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

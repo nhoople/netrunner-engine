@@ -20,7 +20,7 @@ import {
 } from "../../state/turnAndActions/turn.js";
 import { enterSetAside } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
-import { corpCardInstallable } from "../corpInstall.js";
+import { corpCardInstallable } from "../install/corpInstall.js";
 import {
   noteSearchConditionalAbilities,
   addFoundStackCardAfterSearch,
@@ -35,7 +35,7 @@ import {
   searchStackProgramInstall,
   searchStackTypeInstall,
   shuffleRunnerStack,
-} from "../runnerInstall.js";
+} from "../install/runnerInstall.js";
 
 import { fireOnInstall, fireHostRezStateTriggers, fireOnRez } from "../eval.js";
 import { random } from "../../state/rng.js";

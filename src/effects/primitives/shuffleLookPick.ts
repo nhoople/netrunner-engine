@@ -9,7 +9,7 @@ import type { Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
+import { unhostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -381,65 +381,6 @@ export function applySansanOhPrimitive(
       log(
         state,
         `Back Channels — trash ${card.title} (${adv} adv) → gain ${gain}¢.`,
-      );
-      return { ok: true };
-    }
-
-    case "install_agenda_faceup": {
-      const agendas = state.corp.hand.filter(
-        (id) => state.cards[id]?.type === "agenda",
-      );
-      if (agendas.length === 0) {
-        log(state, `Casting Call — no agenda in HQ.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: agendas.map((cardId) => ({
-          id: `casting:${cardId}`,
-          label: `Install ${state.cards[cardId]!.title} faceup`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "install_casting_call" as const,
-              cardId,
-            },
-          },
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "install_casting_call": {
-      const agendaId = action.cardId;
-      const agenda = state.cards[agendaId];
-      if (!agenda || agenda.type !== "agenda") return { ok: true };
-      // Install into a new remote faceup and host Casting Call as condition.
-      let remoteIdx = 1;
-      while (state.servers[`remote-${remoteIdx}` as ServerId]) remoteIdx += 1;
-      const serverId = `remote-${remoteIdx}` as ServerId;
-      state.servers[serverId] = {
-        id: serverId,
-        kind: "remote",
-        ice: [],
-        root: [],
-      };
-      state.corp.hand = state.corp.hand.filter((id) => id !== agendaId);
-      agenda.zone = `server:${serverId}:root`;
-      agenda.faceup = true;
-      agenda.rezzed = false;
-      state.servers[serverId]!.root.push(agendaId);
-      // Host condition counter on agenda.
-      removeCardFromCurrentZone(state, sourceId);
-      hostCard(state, source.id, agendaId, { installed: true });
-      source.zone = `hosted:${agendaId}`;
-      source.faceup = true;
-      source.castingCallCondition = true;
-      agenda.onAccessGiveTags = (agenda.onAccessGiveTags ?? 0) + 2;
-      log(
-        state,
-        `Casting Call — install ${agenda.title} faceup in ${serverId}; host condition (2 tags on access).`,
       );
       return { ok: true };
     }

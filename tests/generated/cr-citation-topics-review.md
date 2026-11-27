@@ -58,4 +58,4 @@ Rule: 10 Additional Rules › 10.1 General
 
 | File | Via | Code topic | Sites |
 | --- | --- | --- | --- |
-| `src/effects/kinds/installKinds.ts` | literal | install | 1 |
+| `src/effects/install/corpInstallThenRezOrAdvanceKinds.ts` | literal | install | 1 |

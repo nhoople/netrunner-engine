@@ -131,29 +131,6 @@ export function applySpinFalDtPrimitive(
       log(state, `Trash installed ${card.title}.`);
       return { ok: true };
     }
-    case "install_program_from_grip": {
-      const programs = state.runner.hand.filter(
-        (id) => state.cards[id]?.type === "program",
-      );
-      if (programs.length === 0) {
-        log(state, `Savoir-faire — no program in grip.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: programs.map((id) => ({
-          id: `savoir-faire:${id}`,
-          label: `Install ${state.cards[id]!.title} from grip`,
-          effect: fx.do({
-            kind: "install_program_from_grip_paying_cost",
-            cardId: id,
-          }),
-        })),
-        logLine: `Savoir-faire — install a program from grip (pay install cost).`,
-      });
-      return { ok: true };
-    }
     case "prevent_trash_resource": {
       preventPendingInstalledTrash(state);
       log(state, `Fall Guy — prevent trash of another resource.`);

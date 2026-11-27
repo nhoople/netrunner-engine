@@ -127,14 +127,14 @@ import { applyTracePrimitive } from "./tracePrimitives.js";
 import { applyClickPrimitive } from "./clickPrimitives.js";
 import { applyPsiPrimitive } from "./psiPrimitives.js";
 import { applyBadPublicityPrimitive } from "./badPublicityPrimitives.js";
-import { applyCorpInstallPrimitive } from "./corpInstall.js";
+import { applyCorpInstallPrimitive } from "./install/corpInstall.js";
 import { applyCounterPrimitive } from "./counterPrimitives.js";
 import { applyEncounterPrimitive } from "./encounterPrimitives.js";
 import { iceStrength } from "./continuous/iceStrength.js";
 import {
   gripInstallCostAfterDiscount,
   shuffleRunnerStack,
-} from "./runnerInstall.js";
+} from "./install/runnerInstall.js";
 import { applySpinTcPrimitive } from "./primitives/breachTrashTurn.js";
 import {
   fireOnAfterOperationOrExpendable as markOnAfterOperationOrExpendable,

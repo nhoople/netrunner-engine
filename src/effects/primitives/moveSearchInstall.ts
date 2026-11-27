@@ -3,7 +3,6 @@ import {
   markSubroutineBroken,
   subroutineBreakBlock,
 } from "../../state/turnAndActions/break.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removePendingDamageEntirely } from "../../state/damageAndPrevention/damage.js";
 import type { RuleCite } from "../../state/types.js";
@@ -135,29 +134,6 @@ export function applyKitaraCotcPrimitive(
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "install_crypt_resolve": {
-      const cardId = (action as { cardId: string }).cardId;
-      const card = state.cards[cardId];
-      if (!card) return { ok: true };
-      const cost = card.installCost ?? 0;
-      if (state.runner.credits < cost) {
-        log(
-          state,
-          `Crypt — cannot pay ${cost}¢ to install ${card.title}; shuffle.`,
-        );
-        shuffleInPlace(state, state.runner.deck);
-        return { ok: true };
-      }
-      subtractRunnerCreditPool(state, cost);
-      state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-      state.runner.installed.push(cardId);
-      card.zone = "runner:installed";
-      card.faceup = true;
-      shuffleInPlace(state, state.runner.deck);
-      log(state, `Crypt — install ${card.title} for ${cost}¢; shuffle stack.`);
       return { ok: true };
     }
 

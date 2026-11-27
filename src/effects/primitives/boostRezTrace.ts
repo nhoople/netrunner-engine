@@ -1,5 +1,4 @@
 import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
@@ -8,7 +7,7 @@ import type { RuleCite, ServerId } from "../../state/types.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { evalEffect, type EffectCtx } from "../eval.js";
+import type { EffectCtx } from "../eval.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -238,33 +237,6 @@ export function applyLunarTsPrimitive(
       }
       state.turn.incubatorMoveAmount = undefined;
       return { ok: true };
-    }
-    case "install_program": {
-      const cardId = (action as { cardId: string }).cardId;
-      const discount = (action as { discount: number }).discount;
-      const card = state.cards[cardId];
-      if (!card || card.type !== "program") return { ok: true };
-      const printed = card.installCost ?? 0;
-      const cost = Math.max(0, printed - discount);
-      if (state.runner.credits < cost) {
-        log(state, `Code Siphon — cannot afford ${card.title}.`);
-        return { ok: true };
-      }
-      // The search already took the card out of the stack.
-      subtractRunnerCreditPool(state, cost);
-      state.runner.installed.push(cardId);
-      card.zone = "runner:installed";
-      card.faceup = true;
-      // The turn's record of a Runner install (Docklands Crackdown,
-      // Housekeeping); the inline install skips the install procedure.
-      state.turn.runnerInstalledCardThisTurn = true;
-      log(
-        state,
-        `Code Siphon — install ${card.title} for ${cost}¢ (−${discount}), then take 1 tag.`,
-      );
-      // The tag goes through the tag procedure, so it can be avoided
-      // (CR 9.9.6a).
-      return evalEffect(ctx, fx.do({ kind: "give_tags", amount: 1 }));
     }
     case "break_code_gate_or_barrier": {
       const enc = state.run?.encounter;

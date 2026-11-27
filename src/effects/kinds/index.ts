@@ -8,7 +8,7 @@ import { applyDerezKinds } from "../rez/derezKinds.js";
 import { applyForbidKinds } from "../continuous/forbidKinds.js";
 import { applyGainKinds } from "./gainKinds.js";
 import { applyHostKinds } from "./hostKinds.js";
-import { applyInstallKinds } from "./installKinds.js";
+
 import { applyLookKinds } from "../visibility/lookKinds.js";
 import { applyMoveKinds } from "./moveKinds.js";
 import { applyOtherKinds } from "./otherKinds.js";
@@ -36,6 +36,24 @@ import {
   applyVisibilityKinds,
   applyVisibilityKindsWhenSourceExists,
 } from "../visibility/visibilityKinds.js";
+import { applyCorpInstallFromHqKinds } from "../install/corpInstallFromHqKinds.js";
+import {
+  applyCorpInstallFromArchivesAndRdKinds,
+  applyCorpInstallFromArchivesAndRdKindsWhenSourceExists,
+} from "../install/corpInstallFromArchivesAndRdKinds.js";
+import {
+  applyRunnerInstallFromOtherZonesKinds,
+  applyRunnerInstallFromOtherZonesKindsWhenSourceExists,
+} from "../install/runnerInstallFromOtherZonesKinds.js";
+import { applyCorpIceInstallKinds } from "../install/corpIceInstallKinds.js";
+import {
+  applyCorpInstallThenRezOrAdvanceKinds,
+  applyCorpInstallThenRezOrAdvanceKindsWhenSourceExists,
+} from "../install/corpInstallThenRezOrAdvanceKinds.js";
+import {
+  applyRunnerInstallFromGripKinds,
+  applyRunnerInstallFromGripKindsWhenSourceExists,
+} from "../install/runnerInstallFromGripKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -45,7 +63,6 @@ const HANDLERS = [
   applyForbidKinds,
   applyGainKinds,
   applyHostKinds,
-  applyInstallKinds,
   applyLookKinds,
   applyMoveKinds,
   applyOtherKinds,
@@ -69,6 +86,16 @@ const HANDLERS = [
   applySwapKindsWhenSourceExists,
   applyVisibilityKinds,
   applyVisibilityKindsWhenSourceExists,
+  applyCorpInstallFromHqKinds,
+  applyCorpInstallFromArchivesAndRdKinds,
+  applyCorpInstallFromArchivesAndRdKindsWhenSourceExists,
+  applyRunnerInstallFromOtherZonesKinds,
+  applyRunnerInstallFromOtherZonesKindsWhenSourceExists,
+  applyCorpIceInstallKinds,
+  applyCorpInstallThenRezOrAdvanceKinds,
+  applyCorpInstallThenRezOrAdvanceKindsWhenSourceExists,
+  applyRunnerInstallFromGripKinds,
+  applyRunnerInstallFromGripKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(

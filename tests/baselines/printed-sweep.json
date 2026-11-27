@@ -6452,7 +6452,7 @@
       "abilities": [
         "Search your stack for a program. Install it."
       ],
-      "note": "Area 6 (Runner install): search_stack_program_install (src/effects/runnerInstall.ts) drops every program that would exceed free MU instead of letting the Runner trash programs to make room, and drops trojans and install-on-ice programs. The run, the per-ice exclusive choices, the credits and the charge match.",
+      "note": "Area 6 (Runner install): search_stack_program_install (src/effects/install/runnerInstall.ts) drops every program that would exceed free MU instead of letting the Runner trash programs to make room, and drops trojans and install-on-ice programs. The run, the per-ice exclusive choices, the credits and the charge match.",
       "cr": [
         "8.5.6c",
         "3.9.3b",
@@ -10922,7 +10922,7 @@
       "abilities": [
         "Run Archives. If successful, instead of breaching Archives, you may install 1 program from your heap, ignoring all costs."
       ],
-      "note": "Area 6 (Runner install): the shared heap install (canInstallHeapCard, installHeapCardDiscounted in src/effects/runnerInstall.ts) leaves out a program that does not fit in free MU, where the Runner may trash programs to make room (CR 3.9.3b, 8.5.6c), and programs installed on ice; Retrieval Run's offer follows it. The choice also opens at the success step rather than when the breach would begin (CR 6.7.4c, area 14, as for every run-event breach replacement). Fixed in engine#997 with card JSON (cards v1.147.26 (engine#997 pins it)): a successful_run conditional on the run event, may_install_heap_program_instead_of_breach, offers \"Breach Archives\" or each heap program, and the chosen one is installed ignoring all costs with install triggers, instead of always skipping the breach and installing the first heap program inline (test \"the Runner may breach Archives instead of installing, and then can steal its agenda (CR 1.2.1, 9.6.9)\").",
+      "note": "Area 6 (Runner install): the shared heap install (canInstallHeapCard, installHeapCardDiscounted in src/effects/install/runnerInstall.ts) leaves out a program that does not fit in free MU, where the Runner may trash programs to make room (CR 3.9.3b, 8.5.6c), and programs installed on ice; Retrieval Run's offer follows it. The choice also opens at the success step rather than when the breach would begin (CR 6.7.4c, area 14, as for every run-event breach replacement). Fixed in engine#997 with card JSON (cards v1.147.26 (engine#997 pins it)): a successful_run conditional on the run event, may_install_heap_program_instead_of_breach, offers \"Breach Archives\" or each heap program, and the chosen one is installed ignoring all costs with install triggers, instead of always skipping the breach and installing the first heap program inline (test \"the Runner may breach Archives instead of installing, and then can steal its agenda (CR 1.2.1, 9.6.9)\").",
       "cr": [
         "1.2.1",
         "6.7.4c",

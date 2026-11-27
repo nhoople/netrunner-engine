@@ -19,7 +19,7 @@ import {
   evalEffect,
   noteSearchConditionalAbilities,
 } from "../eval.js";
-import { shuffleRunnerStack } from "../runnerInstall.js";
+import { shuffleRunnerStack } from "../install/runnerInstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
