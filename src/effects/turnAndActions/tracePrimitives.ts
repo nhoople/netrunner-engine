@@ -2,12 +2,15 @@
  * Trace primitives. Starting a trace and changing its base strength.
  * Cards that spend the stored trace excess stay in eval.ts.
  */
-import { log } from "../state/setupAndEnd/createGame.js";
-import { autoResolveTrace, startTrace } from "../state/turnAndActions/trace.js";
-import type { RuleCite } from "../state/types.js";
-import { CR } from "../timing/labels.js";
-import type { EffectCtx } from "./eval.js";
-import type { Primitive } from "./ir.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import {
+  autoResolveTrace,
+  startTrace,
+} from "../../state/turnAndActions/trace.js";
+import type { RuleCite } from "../../state/types.js";
+import { CR } from "../../timing/labels.js";
+import type { EffectCtx } from "../eval.js";
+import type { Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

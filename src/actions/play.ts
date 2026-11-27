@@ -65,7 +65,7 @@ import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { unhostCard } from "../state/hostingAndTrash/host.js";
 import { fireSiAfterCorpRezOrPlay } from "../effects/keywordsAndCredits/keywordAndCreditKinds.js";
-import { fireSiAfterPaidAbilityClicks } from "../effects/primitives/lookTrashAdd.js";
+import { fireSiAfterPaidAbilityClicks } from "../effects/turnAndActions/turnAndActionKinds.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

@@ -14,7 +14,7 @@ import { applyMoveKinds } from "../uninstallAndPosition/moveKinds.js";
 import { applyOtherKinds } from "./otherKinds.js";
 import { applyPayKinds } from "../keywordsAndCredits/payKinds.js";
 import { applyPlaceKinds } from "../counters/placeKinds.js";
-import { applyPlayKinds } from "./playKinds.js";
+import { applyPlayKinds } from "../turnAndActions/playKinds.js";
 import { applyRemoveKinds } from "../counters/removeKinds.js";
 import { applyResolveKinds } from "../triggers/resolveKinds.js";
 import { applyReturnKinds } from "../uninstallAndPosition/returnKinds.js";
@@ -97,6 +97,12 @@ import {
   applyKeywordAndCreditKinds,
   applyKeywordAndCreditKindsWhenSourceExists,
 } from "../keywordsAndCredits/keywordAndCreditKinds.js";
+import { applyTurnAndActionKinds } from "../turnAndActions/turnAndActionKinds.js";
+import {
+  applyScoreAndForfeitKinds,
+  applyScoreAndForfeitKindsWhenSourceExists,
+} from "../turnAndActions/scoreAndForfeitKinds.js";
+import { applyBreakKinds } from "../turnAndActions/breakKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -161,6 +167,10 @@ const HANDLERS = [
   applyRunKindsWhenSourceExists,
   applyKeywordAndCreditKinds,
   applyKeywordAndCreditKindsWhenSourceExists,
+  applyTurnAndActionKinds,
+  applyScoreAndForfeitKinds,
+  applyScoreAndForfeitKindsWhenSourceExists,
+  applyBreakKinds,
 ] as const;
 
 export function applyCoreKinds(

@@ -2,17 +2,17 @@
  * Click gain and loss. Seidr's first click spent during a run and
  * the Valencia first-click-loss hook run here.
  */
-import { log } from "../state/setupAndEnd/createGame.js";
-import type { RuleCite, Side } from "../state/types.js";
-import { CR } from "../timing/labels.js";
-import type { EffectCtx } from "./eval.js";
-import { abilityCreditTally } from "./keywordsAndCredits/creditTally.js";
-import type { Effect, Primitive, SideRef } from "./ir.js";
-import { fireRunnerValTrigger } from "./triggers/firstTimeEachTurnTriggers.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import type { RuleCite, Side } from "../../state/types.js";
+import { CR } from "../../timing/labels.js";
+import type { EffectCtx } from "../eval.js";
+import { abilityCreditTally } from "../keywordsAndCredits/creditTally.js";
+import type { Effect, Primitive, SideRef } from "../ir.js";
+import { fireRunnerValTrigger } from "../triggers/firstTimeEachTurnTriggers.js";
 import {
   maybeFireSeidrOnClickSpendOrLose,
   noteRunnerClickDuringRun,
-} from "../state/turnAndActions/clickHooks.js";
+} from "../../state/turnAndActions/clickHooks.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

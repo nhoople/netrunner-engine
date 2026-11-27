@@ -52,22 +52,8 @@ import {
   type SideRef,
 } from "./ir.js";
 import { applyCoreKinds } from "./kinds/index.js";
-import { applySpinFalDtPrimitive } from "./primitives/trashGiveSwap.js";
-import { applySpinHapPrimitive } from "./primitives/spendInstallAdd.js";
-import { applyLunarUpPrimitive } from "./primitives/trashResolveTrace.js";
-import { applyLunarTsbPrimitive } from "./primitives/searchScoreName.js";
 
-import { applyLunarUaoPrimitive } from "./primitives/preventSpendTrash.js";
-import { applyLunarAtrPrimitive } from "./primitives/scoreTraceOffer.js";
-import { applyLunarTsPrimitive } from "./primitives/boostRezTrace.js";
-import { applyOacPrimitive } from "./primitives/gainMoveMark.js";
 import { applySansanValPrimitive } from "./primitives/searchRevealTrash.js";
-import { applySansanBbPrimitive } from "./primitives/preventInstallDraw.js";
-
-import { applySansanOhPrimitive } from "./primitives/shuffleLookPick.js";
-
-import { applyDadPrimitive } from "./primitives/playDrawSearch.js";
-import { applyMumbadKgPrimitive } from "./primitives/preventMoveChoose.js";
 
 import {
   closeReactionWindow,
@@ -81,23 +67,6 @@ import {
   pruneSettledPendingAbilities,
 } from "../state/triggers/pendingAbilities.js";
 import { applyMumbadTlmPrimitive } from "./primitives/trashPlaceAccess.js";
-import { applyMumbadFtmPrimitive } from "./primitives/revealTrashCannot.js";
-
-import { applyFlashpointBmPrimitive } from "./primitives/spendMoveTrash.js";
-import { applyFlashpointEsPrimitive } from "./primitives/redirectSpendName.js";
-
-import { applyFlashpointMlPrimitive } from "./primitives/spendHostPrevent.js";
-import { applyFlashpointQuPrimitive } from "./primitives/preventGainSpend.js";
-
-import { applyRedsandTdPrimitive } from "./primitives/derezDrawChoose.js";
-
-import { applyRedsandBawPrimitive } from "./primitives/chooseGainShuffle.js";
-
-import { applyKitaraDtwnPrimitive } from "./primitives/gainExposeSearch.js";
-import { applyKitaraCotcPrimitive } from "./primitives/moveSearchInstall.js";
-import { applyKitaraTdatdPrimitive } from "./primitives/resolveExposePay.js";
-import { applyKitaraWinPrimitive } from "./primitives/resolveMoveInstall.js";
-import { applyKitaraKaPrimitive } from "./primitives/breachResolveInstall.js";
 
 import { applyHostedCreditPrimitive } from "./keywordsAndCredits/hostedCreditPrimitives.js";
 import { applyDamagePrimitive } from "./damageAndPrevention/damagePrimitives.js";
@@ -114,9 +83,9 @@ import {
   deferContinuationAfter,
   effectResolutionBlocked,
 } from "./continuation.js";
-import { applyTracePrimitive } from "./tracePrimitives.js";
-import { applyClickPrimitive } from "./clickPrimitives.js";
-import { applyPsiPrimitive } from "./psiPrimitives.js";
+import { applyTracePrimitive } from "./turnAndActions/tracePrimitives.js";
+import { applyClickPrimitive } from "./turnAndActions/clickPrimitives.js";
+import { applyPsiPrimitive } from "./turnAndActions/psiPrimitives.js";
 import { applyBadPublicityPrimitive } from "./keywordsAndCredits/badPublicityPrimitives.js";
 import { applyCorpInstallPrimitive } from "./install/corpInstall.js";
 import { applyCounterPrimitive } from "./counters/counterPrimitives.js";
@@ -126,7 +95,7 @@ import {
   gripInstallCostAfterDiscount,
   shuffleRunnerStack,
 } from "./install/runnerInstall.js";
-import { applySpinTcPrimitive } from "./primitives/breachTrashTurn.js";
+
 import {
   fireOnAfterOperationOrExpendable as markOnAfterOperationOrExpendable,
   fireOnCreditsGainedFromAgendaOrOperationAbility,
@@ -1721,60 +1690,10 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   const core = applyCoreKinds(ctx, action);
   if (core) return core;
 
-  const lunarTsb = applyLunarTsbPrimitive(ctx, action);
-  if (lunarTsb) return lunarTsb;
-  const lunarUao = applyLunarUaoPrimitive(ctx, action);
-  if (lunarUao) return lunarUao;
-  const lunarAtr = applyLunarAtrPrimitive(ctx, action);
-  if (lunarAtr) return lunarAtr;
-  const lunarTs = applyLunarTsPrimitive(ctx, action);
-  if (lunarTs) return lunarTs;
-  const oac = applyOacPrimitive(ctx, action);
-  if (oac) return oac;
   const val = applySansanValPrimitive(ctx, action);
   if (val) return val;
-  const bb = applySansanBbPrimitive(ctx, action);
-  if (bb) return bb;
-  const oh = applySansanOhPrimitive(ctx, action);
-  if (oh) return oh;
-  const dad = applyDadPrimitive(ctx, action);
-  if (dad) return dad;
-  const kg = applyMumbadKgPrimitive(ctx, action);
-  if (kg) return kg;
   const tlm = applyMumbadTlmPrimitive(ctx, action);
   if (tlm) return tlm;
-  const ftm = applyMumbadFtmPrimitive(ctx, action);
-  if (ftm) return ftm;
-  const flashBm = applyFlashpointBmPrimitive(ctx, action);
-  if (flashBm) return flashBm;
-  const flashEs = applyFlashpointEsPrimitive(ctx, action);
-  if (flashEs) return flashEs;
-  const flashMl = applyFlashpointMlPrimitive(ctx, action);
-  if (flashMl) return flashMl;
-  const flashQu = applyFlashpointQuPrimitive(ctx, action);
-  if (flashQu) return flashQu;
-  const redsandTd = applyRedsandTdPrimitive(ctx, action);
-  if (redsandTd) return redsandTd;
-  const redsandBaw = applyRedsandBawPrimitive(ctx, action);
-  if (redsandBaw) return redsandBaw;
-  const kitaraDtwn = applyKitaraDtwnPrimitive(ctx, action);
-  if (kitaraDtwn) return kitaraDtwn;
-  const kitaraCotc = applyKitaraCotcPrimitive(ctx, action);
-  if (kitaraCotc) return kitaraCotc;
-  const kitaraTdatd = applyKitaraTdatdPrimitive(ctx, action);
-  if (kitaraTdatd) return kitaraTdatd;
-  const kitaraWin = applyKitaraWinPrimitive(ctx, action);
-  if (kitaraWin) return kitaraWin;
-  const kitaraKa = applyKitaraKaPrimitive(ctx, action);
-  if (kitaraKa) return kitaraKa;
-  const lunar = applyLunarUpPrimitive(ctx, action);
-  if (lunar) return lunar;
-  const fal = applySpinFalDtPrimitive(ctx, action);
-  if (fal) return fal;
-  const hap = applySpinHapPrimitive(ctx, action);
-  if (hap) return hap;
-  const spin = applySpinTcPrimitive(ctx, action);
-  if (spin) return spin;
   const _a = action;
   return {
     ok: false,
