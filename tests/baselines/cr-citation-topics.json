@@ -8,7 +8,7 @@
     "src/state/types/card.ts CR 1.16.1b [visibility]",
     "src/state/types/publicView.ts CR 1.18.1 [visibility]",
     "src/state/visibility/seatVisibility.ts CR 1.18 [visibility]",
-    "src/timing/graph.ts CR 9.3.7e [position]"
+    "src/timing/graph/encounterIceSteps.ts CR 9.3.7e [position]"
   ],
   "reviewed": {
     "src/api/library.ts CR 1.18.1 [visibility]": "partly: CR 1.18.1 defines advancing, not who sees counters. Drop it; keep 10.2.3a and 10.2.2a, add 4.6.3 (area 4).",
@@ -18,6 +18,6 @@
     "src/state/types/card.ts CR 1.16.1b [visibility]": "wrong at the Earth Station additionalRunInitiateCredits doc: CR 6.3.2b (with 1.16.10). The other 1.16.1b cite in the file (Jesminder preventFirstTagThisTurn) is right (area 4).",
     "src/state/types/publicView.ts CR 1.18.1 [visibility]": "partly: drop 1.18.1 (advancing) from the ice-counter visibility doc; 10.2.3a stands, add 4.6.3 (area 4).",
     "src/state/visibility/seatVisibility.ts CR 1.18 [visibility]": "partly: 1.18 is Advancing Cards at v26.03; visibility is CR 1.21 (1.21.1, 1.21.2a). 4.6 and 4.8 are right (area 4).",
-    "src/timing/graph.ts CR 9.3.7e [position]": "right: 9.3.7e is the subroutine ability record the code refreshes from; 9.8.2/9.8.3 would add the order rule but the cite is not wrong."
+    "src/timing/graph/encounterIceSteps.ts CR 9.3.7e [position]": "right: 9.3.7e is the subroutine ability record the code refreshes from; 9.8.2/9.8.3 would add the order rule but the cite is not wrong."
   }
 }

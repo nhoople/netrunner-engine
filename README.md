@@ -193,6 +193,7 @@ src/                      # index.ts: the package entry; cli.ts: the development
     uninstallAndPosition/ # uninstalling, rearranging ice, and the Runner's position in a run (CR 8.5.10, 8.3, 6.2)
     visibility/           # what each seat may see (CR 1.21, 10.2): seat visibility, revealing, exposing
   timing/                 # graph.ts: the timing step graph (CR 11.2–11.5); machine.ts: stepping through it
+    graph/                # the steps graph.ts joins into STEPS, one file per part of the timing structures (opening, Corp turn, Runner turn, each run phase, breach and access), and stepHelpers.ts: the step builders and the procedures the steps call
 tests/                    # vitest suites, grouped by file name prefix (confidence-*, cr-*, blanked-*, …)
   baselines/              # shrink-only baselines the guard tests read
   fixtures/               # goldens/: regression transcripts (see the README there); game exports, playout seeds

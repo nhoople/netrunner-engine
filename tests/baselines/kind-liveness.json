@@ -1,5 +1,5 @@
 {
-  "_comment": "Shrink-only baseline for tests/kind-liveness.test.ts (CR audit tool 1.2). Recorded 2026-11-12 at engine v1.147.251, cards v1.147.22. deadKinds: in KNOWN_PRIMITIVE_KINDS, used by no card, built nowhere in src/. noOpChoices: choice builders whose every option effect is gain_credits 0 or an empty seq; all four are resolved by option id in src/actions/apply.ts instead of through the IR. noOpFlags (tool 1.2(c), added 2026-11-14 at engine v1.147.257, cards v1.147.24): boolean CardDef flags whose reader builds a no-op case kind, or is read inside a no-op choice function, from tests/baselines/card-flags.json.",
+  "_comment": "Shrink-only baseline for tests/kind-liveness.test.ts (CR audit tool 1.2). Recorded 2026-11-12 at engine v1.147.251, cards v1.147.22. deadKinds: in KNOWN_PRIMITIVE_KINDS, used by no card, built nowhere in src/. noOpChoices: choice builders whose every option effect is gain_credits 0 or an empty seq; all five are resolved by option id in src/actions/apply.ts instead of through the IR (offerDelayedRunEndOrder was recorded by layout slice E5, 2026-11-27: the scanner first saw it whole when it left timing/graph.ts). noOpFlags (tool 1.2(c), added 2026-11-14 at engine v1.147.257, cards v1.147.24): boolean CardDef flags whose reader builds a no-op case kind, or is read inside a no-op choice function, from tests/baselines/card-flags.json.",
   "deadKinds": [
     "add_pending_damage",
     "brain_damage",
@@ -22,13 +22,15 @@
     "src/actions/access.ts#function advanceFromMidAccess",
     "src/effects/swap/swapKinds.ts#case swap_two_ice",
     "src/legality/checkpointRules.ts#function offerRootEntry",
-    "src/state/hostingAndTrash/trashHooks.ts#function offerSkorpiosRfgInsteadOfHeap"
+    "src/state/hostingAndTrash/trashHooks.ts#function offerSkorpiosRfgInsteadOfHeap",
+    "src/timing/graph/stepHelpers.ts#function offerDelayedRunEndOrder"
   ],
   "noOpFlags": [
     "flag:accessTrashWithVirus -> src/actions/access.ts#advanceFromMidAccess",
     "flag:firstAccessedOperationTrashFreeEachTurn -> src/actions/access.ts#advanceFromMidAccess",
     "flag:maySwapIceOnAgendaScoredOrStolen -> kind swap_two_ice",
     "flag:mustTrashFirstAccessedCardWithTrashCostEachTurn -> src/actions/access.ts#advanceFromMidAccess",
-    "flag:mustTrashWhenAccessedWhileInstalled -> src/actions/access.ts#advanceFromMidAccess"
+    "flag:mustTrashWhenAccessedWhileInstalled -> src/actions/access.ts#advanceFromMidAccess",
+    "flag:trashAfterBreakingThisRun -> src/timing/graph/stepHelpers.ts#offerDelayedRunEndOrder"
   ]
 }
