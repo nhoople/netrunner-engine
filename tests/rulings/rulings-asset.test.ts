@@ -16,7 +16,6 @@ import {
   legalActions,
 } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
-import type { ServerId } from "../../src/state/types/servers.js";
 import {
   atCorpAction,
   atRunnerAction,
@@ -37,6 +36,7 @@ import {
   toCorpTurn,
   toHand,
   walkThrough,
+  serverOf,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -132,7 +132,7 @@ describe("Nico Campaign", () => {
     let s = runnerTurn(fresh(), 10);
     installRoot(s, "nico-campaign", "nico-1").hostedCredits = 6;
     const hq = s.corp.hand.length;
-    s = must(s, { type: "basic_run", serverId: "remote-nico-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, "nico-1") });
     s = drive(s, (x) =>
       legalActions(x).some(
         (a) => a.type === "trash_accessed" && a.cardId === "nico-1",
@@ -317,7 +317,7 @@ describe("Urtica Cipher", () => {
     giveRunnerCards(s, 5);
     installRoot(s, "urtica-cipher", "uc-1", false).advancementCounters =
       counters;
-    s = must(s, { type: "basic_run", serverId: "remote-uc-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, "uc-1") });
     return walkThrough(s).state;
   }
 

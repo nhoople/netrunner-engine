@@ -37,6 +37,7 @@ import {
   optionIds,
   put,
   runnerTurn,
+  serverOf,
   setIdentity,
   stackRd,
   toHand,
@@ -415,7 +416,7 @@ export class Board {
   remote(defId: string, rezzed = false): [string, string] {
     const id = this.name(defId);
     installRoot(this.s, defId, id, rezzed);
-    return [this.remember(id), `remote-${id}`];
+    return [this.remember(id), serverOf(this.s, id)];
   }
 
   /** Another card in the root of an existing server. */

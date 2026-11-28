@@ -16,7 +16,6 @@ import {
   queryLegality,
 } from "../../src/index.js";
 import type { GameState } from "../../src/state/types/game.js";
-import type { ServerId } from "../../src/state/types/servers.js";
 import { legalityDisagreements } from "../../src/debug/legalityAgreement.js";
 import {
   corpTurn,
@@ -30,6 +29,7 @@ import {
   setIdentity,
   stackRd,
   toHand,
+  serverOf,
 } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
@@ -41,7 +41,7 @@ beforeAll(() => {
 function accessingAgenda(defId: string): GameState {
   let s = runnerTurn(fresh());
   installRoot(s, defId, "ag-1", false);
-  s = must(s, { type: "basic_run", serverId: "remote-ag-1" as ServerId });
+  s = must(s, { type: "basic_run", serverId: serverOf(s, "ag-1") });
   return drive(s, (x) => x.timingKey === "access.stealAgenda");
 }
 

@@ -26,6 +26,7 @@ import {
   pick,
   runnerTurn,
   toHand,
+  serverOf,
 } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
@@ -118,7 +119,7 @@ describe("a paid interrupt on a subroutine's damage (CR 9.2.4d)", () => {
     installIce(s, "neural-katana", "katana-1", "hq");
     const tori = installRoot(s, "tori-hanzo", "tori-1");
     // Tori Hanzō protects HQ: move it from its own remote to HQ's root.
-    delete (s.servers as Record<string, unknown>)["remote-tori-1"];
+    delete s.servers[serverOf(s, "tori-1")];
     s.servers.hq.root.push(tori.id);
     tori.zone = "server:hq:root" as never;
     grip(s, 4);

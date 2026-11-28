@@ -16,7 +16,6 @@ import {
   legalActions,
 } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
-import type { ServerId } from "../../src/state/types/servers.js";
 import {
   atCorpAction,
   corpTurn,
@@ -34,6 +33,7 @@ import {
   setIdentity,
   stackRd,
   toHand,
+  serverOf,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -105,7 +105,7 @@ describe("Azef Protocol", () => {
     setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
     giveRunnerCards(s, 3);
     agendaReady(s, "azef-protocol", "azef-1", 3);
-    installIce(s, "ice-wall", "iw-1", "remote-azef-1" as ServerId);
+    installIce(s, "ice-wall", "iw-1", serverOf(s, "azef-1"));
     installRoot(s, "pad-campaign", "pad-1");
     stackRd(s, [
       [found, "found-1"],
@@ -115,12 +115,14 @@ describe("Azef Protocol", () => {
   }
 
   it("Azef Protocol: Malapert Data Vault found by Ob after the cost is paid and installed in Azef's root triggers on the score (ruling 1)", () => {
-    let s = score(azefOb("malapert-data-vault"), "azef-1");
+    const board = azefOb("malapert-data-vault");
+    const azef = serverOf(board, "azef-1");
+    let s = score(board, "azef-1");
     if (s.pendingChoice) s = pick(s, "pad-1");
     // PAD Campaign (printed rez 2) finds Malapert Data Vault (1).
     s = pick(s, "found-1");
-    s = pick(s, "remote-azef-1");
-    expect(s.cards["found-1"]!.zone).toBe("server:remote-azef-1:root");
+    s = pick(s, azef);
+    expect(s.cards["found-1"]!.zone).toBe(`server:${azef}:root`);
     s = drive(s, () => false);
     expect(s.corp.scoreArea).toContain("azef-1");
     expect(s.pendingChoice?.sourceId).toBe("found-1");
@@ -130,12 +132,14 @@ describe("Azef Protocol", () => {
   // Azef's root for the found asset is refused, though the install is legal
   // and the score then finds no installed Azef (CR 9.11.1a, 1.17.3).
   it.skip("Azef Protocol: an asset found by Ob and installed in Azef's root trashes Azef, so Azef is not scored (ruling 2; filed, area 11, CR 9.11.1a: the install is refused because the score then fails)", () => {
-    let s = score(azefOb("alexa-belsky"), "azef-1");
+    const board = azefOb("alexa-belsky");
+    const azef = serverOf(board, "azef-1");
+    let s = score(board, "azef-1");
     if (s.pendingChoice) s = pick(s, "pad-1");
     s = pick(s, "found-1");
-    s = pick(s, "install-dest:remote-azef-1");
+    s = pick(s, `install-dest:${azef}`);
     s = drive(s, atCorpAction);
-    expect(s.cards["found-1"]!.zone).toBe("server:remote-azef-1:root");
+    expect(s.cards["found-1"]!.zone).toBe(`server:${azef}:root`);
     expect(s.corp.scoreArea).not.toContain("azef-1");
     expect(s.corp.discardPile).toContain("azef-1");
   });
@@ -144,8 +148,9 @@ describe("Azef Protocol", () => {
     let s = corpScoring(5);
     giveRunnerCards(s, 3);
     agendaReady(s, "azef-protocol", "azef-1", 2);
-    put(s, "sansan-city-grid", "ssg-1", "server:remote-azef-1:root");
-    s.servers["remote-azef-1" as ServerId]!.root.push("ssg-1");
+    const azef = serverOf(s, "azef-1");
+    put(s, "sansan-city-grid", "ssg-1", `server:${azef}:root`);
+    s.servers[azef]!.root.push("ssg-1");
     s.cards["ssg-1"]!.rezzed = true;
     s.cards["ssg-1"]!.faceup = true;
     installRoot(s, "pad-campaign", "pad-1");
@@ -160,7 +165,7 @@ describe("Azef Protocol", () => {
     s = pick(s, "pad-1");
     s = drive(s, atCorpAction);
     expect(s.corp.scoreArea).toContain("azef-1");
-    expect(s.cards["ssg-1"]!.zone).toBe("server:remote-azef-1:root");
+    expect(s.cards["ssg-1"]!.zone).toBe(`server:${azef}:root`);
   });
 });
 

@@ -71,6 +71,7 @@ import {
   toCorpTurn,
   toHand,
   identityZone,
+  serverOf,
 } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
@@ -130,14 +131,11 @@ function successfulRun(s: GameState, serverId: ServerId): void {
   };
 }
 
-function remote(s: GameState, id: string, ice: string[] = []): ServerId {
-  (s.servers as Record<string, unknown>)[id] = {
-    id,
-    kind: "remote",
-    root: [],
-    ice,
-  };
-  return id as ServerId;
+/** A new remote server, numbered as the engine numbers them (`remote-N`). */
+function remote(s: GameState, ice: string[] = []): ServerId {
+  const id: ServerId = `remote-${s.nextRemoteNumber++}`;
+  s.servers[id] = { id, kind: "remote", root: [], ice };
+  return id;
 }
 
 const runIs = (step: string) => (s: GameState) => s.timingKey === step;
@@ -169,7 +167,7 @@ describe("Alias, Breach, Passport", () => {
     ] as const) {
       const s = runnerTurn(fresh());
       installRunner(s, defId, "brk-1");
-      const server = remote(s, "remote-9");
+      const server = remote(s);
       installIce(s, iceDef, "far-1", server, true);
       installIce(s, iceDef, "hq-1", "hq" as ServerId, true);
       const far = interfaceBlock(s, "brk-1", "far-1");
@@ -449,7 +447,7 @@ describe("Strongbox", () => {
     const board = (rezzed: boolean): GameState => {
       let s = runnerTurn(fresh());
       installRoot(s, "strongbox", "sb-1", rezzed);
-      const server = "remote-sb-1" as ServerId;
+      const server = serverOf(s, "sb-1");
       put(s, "hostile-takeover", "ht-1", `server:${server}:root`);
       s.servers[server]!.root.push("ht-1");
       s = must(s, { type: "basic_run", serverId: server });
@@ -503,10 +501,12 @@ describe("Tenma Line", () => {
     const s = corpTurn(fresh());
     // Six copies of the same ice: each is still its own choice.
     const ids: string[] = [];
+    const servers: ServerId[] = [];
     for (let i = 0; i < 6; i++) {
-      const server = remote(s, `remote-t${i}`);
+      const server = remote(s);
       installIce(s, "ice-wall", `iw-${i}`, server, true);
       ids.push(`iw-${i}`);
+      servers.push(server);
     }
     installRoot(s, "tenma-line", "tl-1", true);
     evalAs(s, "tl-1", fx.do({ kind: "may_swap_two_installed_ice" }));
@@ -516,8 +516,8 @@ describe("Tenma Line", () => {
     expect(optionIds(s)).not.toContain("tenma:iw-4");
     expect(optionIds(s)).toContain("tenma:iw-5");
     choose(s, "tenma:iw-5");
-    expect(s.servers["remote-t4" as ServerId]!.ice).toEqual(["iw-5"]);
-    expect(s.servers["remote-t5" as ServerId]!.ice).toEqual(["iw-4"]);
+    expect(s.servers[servers[4]!]!.ice).toEqual(["iw-5"]);
+    expect(s.servers[servers[5]!]!.ice).toEqual(["iw-4"]);
   });
 });
 
@@ -922,7 +922,7 @@ describe("Singularity", () => {
     const s = runnerTurn(fresh());
     installRoot(s, "pad-campaign", "pad-1", true);
     put(s, "singularity", "sing-1", "runner:play-area");
-    successfulRun(s, "remote-pad-1" as ServerId);
+    successfulRun(s, serverOf(s, "pad-1"));
     evalAs(
       s,
       "sing-1",
@@ -1032,8 +1032,8 @@ describe("Starlight Crusade Funding", () => {
 describe("Knight and Rook", () => {
   function board(defId: string): GameState {
     const s = runnerTurn(fresh());
-    const r1 = remote(s, "remote-1");
-    const r2 = remote(s, "remote-2");
+    const r1 = remote(s);
+    const r2 = remote(s);
     for (const [server, ids] of [
       [r1, ["a-in", "a-mid", "a-out"]],
       [r2, ["b-in", "b-mid"]],
@@ -1142,8 +1142,8 @@ describe("Atman", () => {
 describe("Escher", () => {
   it("instead of breaching HQ the Runner rearranges ice, with no option to breach, and can trade the ice of two single-ice servers, keeping each server's number of ice (CR 9.9.8, 8.3.1)", () => {
     const s = runnerTurn(fresh());
-    const r1 = remote(s, "remote-1");
-    const r2 = remote(s, "remote-2");
+    const r1 = remote(s);
+    const r2 = remote(s);
     installIce(s, "ice-wall", "iw-1", r1, true);
     installIce(s, "enigma", "en-1", r2, true);
     put(s, "escher", "esc-1", "runner:play-area");

@@ -43,6 +43,7 @@ import {
   setIdentity,
   stackRd,
   toHand,
+  serverOf,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -259,9 +260,10 @@ describe("Mâché", () => {
     let s = runnerTurn(fresh(), 10);
     installRunner(s, "mache", "ma-1");
     installRoot(s, "pad-campaign", "root-1", true);
-    s = must(s, { type: "basic_run", serverId: "remote-root-1" as ServerId });
+    const root = serverOf(s, "root-1");
+    s = must(s, { type: "basic_run", serverId: root });
     s = play(s, (ids) => ids.find((id) => /no-trash|decline/i.test(id))).state;
-    expect(s.servers["remote-root-1" as ServerId]?.root).toContain("root-1");
+    expect(s.servers[root]?.root).toContain("root-1");
     // Then Political Operative trashes it, outside the access.
     installRunner(s, "political-operative", "po-1");
     s.timingKey = "runner.actionPaw";
@@ -275,7 +277,7 @@ describe("Mâché", () => {
     let c = runnerTurn(fresh(), 10);
     installRunner(c, "mache", "ma-1");
     installRoot(c, "pad-campaign", "root-1", true);
-    c = must(c, { type: "basic_run", serverId: "remote-root-1" as ServerId });
+    c = must(c, { type: "basic_run", serverId: serverOf(c, "root-1") });
     c = drive(c, (x) =>
       legalActions(x).some(
         (a) => a.type === "trash_accessed" && a.cardId === "root-1",

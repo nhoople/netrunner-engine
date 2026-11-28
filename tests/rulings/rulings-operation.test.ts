@@ -30,6 +30,7 @@ import {
   put,
   setIdentity,
   toHand,
+  serverOf,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -178,15 +179,14 @@ describe("Mitosis", () => {
     let s = corpPlays(10);
     clearCorpHand(s);
     installRoot(s, "pad-campaign", "pad-0", false);
+    const existing = serverOf(s, "pad-0");
     toHand(s, "corp", "pad-campaign", "pad-1");
     toHand(s, "corp", "pad-campaign", "pad-2");
     const servers = Object.keys(s.servers);
     s = play(s, "mitosis", "mi-1");
     // Only new servers are offered, if the Corp is asked at all.
     while (s.pendingChoice) {
-      expect(optionIds(s).some((id) => id.includes("remote-pad-0"))).toBe(
-        false,
-      );
+      expect(optionIds(s).some((id) => id.includes(existing))).toBe(false);
       s = must(s, { type: "choose_option", optionId: optionIds(s)[0]! });
     }
     s = drive(s, atCorpAction);

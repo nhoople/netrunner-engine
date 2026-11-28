@@ -47,6 +47,7 @@ import {
   runnerTurn,
   stackRd,
   toHand,
+  serverOf,
 } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
@@ -100,7 +101,7 @@ describe("Corporate Troubleshooter", () => {
   it("after its [trash] cost moves it to Archives, 'this server' is still the server it was in, so the chosen ice gets +X strength (CR 4.6.6i)", () => {
     let s = corpTurn(fresh(), 5);
     installRoot(s, "corporate-troubleshooter", "ct-1");
-    const server = "remote-ct-1" as ServerId;
+    const server = serverOf(s, "ct-1");
     installIce(s, "ice-wall", "iw-1", server, true);
     const base = effectiveIceStrength(s, "iw-1");
     s = must(corpPaw(s), {
@@ -119,7 +120,7 @@ describe("Edge of World", () => {
   it("the Runner cannot cancel its core damage by losing all clicks, which it does not print (CR 1.2.1, 10.4.2b)", () => {
     const s = fresh();
     installRoot(s, "edge-of-world", "eow-1", false);
-    const server = "remote-eow-1" as ServerId;
+    const server = serverOf(s, "eow-1");
     installIce(s, "ice-wall", "iw-1", server, false);
     installIce(s, "ice-wall", "iw-2", server, false);
     s.corp.credits = 5;
@@ -165,7 +166,7 @@ describe("Midori", () => {
   it("declining the swap at the outer ice keeps its once per run for the next ice; the swap uses it (CR 9.6.9d)", () => {
     let s = runnerTurn(fresh());
     installRoot(s, "midori", "mid-1");
-    const server = "remote-mid-1" as ServerId;
+    const server = serverOf(s, "mid-1");
     installIce(s, "ice-wall", "inner", server, false);
     installIce(s, "ice-wall", "outer", server, false);
     toHand(s, "corp", "enigma", "hq-en");
@@ -188,7 +189,7 @@ describe("Snitch", () => {
     let s = runnerTurn(fresh());
     installRunner(s, "snitch", "sn-1");
     installRoot(s, "pad-campaign", "pad-1", false);
-    const server = "remote-pad-1" as ServerId;
+    const server = serverOf(s, "pad-1");
     installIce(s, "ice-wall", "inner", server, false);
     installIce(s, "enigma", "outer", server, false);
     s = must(s, { type: "basic_run", serverId: server });
