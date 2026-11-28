@@ -16,6 +16,7 @@ import {
   decksFor,
   formatPool,
   learnToPlayDecks,
+  newFailures,
   playout,
   readSeeds,
   type Format,
@@ -140,6 +141,39 @@ describe("playout replay", () => {
     expect(compareWithSeeds({ ...result, failures: [] }, [entry])).toHaveLength(
       1,
     );
+  });
+
+  it("the playouts script fails only on a failure the seeds file does not list for that format and seed", () => {
+    const failures = [
+      { code: "REFUSED", step: 4, detail: "x" },
+      { code: "NO_ZONE", step: 9, detail: "y" },
+    ];
+    const result = {
+      format: "startup" as const,
+      seed: 99,
+      steps: 10,
+      finished: false,
+      failures,
+    };
+    const entry = (over: object) => ({
+      format: "startup" as const,
+      deckSeed: 99,
+      code: "REFUSED",
+      step: 4,
+      recorded: "2026-11-13",
+      detail: "x",
+      ...over,
+    });
+    expect(newFailures(result, [])).toEqual(failures);
+    expect(newFailures(result, [entry({})])).toEqual([failures[1]]);
+    expect(
+      newFailures(result, [entry({}), entry({ code: "NO_ZONE", step: 9 })]),
+    ).toEqual([]);
+    // Listed for another seed, another format, or another step: still new.
+    expect(newFailures(result, [entry({ deckSeed: 98 })])).toHaveLength(2);
+    expect(newFailures(result, [entry({ format: "core" })])).toHaveLength(2);
+    expect(newFailures(result, [entry({ step: 5 })])).toHaveLength(2);
+    expect(newFailures({ ...result, failures: [] }, [entry({})])).toEqual([]);
   });
 
   it("records every fixture entry with a known format, a date and a step in budget", () => {

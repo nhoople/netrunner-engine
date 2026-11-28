@@ -780,6 +780,28 @@ export function replayTo(
 }
 
 /**
+ * The failures of a playout that no entry of the seeds file lists for its
+ * format and seed. `npm run playouts` exits 1 when there are any.
+ */
+export function newFailures(
+  result: PlayoutResult,
+  entries: readonly SeedEntry[],
+): Failure[] {
+  const listed = new Set(
+    entries
+      .filter((e) => e.format === result.format && e.deckSeed === result.seed)
+      .map(failureKey),
+  );
+  const seen = new Set<string>();
+  return result.failures.filter((f) => {
+    const key = failureKey(f);
+    if (listed.has(key) || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
  * The differences between a playout and its recorded entries. A failure no
  * entry lists is new; an entry that no longer happens must leave the fixture
  * (the fixture only shrinks).
@@ -792,12 +814,10 @@ export function compareWithSeeds(
     (e) => e.format === result.format && e.deckSeed === result.seed,
   );
   const found = new Map(result.failures.map((f) => [failureKey(f), f]));
-  const listed = new Set(recorded.map(failureKey));
-  const errors: string[] = [];
-  for (const [key, failure] of found) {
-    if (!listed.has(key))
-      errors.push(`new playout failure ${key}: ${failure.detail}`);
-  }
+  const errors = newFailures(result, entries).map(
+    (failure) =>
+      `new playout failure ${failureKey(failure)}: ${failure.detail}`,
+  );
   for (const entry of recorded) {
     if (!found.has(failureKey(entry))) {
       errors.push(

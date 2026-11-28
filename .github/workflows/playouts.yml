@@ -1,0 +1,58 @@
+name: Playouts
+
+# The 200-seed playouts (`npm run playouts:nightly`: seeds 1–200 × 200 steps
+# in every format), weekly and by hand. CI's `npm test` replays only the
+# entries in tests/fixtures/playout-seeds.json. The script exits 1 on a
+# failure that file does not list. On a failure, the `report` job opens an
+# issue, or comments on the one already open.
+
+on:
+  schedule:
+    - cron: "0 4 * * 1" # Mondays 04:00 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  playouts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ".node-version"
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Prepare pinned data
+        run: npm run prepare-data
+      - name: 200-seed playouts
+        run: npm run playouts:nightly
+
+  report:
+    needs: playouts
+    if: ${{ failure() }}
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+    steps:
+      - name: Open an issue, or comment on the open one
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: "Scheduled check failed: 200-seed playouts"
+          BODY: |
+            The 200-seed playouts (`npm run playouts:nightly`) failed on `${{ github.ref_name }}` (${{ github.event_name }}): ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            The end of the run log lists each failure not in `tests/fixtures/playout-seeds.json` by format, seed, code and step. Replay one with `npm run playouts -- --formats <format> --from <seed> --seeds 1`. Close this issue once the workflow passes again; a later failure while it is open adds a comment here.
+        run: |
+          number=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
+            --jq "map(select(.title == env.TITLE)) | first | .number // empty")
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi

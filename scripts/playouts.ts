@@ -9,6 +9,10 @@
  * replaces that seed's entries with what it found, keeping the date an entry
  * was first recorded. Entries for seeds it did not play are left alone.
  * `npm test` replays every entry (tests/playout/playouts-*.test.ts).
+ *
+ * Without `--write`, it exits 1 when a playout hits a failure the seeds file
+ * does not list for that format and seed, so the weekly workflow
+ * (.github/workflows/playouts.yml) fails on a new one.
  */
 import { writeFileSync } from "node:fs";
 import { setApplyHook } from "../src/debug/applyHook.js";
@@ -17,6 +21,7 @@ import {
   PLAYOUT_STEPS,
   SEEDS_PATH,
   failureKey,
+  newFailures,
   playout,
   readSeeds,
   type Format,
@@ -88,6 +93,26 @@ for (const format of formats) {
 }
 
 if (jsonOut) writeFileSync(jsonOut, JSON.stringify(results, null, 2));
+
+if (!write) {
+  const { entries } = readSeeds();
+  const unlisted = results.flatMap((r) =>
+    newFailures(r, entries).map(
+      (f) => `${r.format} seed ${r.seed}: ${failureKey(f)} ${f.detail}`,
+    ),
+  );
+  if (unlisted.length > 0) {
+    console.log(
+      `\n${unlisted.length} failure(s) not in tests/fixtures/playout-seeds.json:`,
+    );
+    for (const line of unlisted) console.log(`- ${line}`);
+    process.exitCode = 1;
+  } else {
+    console.log(
+      "\nEvery failure is listed in tests/fixtures/playout-seeds.json.",
+    );
+  }
+}
 
 if (write) {
   const file = readSeeds();
