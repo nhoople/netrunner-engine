@@ -131,7 +131,7 @@ describe("ability credit gains", () => {
     s.cards["ice-a"] = iceA;
     s.cards["ice-b"] = iceB;
     s.servers.hq!.ice.push("ice-a", "ice-b");
-    const op = instantiateCard("realloc", "realloc-1", "corp:archives");
+    const op = instantiateCard("realloc", "realloc-1", "corp:play-area");
     s.cards["realloc-1"] = op;
     const before = s.corp.credits;
 
