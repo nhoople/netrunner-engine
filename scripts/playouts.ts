@@ -12,7 +12,9 @@
  *
  * Without `--write`, it exits 1 when a playout hits a failure the seeds file
  * does not list for that format and seed, so the weekly workflow
- * (.github/workflows/playouts.yml) fails on a new one.
+ * (.github/workflows/playouts.yml) fails on a new one. The file records
+ * 200-step playouts, so with `--steps` above 200 any failure past step 200
+ * counts as unlisted.
  */
 import { writeFileSync } from "node:fs";
 import { setApplyHook } from "../src/debug/applyHook.js";
