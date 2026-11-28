@@ -1122,7 +1122,8 @@ describe("later turn steps", () => {
           server: "hq",
         });
       }
-      if (hook(def, "onRunEnd"))
+      // A run-end effect lives on the card's run event (StartsRunSpec).
+      if (def.runEvent?.onRunEnd)
         specs.push({ field: "onRunEnd", step: "run.ends", server: "hq" });
       if (hook(def, "onAccess"))
         specs.push({
@@ -1196,12 +1197,13 @@ describe("later turn steps", () => {
           }
           if (spec.step === "run.approachServer" && state.run)
             state.run.position = null;
-          if (spec.field === "onRunEnd" && state.run) {
-            markHook(card, card.onRunEnd, (effect) => {
-              card.onRunEnd = effect;
+          const runEvent = card.runEvent;
+          if (spec.field === "onRunEnd" && state.run && runEvent?.onRunEnd) {
+            markHook(card, runEvent.onRunEnd, (effect) => {
+              runEvent.onRunEnd = effect;
             });
             state.run.runSourceId = cardId;
-            state.run.onRunEndEffect = card.onRunEnd;
+            state.run.onRunEndEffect = runEvent.onRunEnd;
           }
           if (
             spec.field === "onBreachHqIfHostingCorpCard" &&

@@ -10,6 +10,7 @@ import {
   getCardDef,
   loadCardCatalog,
 } from "../../src/index.js";
+import type { DeclaredCardDef } from "../cards/declared-card-def.js";
 
 describe("chrome-city", () => {
   describe("cc-v111-set-complete", () => {
@@ -29,7 +30,7 @@ describe("chrome-city", () => {
         ).toBe(true);
         expect(getCardDef("skulljack").corpCardTrashCostReduction).toBe(1);
         expect(getCardDef("turntable").muBonus).toBe(1);
-        expect(getCardDef("turntable").maxConsole).toBe(1);
+        expect((getCardDef("turntable") as DeclaredCardDef).maxConsole).toBe(1);
         expect(getCardDef("turntable").onStealAgenda).toBeTruthy();
         expect(getCardDef("chrome-parlor").preventCyberneticInstallDamage).toBe(
           true,

@@ -10,6 +10,7 @@ import {
   getCardDef,
   loadCardCatalog,
 } from "../../src/index.js";
+import type { DeclaredCardDef } from "../cards/declared-card-def.js";
 
 describe("twenty-three-seconds", () => {
   describe("23s-v122-set-complete", () => {
@@ -39,7 +40,7 @@ describe("twenty-three-seconds", () => {
             .additionalIceRezCostEqualToSubroutineCountWhenCorpCreditsGte,
         ).toBe(10);
         expect(getCardDef("mirror").muBonus).toBe(2);
-        expect(getCardDef("mirror").maxConsole).toBe(1);
+        expect((getCardDef("mirror") as DeclaredCardDef).maxConsole).toBe(1);
         expect(
           getCardDef("mirror").onSuccessfulRdRunMayReplaceSpentRecurringCredit,
         ).toBe(true);

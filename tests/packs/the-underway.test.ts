@@ -10,6 +10,7 @@ import {
   getCardDef,
   loadCardCatalog,
 } from "../../src/index.js";
+import type { DeclaredCardDef } from "../cards/declared-card-def.js";
 
 describe("the-underway", () => {
   describe("uw-v112-set-complete", () => {
@@ -33,7 +34,7 @@ describe("the-underway", () => {
         ).toBe(1);
         expect(getCardDef("drive-by").playAdditionalClick).toBe(true);
         expect(getCardDef("forger").link).toBe(1);
-        expect(getCardDef("forger").maxConsole).toBe(1);
+        expect((getCardDef("forger") as DeclaredCardDef).maxConsole).toBe(1);
         expect(getCardDef("shiv").memoryCostZeroIfLinkGte).toBe(2);
         expect(getCardDef("shiv").strengthBonusPerIcebreaker).toBe(1);
         expect(getCardDef("gang-sign").onAgendaScored).toBeTruthy();

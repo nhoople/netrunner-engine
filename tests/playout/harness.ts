@@ -43,6 +43,7 @@ import { fireOnGameStartSetup } from "../../src/state/setupAndEnd/createGame.js"
 import type { CardDef } from "../../src/cards/cardDef.js";
 import type { CardInstance } from "../../src/state/types/card.js";
 import type { GameState } from "../../src/state/types/game.js";
+import type { DeclaredCardDef } from "../cards/declared-card-def.js";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const CARDS = join(ROOT, "vendor/cards-data");
@@ -332,7 +333,7 @@ function deckEntry(
     type: def.type,
     agendaPoints: def.agendaPoints,
     deckLimit: def.deckLimit,
-    deckLimitOne: def.deckLimitOne,
+    deckLimitOne: (def as DeclaredCardDef).deckLimitOne,
     zeroInfluenceIfIceInDeckLte: def.zeroInfluenceIfIceInDeckLte,
     zeroInfluenceIfCardsInDeckGte: def.zeroInfluenceIfCardsInDeckGte,
     zeroInfluenceIfAssetsInDeckGte: def.zeroInfluenceIfAssetsInDeckGte,
@@ -343,7 +344,7 @@ function deckEntry(
 }
 
 function copyLimit(def: CardDef): number {
-  return def.deckLimitOne ? 1 : (def.deckLimit ?? 3);
+  return (def as DeclaredCardDef).deckLimitOne ? 1 : (def.deckLimit ?? 3);
 }
 
 function eternalPoints(restriction: Restriction | null): Map<string, number> {

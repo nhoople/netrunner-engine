@@ -10,6 +10,7 @@ import {
   createInitialState,
   crDataPresent,
   instantiateCard,
+  fx,
 } from "../../src/index.js";
 import { abilitiesSuppressed } from "../../src/state/continuous/abilities.js";
 import {
@@ -49,9 +50,7 @@ describe("blanked lifecycle / ice rez / encounter (CR 9.12.1d)", () => {
     s.runner.credits = 10;
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = true;
-    ice.subroutines = [
-      { id: "s1", text: "End the run", effects: [] },
-    ] as typeof ice.subroutines;
+    ice.subroutines = [{ id: "s1", text: "End the run", effect: fx.etr() }];
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
     s.run = runState("hq", "encounter", { position: 0, bypassedIceIds: [] });

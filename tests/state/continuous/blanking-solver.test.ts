@@ -83,6 +83,7 @@ describe("CR 9.12 — practical blanking dependency solver", () => {
       type: "resource",
       side: "runner",
       zone: "runner:installed",
+      installCost: 0,
       faceup: true,
       rezzed: true,
     };

@@ -10,6 +10,7 @@ import {
   getCardDef,
   loadCardCatalog,
 } from "../../src/index.js";
+import type { DeclaredCardDef } from "../cards/declared-card-def.js";
 
 describe("democracy-and-dogma", () => {
   describe("dag-v118-set-complete", () => {
@@ -33,7 +34,9 @@ describe("democracy-and-dogma", () => {
         ).toBe(true);
         expect(getCardDef("reflection").revealRandomHqOnJackOut).toBe(true);
         expect(getCardDef("reflection").muBonus).toBe(1);
-        expect(getCardDef("reflection").maxConsole).toBe(1);
+        expect((getCardDef("reflection") as DeclaredCardDef).maxConsole).toBe(
+          1,
+        );
         expect(getCardDef("spy-camera").deckLimit).toBe(6);
         expect(
           getCardDef("political-operative")

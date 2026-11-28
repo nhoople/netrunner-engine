@@ -1418,7 +1418,7 @@ describe("the-automata-initiative", () => {
         let s = createInitialState();
         s = structuredClone(s);
         const br = instantiateCard("corroder", "br-1", "runner:installed");
-        br.breaker = { breaksSubtype: "barrier", strength: 2 };
+        br.breaker = { breaksSubtype: "barrier", strength: 2, breakCredits: 1 };
         s.cards["br-1"] = br;
         s.runner.installed.push("br-1");
         const before = effectiveBreakerStrength(s, "br-1");
@@ -2357,7 +2357,7 @@ describe("the-automata-initiative", () => {
         s.corp.scoreArea = ["steg"];
         s.cards["steg"] = steg;
         const br = instantiateCard("corroder", "br-1", "runner:installed");
-        br.breaker = { strength: 2, breakCredits: 1, subtypes: ["barrier"] };
+        br.breaker = { breaksSubtype: "barrier", strength: 2, breakCredits: 1 };
         s.runner.installed = ["br-1"];
         s.cards["br-1"] = br;
         s.run = {

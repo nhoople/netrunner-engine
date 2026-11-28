@@ -146,7 +146,7 @@ describe("iceless run goes through the Movement Phase (CR 6.9.1f)", () => {
     s = must(s, { type: "jack_out" });
     expect(s.run).toBeNull();
     expect(s.timingKey).not.toBe("breach.awaitAccess");
-    expect(s.runner.madeSuccessfulRunThisTurn ?? false).toBe(false);
+    expect(s.turn.successfulRunThisTurn).toBe(false);
   });
 
   it("gives the Runner the 6.9.4b paid ability window", () => {

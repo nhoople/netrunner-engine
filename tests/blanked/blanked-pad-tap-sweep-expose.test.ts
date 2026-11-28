@@ -10,6 +10,7 @@ import {
   createInitialState,
   crDataPresent,
   instantiateCard,
+  fx,
 } from "../../src/index.js";
 import {
   onCorpAbilityGainedCredits,
@@ -82,13 +83,13 @@ describe("blanked Pad Tap / Sweep / expose Zamba (CR 9.12.1d)", () => {
     // HQ has no ice here: the run approaches the server (CR 6.9.4).
     s.run = runState("hq", "movement");
     s.trace = {
+      id: "trace-1",
       sourceId: "sw-1",
-      strength: 1,
-      base: 1,
+      baseStrength: 1,
       corpSpent: 0,
-      runnerSpent: 0,
-      link: 0,
-    } as typeof s.trace;
+      runnerLinkSpent: 0,
+      onSuccess: fx.gainCredits("corp", 0),
+    };
 
     prepareTraceSpendOrder(s);
     expect(s.trace?.runnerSpendsFirst).toBe(true);

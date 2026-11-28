@@ -421,7 +421,10 @@ function foreignAbility(windows: PaidAbility["windows"]): PaidAbility {
     creditCost: 0,
     cost: { credits: 0 },
     windows,
-    effect: { op: "do", action: { kind: "gain_credits", amount: 1 } },
+    effect: {
+      op: "do",
+      action: { kind: "gain_credits", side: "controller", amount: 1 },
+    },
   };
 }
 
@@ -531,7 +534,10 @@ const nonClick: PaidAbility = {
   creditCost: 0,
   cost: { credits: 1 },
   windows: ["corp_action_paw"],
-  effect: { op: "do", action: { kind: "gain_credits", amount: 1 } },
+  effect: {
+    op: "do",
+    action: { kind: "gain_credits", side: "controller", amount: 1 },
+  },
 };
 
 describe("pinned timing charts 11.2 through 11.6", () => {

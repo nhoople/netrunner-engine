@@ -64,6 +64,7 @@ describe("CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b)", () => {
       type: "ice",
       side: "corp",
       zone: "server:hq:ice",
+      installCost: 0,
       faceup: true,
       rezzed: true,
     };
