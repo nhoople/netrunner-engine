@@ -79,7 +79,8 @@ describe("blanked Pad Tap / Sweep / expose Zamba (CR 9.12.1d)", () => {
     );
     s.cards["sw-1"] = sweep;
     s.corp.playArea = ["sw-1"];
-    s.run = runState("hq", "approach_ice", { position: 0 });
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
     s.trace = {
       sourceId: "sw-1",
       strength: 1,

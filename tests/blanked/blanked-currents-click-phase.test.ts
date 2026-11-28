@@ -31,7 +31,8 @@ describe("blanked currents / click / phase (CR 9.12.1d)", () => {
     s.cards["hg-1"] = hein;
     s.servers.hq.root = ["hg-1"];
     s.runner.credits = 8;
-    s.run = runState("hq", "approach_ice", { position: 0 });
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
 
     noteRunnerClickLose(s);
     expect(s.runner.credits).toBe(0);

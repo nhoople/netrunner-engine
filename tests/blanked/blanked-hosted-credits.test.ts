@@ -36,7 +36,8 @@ describe("blanked hosted credits (CR 9.12.1d)", () => {
     ghost.hostedCredits = 3;
     s.cards["gh-1"] = ghost;
     s.runner.installed = ["gh-1"];
-    s.run = runState("hq", "approach_ice", { position: 0 });
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
 
     expect(hostedCreditsSpendableDuringRuns(s)).toBe(3);
     expect(spendHostedCreditsDuringRuns(s, 1)).toBe(0);
@@ -60,7 +61,8 @@ describe("blanked hosted credits (CR 9.12.1d)", () => {
     taka.hostedCredits = 2;
     s.cards["taka-1"] = taka;
     s.runner.installed = ["taka-1"];
-    s.run = runState("hq", "encounter", { position: 0 });
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
 
     expect(hostedCreditsSpendableToUseProgramsDuringRuns(s)).toBe(2);
     suppressAbilities(s, taka.id);

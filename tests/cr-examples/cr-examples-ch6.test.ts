@@ -951,6 +951,13 @@ describe("CR examples, chapter 6", () => {
     s = structuredClone(s);
     s.activeSide = "corp";
     s.timingKey = "run.approachPaw";
+    // The Runner approaches HQ's outermost ice (CR 6.9.2).
+    s.cards["hq-wall"] = instantiateCard(
+      "ice-wall",
+      "hq-wall",
+      "server:hq:ice",
+    );
+    s.servers.hq.ice = ["hq-wall"];
     s.run = {
       attackedServerId: "hq",
       phase: "approach_ice",

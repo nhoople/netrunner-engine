@@ -1796,10 +1796,11 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     georgia.rezzed = true;
     s.cards["ga-1"] = georgia;
     s.servers.hq.root = ["ga-1"];
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
     s.run = {
       attackedServerId: "hq",
-      phase: "approach_ice",
-      position: 0,
+      phase: "movement",
+      position: null,
       successful: false,
       accessedCardIds: [],
       accessCandidates: [],

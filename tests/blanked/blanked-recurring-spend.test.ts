@@ -53,7 +53,8 @@ describe("blanked recurring spend / first-* (CR 9.12.1d)", () => {
     cezve.recurringSpendFor = ["run_central"];
     s.cards["cz-1"] = cezve;
     s.runner.installed = ["cz-1"];
-    s.run = runState("hq", "approach_ice", { position: 0 });
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
 
     expect(recurringCreditsForCentralRun(s)).toBe(2);
     suppressAbilities(s, cezve.id);
