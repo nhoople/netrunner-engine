@@ -14,6 +14,10 @@ REFRESH_GOLDENS=1 npx vitest run tests/confidence/confidence-regression-goldens.
 Review the diff under this directory, then commit. Do **not** refresh to silence
 an unexpected CI failure — that is a regression until proven otherwise.
 
+A missing golden fails the test (a wrong path must not pass by writing a new
+file). To add a scenario, write its golden with the same refresh command,
+review it, and commit it.
+
 ## Files
 
 | Fixture | Scenario |
