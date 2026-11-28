@@ -186,7 +186,9 @@ describe("Mitosis", () => {
     s = play(s, "mitosis", "mi-1");
     // Only new servers are offered, if the Corp is asked at all.
     while (s.pendingChoice) {
-      expect(optionIds(s).some((id) => id.includes(existing))).toBe(false);
+      // The whole id: `remote-1` must not match a new `remote-1x`.
+      const named = new RegExp(`${existing}(?!\\d)`);
+      expect(optionIds(s).some((id) => named.test(id))).toBe(false);
       s = must(s, { type: "choose_option", optionId: optionIds(s)[0]! });
     }
     s = drive(s, atCorpAction);
