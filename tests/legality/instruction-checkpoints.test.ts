@@ -1339,7 +1339,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s.corp.credits = 5;
     s.run = {
       attackedServerId: "remote-1",
-      phase: "approach",
+      phase: "approach_ice",
       position: 0,
       successful: null,
       accessedCardIds: [],
@@ -2728,7 +2728,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     };
     waiting.run = {
       attackedServerId: "remote-1",
-      phase: "approach",
+      phase: "movement",
       position: null,
       successful: true,
       accessedCardIds: [],

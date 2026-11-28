@@ -41,7 +41,7 @@ function encounterRun(s: GameState): void {
     accessedCardIds: [],
     accessCandidates: [],
     randomAccessLimit: null,
-    encounter: { iceId: "ice-1", broken: [false], subroutinesResolved: [] },
+    encounter: { iceId: "ice-1", broken: [false] },
     endedTheRun: false,
     cannotJackOut: false,
     accessingCardId: null,
@@ -87,7 +87,7 @@ describe("Gamedragon Pro duration replacement (CR 9.9.9a)", () => {
     expect(breakerStrength(s, "corr-1")).toBe(before + 2);
 
     // Survives end of encounter while Gamedragon remains hosted.
-    s.run!.encounter = undefined;
+    s.run!.encounter = null;
     expect(breakerStrength(s, "corr-1")).toBe(before + 2);
   });
 
@@ -150,7 +150,7 @@ describe("Gamedragon Pro duration replacement (CR 9.9.9a)", () => {
       ).ok,
     ).toBe(true);
 
-    s.run!.encounter = undefined;
+    s.run!.encounter = null;
     const mid = breakerStrength(s, "corr-1"); // 2 base + 1 host + 2 pump
     expect(mid).toBe(5);
 

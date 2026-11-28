@@ -20,6 +20,7 @@ import {
 } from "../../src/state/cardFlags/cardDeclarations.js";
 import { abilitiesSuppressed } from "../../src/state/continuous/abilities.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -81,15 +82,8 @@ describe("blanked Maw / Hippo / Polyhistor (CR 9.12.1d)", () => {
     const poly = instantiateCard("polyhistor", "poly-1", "runner:installed");
     s.cards["poly-1"] = poly;
     s.runner.installed = ["poly-1"];
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "approach_server",
-      position: 0,
-      icePassed: 0,
-      successful: false,
-      breached: false,
-    } as typeof s.run;
+    // Approaching the server, past all ice (CR 6.9.4).
+    s.run = runState("hq", "movement");
 
     onPassedAllIce(s);
     expect(s.pendingChoice?.sourceId).toBe("poly-1");
@@ -163,16 +157,11 @@ describe("blanked Maw / Hippo / Polyhistor (CR 9.12.1d)", () => {
     s.runner.discardPile = ["sg-1"];
     const hq = instantiateCard("hedge-fund", "hf-1", "corp:hq");
     s.cards["hf-1"] = hq;
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "access",
-      position: 0,
-      icePassed: 0,
+    s.run = runState("hq", "access", {
       successful: true,
       breached: true,
       accessCandidates: ["hf-1"],
-    } as typeof s.run;
+    });
 
     maybeRipDeal(s);
     expect(s.pendingChoice?.sourceId).toBe("rd-1");

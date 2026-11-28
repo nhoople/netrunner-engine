@@ -20,6 +20,7 @@ import { firstClickMustIsActive } from "../../src/state/turnAndActions/firstClic
 import { corpCreditsForTrace } from "../../src/state/turnAndActions/trace.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
 import { identityZone } from "../rulings/rulings-helpers.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -52,14 +53,7 @@ describe("blanked recurring spend / first-* (CR 9.12.1d)", () => {
     cezve.recurringSpendFor = ["run_central"];
     s.cards["cz-1"] = cezve;
     s.runner.installed = ["cz-1"];
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "approach_ice",
-      position: 0,
-      successful: false,
-      ended: false,
-    };
+    s.run = runState("hq", "approach_ice", { position: 0 });
 
     expect(recurringCreditsForCentralRun(s)).toBe(2);
     suppressAbilities(s, cezve.id);

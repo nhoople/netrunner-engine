@@ -688,6 +688,7 @@ describe("downfall", () => {
           },
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
         const subs = effectiveIceSubtypes(s, "ice-1");
         expect(subs).toContain("code gate");
@@ -928,6 +929,7 @@ describe("downfall", () => {
           encounter: { iceId: "ice-1", broken: [false] },
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
         const r = evalEffect(
           { state: s, sourceId: "bak-1" },
@@ -1081,6 +1083,7 @@ describe("downfall", () => {
           },
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
         // Sole grip card is the chosen type: 1 net trashes it, amplify 1 with
         // empty grip flatlines (proves amplify fired).
@@ -1217,6 +1220,8 @@ describe("downfall", () => {
           randomAccessLimit: null,
           endedTheRun: false,
           cannotJackOut: false,
+          encounter: null,
+          accessingCardId: null,
         };
         expect(hostedCreditsSpendableToUseProgramsDuringRuns(s)).toBe(2);
         expect(runnerAvailableCreditsForBreaker(s)).toBeGreaterThanOrEqual(2);
@@ -1470,6 +1475,8 @@ describe("downfall", () => {
           randomAccessLimit: null,
           endedTheRun: false,
           cannotJackOut: false,
+          encounter: null,
+          accessingCardId: null,
         };
         const r = evalEffect(
           { state: s, sourceId: s.corp.identityId },
@@ -1536,6 +1543,8 @@ describe("downfall", () => {
           randomAccessLimit: null,
           endedTheRun: false,
           cannotJackOut: false,
+          encounter: null,
+          accessingCardId: null,
         };
         // Seed HQ hand so bonus access has cards to expand into.
         const h1 = instantiateCard("hedge-fund", "hq-1", "corp:hq");
@@ -1576,7 +1585,7 @@ describe("downfall", () => {
         s.cards["da-1"] = da;
         s.run = {
           attackedServerId: "hq",
-          phase: "approach_server",
+          phase: "movement",
           position: null,
           successful: null,
           accessedCardIds: [],
@@ -1586,6 +1595,8 @@ describe("downfall", () => {
           cannotJackOut: false,
           blankIdentities: true,
           runSourceId: "da-1",
+          encounter: null,
+          accessingCardId: null,
         };
         expect(abilitiesSuppressed(s, s.corp.identityId)).toBe(true);
         expect(abilitiesSuppressed(s, s.runner.identityId)).toBe(true);
@@ -1752,6 +1763,8 @@ describe("downfall", () => {
           endedTheRun: false,
           cannotJackOut: false,
           blankIdentities: true,
+          encounter: null,
+          accessingCardId: null,
         };
         expect(abilitiesSuppressed(s, s.corp.identityId)).toBe(true);
         expect(abilitiesSuppressed(s, s.runner.identityId)).toBe(true);
@@ -1762,16 +1775,20 @@ describe("downfall", () => {
         s = structuredClone(s);
         s.turn = emptyTurnBookkeeping();
         s.turn.successfulHqRunThisTurn = true;
+        // HQ has no ice here: the run approaches the server (CR 6.9.4), and
+        // the end-the-run comes from a Corp card ability, not a subroutine.
         s.run = {
           attackedServerId: "hq",
-          phase: "encounter_ice",
-          position: 0,
+          phase: "movement",
+          position: null,
           successful: null,
           accessedCardIds: [],
           accessCandidates: [],
           randomAccessLimit: null,
+          encounter: null,
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
         openPendingEndTheRun(s, "ice-wall-1", true);
         expect(s.pendingEndTheRun?.fromCorpCardAbility).toBe(true);

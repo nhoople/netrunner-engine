@@ -52,7 +52,6 @@ describe("CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b)", () => {
       encounter: {
         iceId: "fh-1",
         broken: [false],
-        strengthBoost: 0,
       },
       endedTheRun: false,
       cannotJackOut: false,

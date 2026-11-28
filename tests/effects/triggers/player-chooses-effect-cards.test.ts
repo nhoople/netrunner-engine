@@ -156,7 +156,7 @@ function approach(s: GameState): GameState {
   s.timingKey = "run.approachPaw";
   s.run = {
     attackedServerId: "hq",
-    phase: "approach",
+    phase: "approach_ice",
     position: 0,
     successful: null,
     accessedCardIds: [],

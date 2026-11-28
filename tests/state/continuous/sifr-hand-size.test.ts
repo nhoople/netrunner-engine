@@ -33,7 +33,7 @@ function encounterState(iceId: string): NonNullable<GameState["run"]> {
     accessedCardIds: [],
     accessCandidates: [],
     randomAccessLimit: null,
-    encounter: { iceId, broken: [false], subroutinesResolved: [] },
+    encounter: { iceId, broken: [false] },
     endedTheRun: false,
     cannotJackOut: false,
     accessingCardId: null,

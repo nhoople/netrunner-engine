@@ -22,6 +22,7 @@ import {
 } from "../../../src/state/cardFlags/cardDeclarations.js";
 import { startTrace } from "../../../src/state/turnAndActions/trace.js";
 import { fx } from "../../../src/effects/ir/fx.js";
+import { runState } from "../run/run-state.js";
 
 describe("remaining static declarations", () => {
   beforeAll(() => {
@@ -126,15 +127,8 @@ describe("remaining static declarations", () => {
     sweep.runnerSpendsFirstForTracesDuringRun = true;
     s.cards["sw-1"] = sweep;
     s.corp.playArea = ["sw-1"];
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "approach_ice",
-      position: 0,
-      icePassed: 0,
-      successful: false,
-      breached: false,
-    } as typeof s.run;
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
     startTrace(
       s,
       "sw-1",

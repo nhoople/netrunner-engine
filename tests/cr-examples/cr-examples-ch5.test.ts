@@ -78,7 +78,7 @@ describe("CR examples, chapter 5", () => {
       accessedCardIds: [],
       accessCandidates: [],
       randomAccessLimit: null,
-      encounter: { iceId: "eli-1", broken: [false, false], strengthBoost: 0 },
+      encounter: { iceId: "eli-1", broken: [false, false] },
       endedTheRun: false,
       cannotJackOut: false,
       accessingCardId: null,

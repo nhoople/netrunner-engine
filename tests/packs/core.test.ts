@@ -185,6 +185,8 @@ describe("core", () => {
           randomAccessLimit: null,
           endedTheRun: false,
           cannotJackOut: false,
+          encounter: null,
+          accessingCardId: null,
         };
         const r = evalEffect(
           { state: s, sourceId: "chum-ice" },
@@ -227,6 +229,8 @@ describe("core", () => {
           randomAccessLimit: null,
           endedTheRun: false,
           cannotJackOut: false,
+          encounter: null,
+          accessingCardId: null,
         };
         const offer = evalEffect(
           { state: s, sourceId: "siphon" },
@@ -382,6 +386,8 @@ describe("core", () => {
           randomAccessLimit: null,
           endedTheRun: false,
           cannotJackOut: false,
+          encounter: null,
+          accessingCardId: null,
         };
         const siphon = instantiateCard(
           "account-siphon",

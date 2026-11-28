@@ -42,7 +42,7 @@ describe("ice strength unify (CR 9.12.1a)", () => {
       accessedCardIds: [],
       accessCandidates: [],
       randomAccessLimit: null,
-      encounter: { iceId: "ice-1", broken: [false], subroutinesResolved: [] },
+      encounter: { iceId: "ice-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
       accessingCardId: null,

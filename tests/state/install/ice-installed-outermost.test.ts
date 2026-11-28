@@ -16,6 +16,7 @@ import {
 } from "../../../src/index.js";
 import type { GameState } from "../../../src/state/types/game.js";
 import type { Primitive } from "../../../src/effects/ir/primitive.js";
+import { runState } from "../run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -126,12 +127,10 @@ describe("ability installs put ice outermost (CR 6.2.2a)", () => {
     s.servers["remote-1"]!.root = ["jinja-1"];
     put(s, "enigma", "new", "corp:hq");
     s.corp.hand = ["new"];
-    s.run = {
-      attackedServerId: "remote-1",
-      phase: "encounter",
+    s.run = runState("remote-1", "encounter", {
       position: 1,
       encounter: { iceId: "inner", broken: [false] },
-    } as GameState["run"];
+    });
     run(s, "jinja-1", "install_jinja_drawn_ice", {
       cardId: "new",
       serverId: "remote-1",

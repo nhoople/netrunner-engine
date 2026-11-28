@@ -36,6 +36,7 @@ import {
 import { passIdle } from "../../src/demo/passIdle.js";
 import { trashCard } from "../../src/state/hostingAndTrash/trash.js";
 import type { ApplyResult } from "../../src/state/types/actions.js";
+import { runState } from "../state/run/run-state.js";
 
 describe("parhelion", () => {
   describe("parhelion-adv-req-reduction", () => {
@@ -894,7 +895,7 @@ describe("parhelion", () => {
         s.runner.installed = ["orca-1"];
         s.run = {
           attackedServerId: "hq",
-          phase: "approach",
+          phase: "approach_ice",
           position: 0,
           successful: null,
           accessedCardIds: [],
@@ -931,7 +932,7 @@ describe("parhelion", () => {
         s.servers.hq.ice = ["klev-1"];
         s.run = {
           attackedServerId: "hq",
-          phase: "approach",
+          phase: "approach_ice",
           position: 0,
           successful: null,
           accessedCardIds: [],
@@ -971,7 +972,7 @@ describe("parhelion", () => {
         s.servers.hq.ice = ["uns-1"];
         s.run = {
           attackedServerId: "hq",
-          phase: "approach",
+          phase: "approach_ice",
           position: 0,
           successful: null,
           accessedCardIds: [],
@@ -1769,6 +1770,7 @@ describe("parhelion", () => {
           },
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
         s.run!.accessingCardId = null;
         addBreakerStrengthBoostThisRun(s, {
@@ -3114,16 +3116,10 @@ describe("parhelion", () => {
         ];
         s.cards["ice-1"] = ice;
         s.servers.hq.ice = ["ice-1"];
-        s.run = {
-          attackedServerId: "hq",
+        s.run = runState("hq", "encounter", {
           position: 0,
-          successful: false,
-          encounter: {
-            iceId: "ice-1",
-            broken: [false, false, false],
-            subIndex: 0,
-          },
-        } as never;
+          encounter: { iceId: "ice-1", broken: [false, false, false] },
+        });
         s.timingKey = "run.encounterPaw";
         s.activeSide = "runner";
 

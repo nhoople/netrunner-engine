@@ -138,12 +138,7 @@ describe("CR M1 — success ternary (6.8.4a)", () => {
       accessedCardIds: [],
       accessCandidates: [],
       randomAccessLimit: null,
-      encounter: {
-        iceId: "corp-ice-1",
-        unbroken: [0],
-        resolved: [],
-        strengthBoost: 0,
-      },
+      encounter: { iceId: "corp-ice-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
       accessingCardId: null,

@@ -20,6 +20,7 @@ import {
 import { abilitiesSuppressed } from "../../src/state/continuous/abilities.js";
 import { completeExpose } from "../../src/state/visibility/expose.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -78,15 +79,7 @@ describe("blanked Pad Tap / Sweep / expose Zamba (CR 9.12.1d)", () => {
     );
     s.cards["sw-1"] = sweep;
     s.corp.playArea = ["sw-1"];
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "approach_ice",
-      position: 0,
-      icePassed: 0,
-      successful: false,
-      breached: false,
-    } as typeof s.run;
+    s.run = runState("hq", "approach_ice", { position: 0 });
     s.trace = {
       sourceId: "sw-1",
       strength: 1,

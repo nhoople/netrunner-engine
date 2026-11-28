@@ -542,7 +542,7 @@ describe("the-automata-initiative", () => {
         s.activeSide = "runner";
         s.run = {
           attackedServerId: "archives",
-          phase: "approach_server",
+          phase: "movement",
           position: null,
           successful: null,
           accessedCardIds: [],
@@ -939,7 +939,7 @@ describe("the-automata-initiative", () => {
         s.run = {
           attackedServerId: "hq",
           position: null,
-          phase: "approach_server",
+          phase: "movement",
           successful: false,
           accessedCardIds: [],
           accessCandidates: [],

@@ -11,6 +11,7 @@ import {
 } from "../../src/index.js";
 import type { Action } from "../../src/state/types/actions.js";
 import type { GameState } from "../../src/state/types/game.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -197,10 +198,10 @@ describe("paid ability windows (CR 9.2.7b / 9.5.2f)", () => {
     aal.faceup = true;
     s.cards["aal-1"] = aal;
     s.activeSide = "runner";
-    s.timingKey = "run.encounterPaw";
-    s.run = {
-      attackedServerId: "remote-1",
-    } as GameState["run"];
+    // A run on remote-1, which has no ice: the Runner approaches the server
+    // (CR 6.9.4), in its paid ability window.
+    s.timingKey = "run.approachServerPaw";
+    s.run = runState("remote-1", "movement");
     const denied = applyAction(s, {
       type: "use_paid_ability",
       cardId: "aal-1",

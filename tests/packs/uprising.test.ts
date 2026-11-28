@@ -840,6 +840,7 @@ describe("uprising", () => {
           encounter: null,
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
 
         const r = evalEffect(
@@ -887,6 +888,7 @@ describe("uprising", () => {
           encounter: null,
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
 
         const gripBefore = s.runner.hand.length;
@@ -924,6 +926,7 @@ describe("uprising", () => {
           encounter: null,
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
         const before = s.runner.hand.length;
         const r = evalEffect(
@@ -1007,6 +1010,7 @@ describe("uprising", () => {
           },
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
         s.activeSide = "runner";
         s.timingKey = "run.encounterPaw";
@@ -1262,6 +1266,7 @@ describe("uprising", () => {
           encounter: { iceId: "kon-1", broken: [false] },
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
 
         const r = evalEffect(

@@ -19,6 +19,7 @@ import {
 } from "../../src/state/cardFlags/cardDeclarations.js";
 import { abilitiesSuppressed } from "../../src/state/continuous/abilities.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -96,15 +97,7 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
     s.servers.hq.root = ["mg-1"];
     s.runner.credits = 5;
     s.runner.clicks = 0;
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "success",
-      position: 0,
-      icePassed: 0,
-      successful: true,
-      breached: true,
-    } as typeof s.run;
+    s.run = runState("hq", "success", { successful: true, breached: true });
 
     onSuccessfulRunEnded(s);
     expect(s.corpAllottedClicksDeltaNextTurn ?? 0).toBeGreaterThan(0);
@@ -123,15 +116,7 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
     mirror.recurringCreditsMax = 2;
     s.cards["mir-1"] = mirror;
     s.runner.installed = ["mir-1"];
-    s.run = {
-      id: "run-1",
-      attackedServerId: "rd",
-      phase: "success",
-      position: 0,
-      icePassed: 0,
-      successful: true,
-      breached: true,
-    } as typeof s.run;
+    s.run = runState("rd", "success", { successful: true, breached: true });
 
     onSuccessfulRunEnded(s);
     expect(mirror.recurringCredits).toBe(1);
@@ -155,16 +140,11 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
       ice: [],
     } as (typeof s.servers)["hq"];
     s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
-    s.run = {
-      id: "run-1",
-      attackedServerId: "remote-1",
-      phase: "success",
-      position: 0,
-      icePassed: 0,
+    s.run = runState("remote-1", "success", {
       successful: true,
       breached: true,
       breachStoleOrTrashed: false,
-    } as typeof s.run;
+    });
 
     onSuccessfulRunEnded(s);
     expect(kasi.powerCounters ?? 0).toBeGreaterThan(0);
