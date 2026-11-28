@@ -15,7 +15,9 @@
  * lists, or when a weekly entry's seed played all 200 steps without its code
  * (that list only shrinks). The weekly workflow (.github/workflows/playouts.yml)
  * runs `npm run playouts:nightly`. `--write-weekly` rewrites the weekly list
- * from the seeds it played that CI does not play; CI never reads it.
+ * from the seeds it played that CI does not play; CI never reads it. It
+ * reads the list just before writing it, so run one writer at a time, or
+ * check each format's entries after parallel runs.
  */
 import { writeFileSync } from "node:fs";
 import { setApplyHook } from "../src/debug/applyHook.js";
@@ -144,8 +146,11 @@ if (writeWeekly) {
     ]),
   );
   const today = new Date().toISOString().slice(0, 10);
+  // A seed CI plays (pinned in playout-seeds.json since) leaves this list.
   const kept = file.entries.filter(
-    (e) => !played.has(`${e.format}#${e.deckSeed}`),
+    (e) =>
+      !played.has(`${e.format}#${e.deckSeed}`) &&
+      !ciSeeds.get(e.format)!.has(e.deckSeed),
   );
   const fresh: SeedEntry[] = [];
   for (const r of results) {
