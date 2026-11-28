@@ -28,6 +28,7 @@ import {
   runnerTurn,
   setIdentity,
   toHand,
+  serverOf,
 } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
@@ -271,15 +272,11 @@ describe("Apocalypse trashes the Corp's installed cards as one set (CR 9.12.2a, 
 
   it("Warroid Tracker has one instance when Apocalypse trashes it and another card of its server (CR 9.12.2a, 9.1.8g)", () => {
     const s0 = apocalypseBoard();
-    const warroid = put(
-      s0,
-      "warroid-tracker",
-      "wt-1",
-      "server:remote-hi-1:root",
-    );
+    const hi = serverOf(s0, "hi-1");
+    const warroid = put(s0, "warroid-tracker", "wt-1", `server:${hi}:root`);
     warroid.rezzed = true;
     warroid.faceup = true;
-    s0.servers["remote-hi-1" as never]!.root.push("wt-1");
+    s0.servers[hi]!.root.push("wt-1");
     const from = s0.log.length;
     const s = must(s0, { type: "play_event", cardId: "apoc-1" });
     const lines = s.log.slice(from).join("\n");

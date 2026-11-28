@@ -48,6 +48,7 @@ import {
   runnerTurn,
   setIdentity,
   toHand,
+  serverOf,
 } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
@@ -57,13 +58,15 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.147.29");
 });
 
-const SERVER = "remote-pad-1" as ServerId;
-const HT_SERVER = "remote-ht-1" as ServerId;
+/** The remote `padBoard` makes for PAD Campaign: the first remote of a fresh game. */
+const SERVER: ServerId = "remote-1";
 
 /** The Runner's turn with a facedown PAD Campaign alone in a remote root. */
 function padBoard(): GameState {
   const s = runnerTurn(fresh());
   installRoot(s, "pad-campaign", "pad-1", false);
+  if (serverOf(s, "pad-1") !== SERVER)
+    throw new Error(`pad-1 is in ${serverOf(s, "pad-1")}, not ${SERVER}`);
   return s;
 }
 
@@ -255,7 +258,9 @@ describe("a card made faceup by its own step stays faceup", () => {
   it("a stolen facedown agenda is faceup in the Runner's score area (CR 1.17.4)", () => {
     const s0 = runnerTurn(fresh());
     installRoot(s0, "hostile-takeover", "ht-1", false);
-    let s = toAccess(must(s0, { type: "basic_run", serverId: HT_SERVER }));
+    let s = toAccess(
+      must(s0, { type: "basic_run", serverId: serverOf(s0, "ht-1") }),
+    );
     s = access(s, "ht-1");
     if (legalActions(s).some((a) => a.type === "steal_agenda")) {
       s = act(s, "steal_agenda", "ht-1");
@@ -302,7 +307,7 @@ describe("BANGUN reads the agenda's face from before the access", () => {
 
   function accessAgenda(s0: GameState): GameState {
     let s = access(
-      toAccess(must(s0, { type: "basic_run", serverId: HT_SERVER })),
+      toAccess(must(s0, { type: "basic_run", serverId: serverOf(s0, "ht-1") })),
       "ht-1",
     );
     // Resolve BANGUN's ability if it is pending.

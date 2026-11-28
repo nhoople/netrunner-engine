@@ -103,14 +103,11 @@ function sub(s: GameState, iceId: string, index: number): Effect {
   return s.cards[iceId]!.subroutines![index]!.effect;
 }
 
-function remote(s: GameState, id: string, ice: string[] = []): ServerId {
-  (s.servers as Record<string, unknown>)[id] = {
-    id,
-    kind: "remote",
-    root: [],
-    ice,
-  };
-  return id as ServerId;
+/** A new remote server, numbered as the engine numbers them (`remote-N`). */
+function remote(s: GameState, ice: string[] = []): ServerId {
+  const id: ServerId = `remote-${s.nextRemoteNumber++}`;
+  s.servers[id] = { id, kind: "remote", root: [], ice };
+  return id;
 }
 
 /** A run in progress on `serverId`, encountering nothing. */
@@ -289,10 +286,10 @@ describe("Corporate Town", () => {
 describe("Drive By", () => {
   it("offers only cards that can be exposed: a card in an Underway Grid server is not offered (CR 1.21.4)", () => {
     const s = runnerTurn(fresh());
-    const a = remote(s, "remote-a");
+    const a = remote(s);
     put(s, "pad-campaign", "pad-a", `server:${a}:root`);
     s.servers[a]!.root.push("pad-a");
-    const b = remote(s, "remote-b");
+    const b = remote(s);
     put(s, "pad-campaign", "pad-b", `server:${b}:root`);
     const ug = put(s, "underway-grid", "ug-1", `server:${b}:root`);
     ug.rezzed = true;
@@ -304,12 +301,12 @@ describe("Drive By", () => {
     // The Runner's labels name the place, not the facedown card (CR 10.2.2a).
     const labels = JSON.stringify(getPublicView(s, "runner").pendingChoice);
     expect(labels).not.toContain("PAD Campaign");
-    expect(labels).toContain("root of Remote a");
+    expect(labels).toContain("root of Remote 1");
   });
 
   it('trashes the card only once it is exposed: an expose the Corp prevents trashes nothing, even for a card an earlier expose left faceup ("If you do", CR 1.21.4)', () => {
     let s = runnerTurn(fresh());
-    const a = remote(s, "remote-a");
+    const a = remote(s);
     const pad = put(s, "pad-campaign", "pad-a", `server:${a}:root`);
     s.servers[a]!.root.push("pad-a");
     // Exposed earlier this turn: it stays faceup.
@@ -419,7 +416,7 @@ describe("EMP Device", () => {
   it("after it is used the Corp can rez only 1 more piece of ice that run (CR 1.2.2)", () => {
     let s = runnerTurn(fresh());
     s.corp.credits = 20;
-    const server = remote(s, "remote-x");
+    const server = remote(s);
     installIce(s, "ice-wall", "iw-in", server, false);
     installIce(s, "bandwidth", "bw-out", server, false);
     installRunner(s, "emp-device", "emp-1");
@@ -771,7 +768,7 @@ describe("Study Guide", () => {
 describe("High-Stakes Job", () => {
   it("the 12 credits come when the run ends, after the breach, so they cannot pay a trash cost in it (CR 6.8.5, 6.9.5a)", () => {
     let s = runnerTurn(fresh(), 6);
-    const server = remote(s, "remote-x");
+    const server = remote(s);
     installIce(s, "ice-wall", "iw-1", server, false);
     put(s, "pad-campaign", "pc-1", `server:${server}:root`);
     s.servers[server]!.root.push("pc-1");

@@ -42,6 +42,7 @@ import {
   clearCorpHand,
   clearRd,
   walkThrough,
+  serverOf,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -718,7 +719,7 @@ describe("Pinhole Threading", () => {
     let s = runnerTurn(fresh(), 5);
     installIce(s, "border-control", "bc-hq", "hq");
     installRoot(s, "ganked", "gk-1", false);
-    installIce(s, "border-control", "bc-r", "remote-gk-1" as ServerId);
+    installIce(s, "border-control", "bc-r", serverOf(s, "gk-1"));
     toHand(s, "runner", "pinhole-threading", "ph-1");
     s.cards["bc-hq"]!.rezzed = false;
     s = must(s, { type: "play_event", cardId: "ph-1", serverId: "hq" });
@@ -743,7 +744,7 @@ describe("Pinhole Threading", () => {
     s.cards["hp-1"]!.rezzed = true;
     s.cards["hp-1"]!.faceup = true;
     installRoot(s, "ganked", "gk-1", false);
-    installIce(s, "ice-wall", "iw-r", "remote-gk-1" as ServerId);
+    installIce(s, "ice-wall", "iw-r", serverOf(s, "gk-1"));
     installRunner(s, "corroder", "cor-1");
     s = pinhole(s, "hq", "gk-1");
     s = pick(s, "trash-encounter");

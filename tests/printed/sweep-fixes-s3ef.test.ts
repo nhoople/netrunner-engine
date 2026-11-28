@@ -84,6 +84,7 @@ import {
   toCorpTurn,
   toHand,
   walkThrough,
+  serverOf,
 } from "../rulings/rulings-helpers.js";
 
 import { enhancedLoginProtocolClick } from "../../src/state/continuous/currents.js";
@@ -127,14 +128,11 @@ function instructions(
   return found.instructions as Effect;
 }
 
-function remote(s: GameState, id: string, ice: string[] = []): ServerId {
-  (s.servers as Record<string, unknown>)[id] = {
-    id,
-    kind: "remote",
-    root: [],
-    ice,
-  };
-  return id as ServerId;
+/** A new remote server, numbered as the engine numbers them (`remote-N`). */
+function remote(s: GameState, ice: string[] = []): ServerId {
+  const id: ServerId = `remote-${s.nextRemoteNumber++}`;
+  s.servers[id] = { id, kind: "remote", root: [], ice };
+  return id;
 }
 
 /** The Corp picks the first program offered to trash, as a player would. */
@@ -199,7 +197,7 @@ describe("Heinlein Grid", () => {
   it("the Runner loses all their credits when they spend a click during a run on its server, as well as when they lose one (CR 1.11.3b)", () => {
     const s = runnerTurn(fresh(), 7);
     installRoot(s, "heinlein-grid", "hg-1", true);
-    runOn(s, "remote-hg-1" as ServerId);
+    runOn(s, serverOf(s, "hg-1"));
     payCost(s, "runner", { clicks: 1 }, "test");
     expect(s.runner.credits).toBe(0);
 
@@ -214,7 +212,7 @@ describe("Heinlein Grid", () => {
     const other = runnerTurn(fresh(), 7);
     installRoot(other, "heinlein-grid", "hg-1", true);
     installRoot(other, "pad-campaign", "pad-1", true);
-    runOn(other, "remote-pad-1" as ServerId);
+    runOn(other, serverOf(other, "pad-1"));
     payCost(other, "runner", { clicks: 1 }, "test");
     expect(other.runner.credits).toBe(7);
   });
@@ -318,7 +316,7 @@ describe("Always Be Running", () => {
 describe("Forked, Knifed and Spooned", () => {
   it("Knifed trashes an ice that gained barrier (Sub Boost) once all its subroutines are broken, as it reads the ice's current subtypes (CR 1.2.1)", () => {
     const s = runnerTurn(fresh());
-    const server = remote(s, "remote-x");
+    const server = remote(s);
     installIce(s, "enigma", "en-1", server);
     put(s, "sub-boost", "sb-1", "corp:play-area");
     evalAs(
@@ -341,7 +339,7 @@ describe("Nasir Meidan: Cyber Explorer", () => {
   it("loses all credits in the pool, then gains credits equal to the rez cost of the ice encountered (CR 1.2.1)", () => {
     const s = runnerTurn(fresh(), 5);
     setIdentity(s, "runner", "nasir-meidan-cyber-explorer");
-    const server = remote(s, "remote-x");
+    const server = remote(s);
     const ice = installIce(s, "enigma", "en-1", server);
     runOn(s, server);
     s.run!.phase = "encounter";
@@ -362,7 +360,7 @@ describe("Patch and Sub Boost", () => {
   it("can be hosted only on a rezzed piece of ice; Eavesdrop still on any ice (CR 1.2.1)", () => {
     for (const defId of ["patch", "sub-boost"]) {
       const s = fresh();
-      const server = remote(s, "remote-x");
+      const server = remote(s);
       installIce(s, "enigma", "up-1", server, true);
       installIce(s, "enigma", "down-1", server, false);
       put(s, defId, "op-1", "corp:play-area");
@@ -374,7 +372,7 @@ describe("Patch and Sub Boost", () => {
       expect(optionIds(s), defId).toEqual(["host-cond:up-1"]);
     }
     const s = fresh();
-    const server = remote(s, "remote-x");
+    const server = remote(s);
     installIce(s, "enigma", "down-1", server, false);
     put(s, "eavesdrop", "ed-1", "runner:play-area");
     evalAs(
@@ -436,7 +434,7 @@ describe("Woodcutter, Tyrant and Salvage", () => {
   it("can be advanced only while rezzed, as 'You can advance this ice if it is rezzed' prints; the ability is active while unrezzed but its own condition is not met (CR 9.1.8f, 1.2.1)", () => {
     for (const defId of ["woodcutter", "tyrant", "salvage"]) {
       const s = corpTurn(fresh());
-      const server = remote(s, "remote-x");
+      const server = remote(s);
       const ice = installIce(s, defId, "ice-1", server, false);
       expect(printsCanBeAdvanced(ice), defId).toBe(true);
       expect(mayAdvanceInstalledCard(ice), defId).toBe(false);
@@ -451,7 +449,7 @@ describe("Scrubbed", () => {
   it("as an active current, gives the first piece of ice encountered each turn -2 strength for the rest of that run, and not the first ice of a later run (CR 3.7.1b)", () => {
     let s = runnerTurn(fresh());
     current(s, "scrubbed", "sc-1");
-    const server = remote(s, "remote-x");
+    const server = remote(s);
     installIce(s, "enigma", "en-1", server);
     const base = getCardDef("enigma").strength!;
     s = must(s, { type: "basic_run", serverId: server });
@@ -461,9 +459,10 @@ describe("Scrubbed", () => {
     // A later run the same turn: its first ice is not the turn's first.
     let t = runnerTurn(fresh());
     current(t, "scrubbed", "sc-1");
-    installIce(t, "enigma", "en-1", remote(t, "remote-x"));
+    const later = remote(t);
+    installIce(t, "enigma", "en-1", later);
     t.turn.iceEncounteredThisTurn = true;
-    t = must(t, { type: "basic_run", serverId: "remote-x" as ServerId });
+    t = must(t, { type: "basic_run", serverId: later });
     t = drive(t, (x) => x.run?.encounter?.iceId === "en-1");
     expect(effectiveIceStrength(t, "en-1")).toBe(base);
   });
@@ -689,7 +688,7 @@ describe("Shannon Claire", () => {
  */
 function traceAtFive(s: GameState, iceDefId: string, link: number): void {
   installRoot(s, "rutherford-grid", "rg-1", true);
-  const server = "remote-rg-1" as ServerId;
+  const server = serverOf(s, "rg-1");
   installIce(s, iceDefId, "ice-1", server);
   put(s, "improved-tracers", "it-1", "corp:score");
   s.corp.scoreArea.push("it-1");
@@ -756,7 +755,7 @@ describe("Sagittarius, Taurus and Virgo", () => {
 describe("Improved Tracers", () => {
   it("while scored, tracer ice has +1 strength and a subroutine's trace has +1 base strength; other traces do not (CR 1.2.1)", () => {
     const s = runnerTurn(fresh());
-    const server = remote(s, "remote-x");
+    const server = remote(s);
     installIce(s, "news-hound", "nh-1", server);
     const base = effectiveIceStrength(s, "nh-1");
     put(s, "improved-tracers", "it-1", "corp:score");
@@ -776,7 +775,7 @@ describe("Will-o'-the-Wisp", () => {
     installRunner(s, "corroder", "brk-1");
     put(s, "sure-gamble", "st-1", "runner:stack");
     s.runner.deck = ["st-1"];
-    successfulRun(s, "remote-wow-1" as ServerId);
+    successfulRun(s, serverOf(s, "wow-1"));
     s.run!.breakersThatBroke = ["brk-1"];
     evalAs(s, "wow-1", fx.do({ kind: "trash_will_o_wisp_breaker_used" }));
     choose(s, "trash");
@@ -786,7 +785,7 @@ describe("Will-o'-the-Wisp", () => {
 
     const none = runnerTurn(fresh());
     installRoot(none, "will-o-the-wisp", "wow-1", true);
-    successfulRun(none, "remote-wow-1" as ServerId);
+    successfulRun(none, serverOf(none, "wow-1"));
     evalAs(none, "wow-1", fx.do({ kind: "trash_will_o_wisp_breaker_used" }));
     choose(none, "trash");
     expect(none.corp.discardPile).toContain("wow-1");
@@ -797,7 +796,7 @@ describe("Self-destruct", () => {
   it("X is the number of cards its instruction trashes; Self-destruct, trashed as the cost, is not one of them (CR 1.2.1)", () => {
     const s = runnerTurn(fresh());
     const sd = installRoot(s, "self-destruct", "sd-1", true);
-    const server = "remote-sd-1" as ServerId;
+    const server = serverOf(s, "sd-1");
     installIce(s, "ice-wall", "iw-1", server);
     put(s, "pad-campaign", "pad-1", `server:${server}:root`);
     s.servers[server]!.root.push("pad-1");

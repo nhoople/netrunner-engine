@@ -19,7 +19,6 @@ import {
   legalActions,
 } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
-import type { ServerId } from "../../src/state/types/servers.js";
 import { passIdle } from "../../src/demo/passIdle.js";
 import { fx } from "../../src/effects/ir/fx.js";
 import { trashCard } from "../../src/state/hostingAndTrash/trash.js";
@@ -49,6 +48,7 @@ import {
   toHand,
   clearCorpHand,
   clearRd,
+  serverOf,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -140,7 +140,7 @@ describe("Jinteki: Personal Evolution", () => {
       s.runner.scoreArea.push(id);
     }
     installRoot(s, "hostile-takeover", "ht-1", false);
-    s = must(s, { type: "basic_run", serverId: "remote-ht-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, "ht-1") });
     s = drive(s, (x) => legalActions(x).some((a) => a.type === "steal_agenda"));
     s = must(s, { type: "steal_agenda", cardId: "ht-1" });
     // The Runner wins at the checkpoint after the steal (CR 1.7.1); the
@@ -497,7 +497,7 @@ describe("Pravdivost Consulting: Political Solutions", () => {
     let s = runnerTurn(fresh());
     setIdentity(s, "corp", "pravdivost-consulting-political-solutions");
     installRoot(s, defId, id, false);
-    s = must(s, { type: "basic_run", serverId: `remote-${id}` as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, id) });
     s = drive(s, () => false);
     expect(s.pendingChoice?.chooser).toBe("corp");
     return s;
@@ -566,7 +566,7 @@ describe("Pravdivost Consulting: Political Solutions", () => {
     // a run's paid ability window.
     let c = runnerTurn(fresh());
     installRoot(c, "ngo-front", "ngo-1", true).advancementCounters = 1;
-    c = must(c, { type: "basic_run", serverId: "remote-ngo-1" as ServerId });
+    c = must(c, { type: "basic_run", serverId: serverOf(c, "ngo-1") });
     for (let i = 0; i < 5 && !ngo(c); i++) {
       c = must(c, { type: "pass_window" });
     }
@@ -954,7 +954,8 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     let s = corpTurn(fresh(), 5);
     setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
     installRoot(s, "azef-protocol", "azef-1", false).advancementCounters = 3;
-    installIce(s, "ice-wall", "iw-1", "remote-azef-1" as ServerId);
+    const azef = serverOf(s, "azef-1");
+    installIce(s, "ice-wall", "iw-1", azef);
     installRoot(s, "pad-campaign", "pad-1");
     stackRd(s, [
       ["malapert-data-vault", "mdv-1"],
@@ -964,8 +965,8 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     s = must(s, { type: "score_agenda", cardId: "azef-1" });
     if (s.pendingChoice) s = pick(s, "pad-1");
     s = pick(s, "mdv-1");
-    s = pick(s, "remote-azef-1");
-    expect(s.cards["mdv-1"]!.zone).toBe("server:remote-azef-1:root");
+    s = pick(s, azef);
+    expect(s.cards["mdv-1"]!.zone).toBe(`server:${azef}:root`);
     s = drive(s, () => false);
     expect(s.corp.scoreArea).toContain("azef-1");
     // Malapert's search is offered for the score from its root.
@@ -1000,7 +1001,7 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
       cardId: "pad-2",
       destination: {
         kind: "remote_root",
-        serverId: "remote-pad-1" as ServerId,
+        serverId: serverOf(s, "pad-1"),
       },
     });
     while (s.pendingChoice && optionIds(s).some((id) => id.includes("pad-1"))) {
@@ -1083,12 +1084,13 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     let s = runnerTurn(fresh());
     setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
     installRoot(s, "hostile-takeover", "ht-1", false);
-    put(s, "daruma", "dar-1", "server:remote-ht-1:root");
-    s.servers["remote-ht-1" as ServerId]!.root.push("dar-1");
+    const ht = serverOf(s, "ht-1");
+    put(s, "daruma", "dar-1", `server:${ht}:root`);
+    s.servers[ht]!.root.push("dar-1");
     s.cards["dar-1"]!.rezzed = true;
     s.cards["dar-1"]!.faceup = true;
     stackRd(s, [["rashida-jaheem", "rj-1"]]);
-    s = must(s, { type: "basic_run", serverId: "remote-ht-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, "ht-1") });
     s = drive(s, (x) => optionIds(x).includes("trash-swap"));
     s = pick(s, "trash-swap");
     // Daruma (printed rez 1) finds Rashida Jaheem (0) for a new remote.
@@ -1107,7 +1109,7 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     let s = corpTurn(fresh(), 5);
     setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
     installRoot(s, "azef-protocol", "azef-1", false).advancementCounters = 3;
-    installIce(s, "ice-wall", "iw-1", "remote-azef-1" as ServerId);
+    installIce(s, "ice-wall", "iw-1", serverOf(s, "azef-1"));
     installRoot(s, "pad-campaign", "pad-1");
     stackRd(s, [["alexa-belsky", "ab-1"]]);
     s.timingKey = "corp.actionPaw";
@@ -1149,16 +1151,17 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     let s = corpTurn(fresh(), 5);
     setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
     installRoot(s, "calibration-testing", "ct-1");
-    installIce(s, "ice-wall", "iw-1", "remote-ct-1" as ServerId);
+    const ct = serverOf(s, "ct-1");
+    installIce(s, "ice-wall", "iw-1", ct);
     stackRd(s, [["pad-campaign", "pad-1"]]);
     s.timingKey = "corp.actionPaw";
     s = must(s, paidAbility(s, "ct-1")!);
     // Calibration Testing (printed rez 3) finds PAD Campaign (2).
     s = pick(s, "pad-1");
-    s = pick(s, "remote-ct-1");
+    s = pick(s, ct);
     if (s.pendingChoice) s = pick(s, "pad-1");
     s = drive(s, atCorpAction);
-    expect(s.cards["pad-1"]!.zone).toBe("server:remote-ct-1:root");
+    expect(s.cards["pad-1"]!.zone).toBe(`server:${ct}:root`);
     expect(s.cards["pad-1"]!.advancementCounters).toBe(1);
   });
 
@@ -1168,13 +1171,14 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     installRoot(s, "reconstruction-contract", "rc-1");
     installRoot(s, "hostile-takeover", "ht-1", false);
     stackRd(s, [["rashida-jaheem", "rj-1"]]);
-    s = must(s, { type: "basic_run", serverId: "remote-rc-1" as ServerId });
+    const rc = serverOf(s, "rc-1");
+    s = must(s, { type: "basic_run", serverId: rc });
     s = drive(s, (x) => !!paidAbility(x, "rc-1"));
     s = must(s, paidAbility(s, "rc-1")!);
     // Reconstruction Contract (printed rez 1) finds Rashida Jaheem (0).
     s = pick(s, "rj-1");
-    expect(s.servers["remote-rc-1" as ServerId]).toBeUndefined();
-    expect(optionIds(s).some((id) => id.includes("remote-rc-1"))).toBe(false);
+    expect(s.servers[rc]).toBeUndefined();
+    expect(optionIds(s).some((id) => id.includes(rc))).toBe(false);
     s = pick(s, "new_remote");
     expect(s.cards["rj-1"]!.zone).toMatch(/^server:remote/);
     // The run on the server that ceased to exist ends (CR 4.6.8e).
@@ -1322,7 +1326,7 @@ describe("Carnivore", () => {
     toHand(s, "runner", "sure-gamble", "g-1");
     toHand(s, "runner", "diesel", "g-2");
     installRoot(s, "pad-campaign", "pad-1", false);
-    s = must(s, { type: "basic_run", serverId: "remote-pad-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, "pad-1") });
     s = drive(s, (x) => x.run?.accessingCardId === "pad-1");
     expect(legalActions(s)).toContainEqual({ type: "access_trash_from_grip" });
   });

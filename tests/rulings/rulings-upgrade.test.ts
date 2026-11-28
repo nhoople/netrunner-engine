@@ -36,6 +36,7 @@ import {
   setIdentity,
   toHand,
   walkThrough,
+  serverOf,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -90,7 +91,7 @@ function toLastRezWindow(s: GameState, server: ServerId): GameState {
 function stealFrom(upgradeDef: string, rezzed: boolean): GameState {
   const s = runnerTurn(fresh(), 10);
   installRoot(s, "hostile-takeover", "ht-1", false);
-  upgrade(s, upgradeDef, "up-1", "remote-ht-1" as ServerId, rezzed);
+  upgrade(s, upgradeDef, "up-1", serverOf(s, "ht-1"), rezzed);
   return s;
 }
 
@@ -129,7 +130,7 @@ describe("AMAZE Amusements", () => {
     s = pick(s, "up-1");
     s = drive(s, (x) => x.timingKey === "runner.takeAction");
     expect(s.corp.discardPile).toContain("up-1");
-    s = must(s, { type: "basic_run", serverId: "remote-ht-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, "ht-1") });
     s = stealAndTrash(s);
     expect(s.runner.scoreArea).toContain("ht-1");
     expect(s.runner.tags).toBe(0);
@@ -137,7 +138,7 @@ describe("AMAZE Amusements", () => {
 
   it("AMAZE Amusements: accessed and trashed while unrezzed, its ability was never active, so stealing gives no tags (ruling 2)", () => {
     let s = stealFrom("amaze-amusements", false);
-    s = must(s, { type: "basic_run", serverId: "remote-ht-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, "ht-1") });
     s = stealAndTrash(s);
     expect(s.corp.discardPile).toContain("up-1");
     expect(s.runner.scoreArea).toContain("ht-1");
@@ -145,7 +146,7 @@ describe("AMAZE Amusements", () => {
 
     // Control: rezzed and trashed while accessed, it persists for the run.
     let t = stealFrom("amaze-amusements", true);
-    t = must(t, { type: "basic_run", serverId: "remote-ht-1" as ServerId });
+    t = must(t, { type: "basic_run", serverId: serverOf(t, "ht-1") });
     t = stealAndTrash(t);
     expect(t.corp.discardPile).toContain("up-1");
     expect(t.runner.tags).toBe(2);
@@ -346,7 +347,7 @@ describe("Malapert Data Vault", () => {
     let s = corpTurn(fresh(), 5);
     setIdentity(s, "corp", "nbn-making-news");
     installRoot(s, "hostile-takeover", "ht-1", false).advancementCounters = 2;
-    upgrade(s, "malapert-data-vault", "mdv-1", "remote-ht-1" as ServerId);
+    upgrade(s, "malapert-data-vault", "mdv-1", serverOf(s, "ht-1"));
     installRoot(s, "hostile-takeover", "ht-2", false).advancementCounters = 2;
     s.timingKey = "corp.actionPaw";
     s = must(s, { type: "score_agenda", cardId: "ht-2" });

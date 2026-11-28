@@ -17,7 +17,6 @@ import {
   legalActions,
 } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
-import type { ServerId } from "../../src/state/types/servers.js";
 import {
   atRunnerAction,
   corpTurn,
@@ -37,6 +36,7 @@ import {
   toHand,
   clearCorpHand,
   walkThrough,
+  serverOf,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -45,8 +45,6 @@ beforeAll(() => {
   assertPinnedTag("v26.03");
   assertCardsPinnedTag("v1.147.29");
 });
-
-const SAM_SERVER = "remote-sam-1" as ServerId;
 
 /**
  * A run on a remote holding Send a Message, protected by the unrezzed
@@ -61,10 +59,11 @@ function rezBySendAMessage(
 ): GameState {
   let s = runnerTurn(fresh(), 10);
   installRoot(s, "send-a-message", "sam-1", false);
-  installIce(s, defId, id, SAM_SERVER, false);
+  const samServer = serverOf(s, "sam-1");
+  installIce(s, defId, id, samServer, false);
   s.corp.credits = 0;
   setup?.(s);
-  s = must(s, { type: "basic_run", serverId: SAM_SERVER });
+  s = must(s, { type: "basic_run", serverId: samServer });
   s = drive(s, (x) => legalActions(x).some((a) => a.type === "steal_agenda"));
   s = must(s, { type: "steal_agenda", cardId: "sam-1" });
   s = pick(s, id);

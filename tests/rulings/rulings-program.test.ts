@@ -18,7 +18,6 @@ import {
 } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
 import type { Action } from "../../src/state/types/actions.js";
-import type { ServerId } from "../../src/state/types/servers.js";
 import { trashCard } from "../../src/state/hostingAndTrash/trash.js";
 import { checkpointAfterInstruction } from "../../src/legality/checkpoints.js";
 import { breakerStrength } from "../../src/effects/continuous/iceStrength.js";
@@ -44,6 +43,7 @@ import {
   toCorpTurn,
   toHand,
   walkThrough,
+  serverOf,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -505,7 +505,7 @@ describe("Imp", () => {
     let s = runnerTurn(fresh(), 0);
     installRunner(s, "imp", "imp-1").virusCounters = 2;
     installRoot(s, "pad-campaign", "root-1", false);
-    s = must(s, { type: "basic_run", serverId: "remote-root-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, "root-1") });
     s = drive(s, (x) =>
       legalActions(x).some((a) => a.type === "access_trash_with_virus"),
     );
@@ -604,7 +604,7 @@ describe("Paricia", () => {
     let s = runnerTurn(fresh(), 2);
     installRunner(s, "paricia", "pa-1").recurringCredits = 2;
     installRoot(s, "pad-campaign", "root-1", false);
-    s = must(s, { type: "basic_run", serverId: "remote-root-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, "root-1") });
     s = drive(s, (x) =>
       legalActions(x).some(
         (a) => a.type === "trash_accessed" && a.cardId === "root-1",

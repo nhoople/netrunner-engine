@@ -45,6 +45,7 @@ import {
   toCorpTurn,
   toHand,
   walkThrough,
+  serverOf,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -310,7 +311,8 @@ describe("Ice Carver", () => {
 // Light the Fire!
 // ---------------------------------------------------------------------------
 
-const LTF_SERVER = "remote-root-1" as ServerId;
+/** The remote `ltfBoard` makes for root-1: the first remote of a fresh game. */
+const LTF_SERVER: ServerId = "remote-1";
 
 /**
  * The Runner with Light the Fire! installed, 3 cards in the grip to pay
@@ -322,6 +324,8 @@ function ltfBoard(rootDefId: string, rezzed = false): GameState {
   installRunner(s, "light-the-fire", "ltf-1");
   for (let i = 1; i <= 3; i++) toHand(s, "runner", "sure-gamble", `sg-${i}`);
   installRoot(s, rootDefId, "root-1", rezzed);
+  if (serverOf(s, "root-1") !== LTF_SERVER)
+    throw new Error(`root-1 is in ${serverOf(s, "root-1")}, not ${LTF_SERVER}`);
   return s;
 }
 
@@ -539,7 +543,7 @@ describe("Scrubber", () => {
     let s = runnerTurn(fresh(), 2);
     installRunner(s, "scrubber", "sc-1").recurringCredits = 2;
     installRoot(s, "pad-campaign", "root-1", false);
-    s = must(s, { type: "basic_run", serverId: "remote-root-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: serverOf(s, "root-1") });
     s = drive(s, (x) =>
       legalActions(x).some(
         (a) => a.type === "trash_accessed" && a.cardId === "root-1",

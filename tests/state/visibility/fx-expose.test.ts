@@ -108,7 +108,7 @@ describe("the Runner's choice names facedown Corp cards by where they are", () =
       expect.arrayContaining([
         "Expose the unrezzed ice protecting HQ, position 1 from the outermost",
         "Expose the unrezzed ice protecting R&D, position 1 from the outermost",
-        "Expose the facedown card in the root of Remote pad-1",
+        "Expose the facedown card in the root of Remote 1",
       ]),
     );
     const text = seen(s, "runner");
@@ -229,8 +229,8 @@ describe("the Corp still sees its own titles", () => {
     );
     if (!r.ok) throw new Error(r.error);
     expect(labels(s, "runner").sort()).toEqual([
-      "the facedown card in the root of Remote ht-1",
-      "the facedown card in the root of Remote pad-1",
+      "the facedown card in the root of Remote 1",
+      "the facedown card in the root of Remote 2",
     ]);
     expect(seen(s, "runner")).not.toContain("Hostile Takeover");
   });

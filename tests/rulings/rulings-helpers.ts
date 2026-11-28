@@ -15,6 +15,7 @@ import type { ServerId } from "../../src/state/types/servers.js";
 import { passIdle } from "../../src/demo/passIdle.js";
 import type { Effect } from "../../src/effects/ir/effect.js";
 import { openPendingChoose } from "../../src/state/triggers/pendingChoice.js";
+import { serverIdForCard } from "../../src/effects/counters/counterKinds.js";
 
 /** The default board with no Runner card marked rezzed (CR 8.1.4f). */
 export function fresh(): GameState {
@@ -64,8 +65,9 @@ export function installRoot(
   id: string,
   rezzed = true,
 ) {
-  const serverId = `remote-${id}`;
-  (s.servers as Record<string, unknown>)[serverId] = {
+  // The engine numbers remotes (`remote-N`) and reads the number.
+  const serverId: ServerId = `remote-${s.nextRemoteNumber++}`;
+  s.servers[serverId] = {
     id: serverId,
     kind: "remote",
     root: [id],
@@ -75,6 +77,16 @@ export function installRoot(
   card.rezzed = rezzed;
   card.faceup = rezzed;
   return card;
+}
+
+/**
+ * The server `cardId` is installed in, as the engine names it
+ * (`serverIdForCard`). Throws when the card is not installed.
+ */
+export function serverOf(s: GameState, cardId: string): ServerId {
+  const id = serverIdForCard(s, cardId);
+  if (!id) throw new Error(`${cardId} is not installed`);
+  return id;
 }
 
 /** A piece of ice installed outermost on `server` (index 0 is outermost). */
