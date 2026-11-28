@@ -17,7 +17,10 @@ import {
   formatPool,
   learnToPlayDecks,
   playout,
+  playoutSeedList,
   readSeeds,
+  readWeeklySeeds,
+  weeklyCheck,
   type Format,
 } from "./harness.js";
 
@@ -140,6 +143,97 @@ describe("playout replay", () => {
     expect(compareWithSeeds({ ...result, failures: [] }, [entry])).toHaveLength(
       1,
     );
+  });
+
+  it("the weekly run fails only on a format, seed and code no list holds, and on a weekly entry that no longer happens", () => {
+    const result = (seed: number, ...codes: [string, number][]) => ({
+      format: "startup" as const,
+      seed,
+      steps: 200,
+      finished: false,
+      failures: codes.map(([code, step]) => ({ code, step, detail: "d" })),
+    });
+    const entry = (deckSeed: number, code: string, step: number) => ({
+      format: "startup" as const,
+      deckSeed,
+      code,
+      step,
+      recorded: "2026-11-28",
+      detail: "d",
+    });
+    // Unlisted anywhere: fails.
+    expect(weeklyCheck([result(60, ["REFUSED", 9])], [], [], 200)).toEqual({
+      unlisted: ["startup seed 60: REFUSED@9 d"],
+      gone: [],
+    });
+    // Listed in the weekly list or the CI fixture, at any step: known.
+    expect(
+      weeklyCheck(
+        [result(60, ["REFUSED", 9])],
+        [],
+        [entry(60, "REFUSED", 40)],
+        200,
+      ),
+    ).toEqual({ unlisted: [], gone: [] });
+    expect(
+      weeklyCheck(
+        [result(60, ["REFUSED", 9])],
+        [entry(60, "REFUSED", 9)],
+        [],
+        200,
+      ),
+    ).toEqual({ unlisted: [], gone: [] });
+    // Another code, seed or format is not the same failure.
+    expect(
+      weeklyCheck(
+        [result(60, ["NO_ZONE", 9])],
+        [],
+        [entry(60, "REFUSED", 9)],
+        200,
+      ).unlisted,
+    ).toHaveLength(1);
+    expect(
+      weeklyCheck(
+        [result(61, ["REFUSED", 9])],
+        [],
+        [entry(60, "REFUSED", 9)],
+        200,
+      ).unlisted,
+    ).toHaveLength(1);
+    expect(
+      weeklyCheck(
+        [{ ...result(60, ["REFUSED", 9]), format: "core" as const }],
+        [],
+        [entry(60, "REFUSED", 9)],
+        200,
+      ).unlisted,
+    ).toHaveLength(1);
+    // A weekly entry whose seed played 200 steps without its code is gone.
+    expect(
+      weeklyCheck([result(60)], [], [entry(60, "REFUSED", 9)], 200).gone,
+    ).toEqual(["startup seed 60: REFUSED"]);
+    // Not gone when its seed was not played, or the run was shorter.
+    expect(
+      weeklyCheck([result(61)], [], [entry(60, "REFUSED", 9)], 200).gone,
+    ).toEqual([]);
+    expect(
+      weeklyCheck([result(60)], [], [entry(60, "REFUSED", 9)], 100).gone,
+    ).toEqual([]);
+  });
+
+  it("the weekly list holds only seeds CI does not play, once per format, seed and code", () => {
+    const weekly = readWeeklySeeds();
+    const ci = readSeeds();
+    expect(weekly.steps).toBe(ci.steps);
+    const keys = new Set<string>();
+    for (const e of weekly.entries) {
+      expect(FORMATS).toContain(e.format);
+      expect(playoutSeedList(e.format, ci)).not.toContain(e.deckSeed);
+      expect(e.recorded).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      const key = `${e.format}#${e.deckSeed}#${e.code}`;
+      expect(keys.has(key), key).toBe(false);
+      keys.add(key);
+    }
   });
 
   it("records every fixture entry with a known format, a date and a step in budget", () => {

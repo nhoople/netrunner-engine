@@ -1,0 +1,1173 @@
+{
+  "steps": 200,
+  "entries": [
+    {
+      "format": "learn_to_play_expanded",
+      "deckSeed": 109,
+      "step": 164,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "choose_option at runner.discard: Choose exactly 3 card(s) in hand to discard."
+    },
+    {
+      "format": "learn_to_play_expanded",
+      "deckSeed": 179,
+      "step": 100,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "choose_option at runner.discard: Choose exactly 3 card(s) in hand to discard."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 27,
+      "step": 53,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:mycoweb:21 (Mycoweb) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 42,
+      "step": 42,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "choose_option at runner.discard: Choose exactly 2 card(s) in hand to discard."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 55,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 61,
+      "step": 28,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 66,
+      "step": 70,
+      "code": "CRASH",
+      "recorded": "2026-11-28",
+      "detail": "pass for an idle seat at run.encounterPaw: Cannot read properties of undefined (reading 'ice')"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 79,
+      "step": 21,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 86,
+      "step": 28,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 87,
+      "step": 28,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 99,
+      "step": 89,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 100,
+      "step": 42,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:superconducting-hub:38 (Superconducting Hub) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 105,
+      "step": 82,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "choose_option at runner.discard: Choose exactly 3 card(s) in hand to discard."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 111,
+      "step": 71,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:esca:8 (Esca) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 125,
+      "step": 23,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 137,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 140,
+      "step": 192,
+      "code": "NEGATIVE_CREDITS",
+      "recorded": "2026-11-28",
+      "detail": "runner has -3 credits"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 141,
+      "step": 28,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.approachPaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 153,
+      "step": 23,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 158,
+      "step": 33,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.afterMovePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 165,
+      "step": 23,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 166,
+      "step": 177,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:palisade:26 (Palisade) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 169,
+      "step": 30,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 186,
+      "step": 191,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:phat-gioan-baotixita:26 (Phật Gioan Baotixita) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 200,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 13,
+      "step": 58,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 15,
+      "step": 63,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 33,
+      "step": 88,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 38,
+      "step": 103,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 55,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 61,
+      "step": 28,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 78,
+      "step": 19,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 85,
+      "step": 141,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 86,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 87,
+      "step": 21,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 89,
+      "step": 28,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 90,
+      "step": 30,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.afterMovePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 125,
+      "step": 23,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 137,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 144,
+      "step": 106,
+      "code": "ENCOUNTER_ICE_MISMATCH",
+      "recorded": "2026-11-28",
+      "detail": "encountering corp:doomscroll:7 but the ice at position null of archives is none"
+    },
+    {
+      "format": "core",
+      "deckSeed": 144,
+      "step": 178,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 153,
+      "step": 23,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 158,
+      "step": 24,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 165,
+      "step": 26,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 167,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 169,
+      "step": 30,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 171,
+      "step": 23,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 183,
+      "step": 25,
+      "code": "ENCOUNTER_ICE_MISMATCH",
+      "recorded": "2026-11-28",
+      "detail": "encountering corp:doomscroll:6 but the ice at position null of rd is none"
+    },
+    {
+      "format": "core",
+      "deckSeed": 186,
+      "step": 91,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "core",
+      "deckSeed": 187,
+      "step": 25,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 195,
+      "step": 28,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 196,
+      "step": 51,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 200,
+      "step": 25,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 17,
+      "step": 180,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:aggressive-trendsetting:0 (Aggressive Trendsetting) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 18,
+      "step": 37,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:virtuoso:43 (Virtuoso) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 19,
+      "step": 25,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 38,
+      "step": 143,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:malandragem:22 (Malandragem) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 42,
+      "step": 128,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Insufficient credits for install cost."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 47,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 58,
+      "step": 24,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 62,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 74,
+      "step": 72,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:cohort-guidance-program:4 (Cohort Guidance Program) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 78,
+      "step": 25,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:carmen:15 (Carmen) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 79,
+      "step": 94,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:masterwork-v37:17 (Masterwork (v37)) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 83,
+      "step": 123,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:amaze-amusements:0 (AMAZE Amusements) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 83,
+      "step": 157,
+      "code": "OFF_BOARD_HOSTED",
+      "recorded": "2026-11-28",
+      "detail": "runner:hush:18 (Hush) is in runner:grip with hostId corp:pulse:35"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 85,
+      "step": 131,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Insufficient credits for install cost."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 99,
+      "step": 135,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:maskirovka:15 (Maskirovka) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 122,
+      "step": 25,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 126,
+      "step": 25,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 127,
+      "step": 23,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 132,
+      "step": 6,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:drafter:13 (Drafter) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 144,
+      "step": 21,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 146,
+      "step": 70,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 150,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 152,
+      "step": 193,
+      "code": "NEGATIVE_CREDITS",
+      "recorded": "2026-11-28",
+      "detail": "runner has -1 credits"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 152,
+      "step": 34,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:t400-memory-diamond:35 (T400 Memory Diamond) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 157,
+      "step": 162,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:tocsin:43 (Tocsin) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 159,
+      "step": 105,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:nightmare-archive:19 (Nightmare Archive) is in corp:archives, removed-from-game"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 182,
+      "step": 67,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:logjam:17 (Logjam) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 183,
+      "step": 35,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 187,
+      "step": 138,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:stoke-the-embers:28 (Stoke the Embers) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 189,
+      "step": 23,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 191,
+      "step": 101,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:anoetic-void:0 (Anoetic Void) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 193,
+      "step": 175,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:virtuoso:40 (Virtuoso) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 3,
+      "step": 30,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:always-have-a-backup-plan:3 (Always Have a Backup Plan) is in runner:play-area and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 10,
+      "step": 152,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:net-police:21 (Net Police) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 13,
+      "step": 63,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Progenitor can only host virus programs."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 14,
+      "step": 20,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Apex: Invasive Predator cannot install non-virtual resources."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 15,
+      "step": 75,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:preemptive-action:34 (Preemptive Action) is in corp:play-area, removed-from-game"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 21,
+      "step": 182,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:preemptive-action:30 (Preemptive Action) is in corp:play-area, removed-from-game"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 26,
+      "step": 29,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_event at runner.takeAction: Play requires a successful central run this turn."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 28,
+      "step": 28,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_event at runner.takeAction: Play requires an installed seedy."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 30,
+      "step": 30,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "choose_option at runner.takeAction: Run event requires a target server."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 31,
+      "step": 109,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_event at runner.takeAction: No hardware to trash for Trade-In."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 35,
+      "step": 91,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:genotyping:17 (Genotyping) is in corp:play-area, removed-from-game"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 37,
+      "step": 135,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:contaminate:7 (Contaminate) is in runner:play-area and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 38,
+      "step": 98,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:ubax:40 (Ubax) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 42,
+      "step": 196,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:timely-public-release:39 (Timely Public Release) is in corp:set-aside, server:remote-3:root"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 50,
+      "step": 46,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_operation at corp.takeAction: Cannot spend [click] for Reuse."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 55,
+      "step": 50,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:muresh-bodysuit:23 (Muresh Bodysuit) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 63,
+      "step": 56,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_event at runner.takeAction: Play requires an installed seedy."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 66,
+      "step": 90,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:populist-rally:36 (Populist Rally) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 69,
+      "step": 162,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_operation at corp.takeAction: Cannot spend [click] for Reuse."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 70,
+      "step": 139,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:tri-maf-contact:42 (Tri-maf Contact) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 89,
+      "step": 164,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_operation at corp.takeAction: Play requires forfeiting an agenda."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 90,
+      "step": 131,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_event at runner.takeAction: Must trash an installed program — none available."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 91,
+      "step": 8,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:preemptive-action:28 (Preemptive Action) is in corp:play-area, removed-from-game"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 92,
+      "step": 108,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "runner:networking:15 (Networking) is in runner:grip, runner:play-area"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 93,
+      "step": 46,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:genotyping:14 (Genotyping) is in corp:play-area, removed-from-game"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 93,
+      "step": 26,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:always-have-a-backup-plan:2 (Always Have a Backup Plan) is in runner:play-area and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 93,
+      "step": 159,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_operation at corp.takeAction: Play requires forfeiting an agenda."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 94,
+      "step": 92,
+      "code": "POSITION_OUT_OF_RANGE",
+      "recorded": "2026-11-28",
+      "detail": "run position 0 is outside hq ice (0)"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 101,
+      "step": 59,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:all-nighter:0 (All-nighter) is in runner:installed and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 102,
+      "step": 33,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:sure-gamble:38 (Sure Gamble) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 106,
+      "step": 35,
+      "code": "RUNNER_CARD_REZZED",
+      "recorded": "2026-11-28",
+      "detail": "runner:mad-dash:23 (Mad Dash) is a Runner card marked rezzed"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 110,
+      "step": 23,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 111,
+      "step": 31,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:hedge-fund:17 (Hedge Fund) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 112,
+      "step": 65,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_event at runner.takeAction: Play requires a successful central run this turn."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 114,
+      "step": 113,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_operation at corp.takeAction: Cannot spend [click] for Reuse."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 115,
+      "step": 82,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:preemptive-action:19 (Preemptive Action) is in corp:play-area, removed-from-game"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 118,
+      "step": 26,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Apex: Invasive Predator cannot install non-virtual resources."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 119,
+      "step": 23,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_event at runner.takeAction: Must trash an installed connection resource — none available."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 120,
+      "step": 142,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "choose_option at runner.actionPaw: Hayley install — insufficient credits."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 121,
+      "step": 156,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:labyrinthine-servers:24 (Labyrinthine Servers) is in corp:archives, corp:set-aside"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 123,
+      "step": 153,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:flux-capacitor:15 (Flux Capacitor) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 125,
+      "step": 87,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_operation at corp.takeAction: Play requires forfeiting an agenda."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 127,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 131,
+      "step": 191,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:distract-the-masses:22 (Distract the Masses) is in corp:play-area, removed-from-game"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 136,
+      "step": 65,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:water-monopoly:44 (Water Monopoly) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 137,
+      "step": 138,
+      "code": "ENCOUNTER_ICE_MISMATCH",
+      "recorded": "2026-11-28",
+      "detail": "encountering corp:mind-game:18 but the ice at position null of remote-2 is none"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 139,
+      "step": 186,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "corp:api-s-keeper-isobel:2 (API-S Keeper Isobel) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 144,
+      "step": 66,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:tremolo:42 (Tremolo) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 149,
+      "step": 198,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-28",
+      "detail": "corp:preemptive-action:25 (Preemptive Action) is in corp:play-area, removed-from-game"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 157,
+      "step": 160,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_run at runner.takeAction: First run this turn requires 1 additional credits (Enhanced Login Protocol)."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 158,
+      "step": 122,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "play_event at runner.takeAction: Must trash an installed connection resource — none available."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 165,
+      "step": 96,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Apex: Invasive Predator cannot install non-virtual resources."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 168,
+      "step": 33,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-28",
+      "detail": "runner:stowaway:34 (Stowaway) is in runner:stack and in no zone list"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 173,
+      "step": 134,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Apex: Invasive Predator cannot install non-virtual resources."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 174,
+      "step": 22,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 175,
+      "step": 69,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at runner.actionPaw: That ability is only legal after a successful HQ run."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 182,
+      "step": 56,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 183,
+      "step": 31,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.approachPaw: Must trash an installed Corp card — none available."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 184,
+      "step": 135,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.initiatePaw: That ability is only legal after an operation resolves."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 188,
+      "step": 25,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "choose_option at runner.actionPaw: Hayley install — insufficient credits."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 189,
+      "step": 28,
+      "code": "REFUSED",
+      "recorded": "2026-11-28",
+      "detail": "use_paid_ability at run.passIcePaw: Must trash an installed Corp card — none available."
+    }
+  ]
+}

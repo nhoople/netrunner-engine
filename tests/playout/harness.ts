@@ -93,6 +93,98 @@ export function readSeeds(): SeedsFile {
   return JSON.parse(readFileSync(SEEDS_PATH, "utf8")) as SeedsFile;
 }
 
+/** Per-format CI seed counts. `npm run playouts` plays more. */
+const CI_SEEDS: Record<Format, number> = {
+  learn_to_play_starter: 4,
+  learn_to_play_expanded: 4,
+  startup: 4,
+  core: 2,
+  standard: 2,
+  eternal: 2,
+};
+
+/**
+ * The seeds CI plays for `format`: 1..`CI_SEEDS`, then every other seed
+ * `tests/fixtures/playout-seeds.json` records for it, in order.
+ */
+export function playoutSeedList(format: Format, seeds = readSeeds()): number[] {
+  const pinned = seeds.entries
+    .filter((e) => e.format === format)
+    .map((e) => e.deckSeed);
+  const list = [
+    ...new Set([
+      ...Array.from({ length: CI_SEEDS[format] }, (_, i) => i + 1),
+      ...pinned,
+    ]),
+  ];
+  return list.sort((a, b) => a - b);
+}
+
+// ---------------------------------------------------------------- weekly
+
+/**
+ * Failures the weekly 200-seed run (`npm run playouts:nightly`) already knows
+ * about, for seeds CI does not play. CI never reads this file; the CR audit
+ * owns these failures by area. `--write-weekly` rewrites it.
+ */
+export const WEEKLY_SEEDS_PATH = join(
+  ROOT,
+  "tests/fixtures/playout-seeds-weekly.json",
+);
+
+export function readWeeklySeeds(): SeedsFile {
+  return JSON.parse(readFileSync(WEEKLY_SEEDS_PATH, "utf8")) as SeedsFile;
+}
+
+/** The weekly run matches on format, seed and code: a step can move. */
+function weeklyKey(format: Format, seed: number, code: string): string {
+  return `${format}#${seed}#${code}`;
+}
+
+/**
+ * What the weekly run reports. `unlisted`: a (format, seed, code) that
+ * neither the CI fixture nor the weekly list holds. `gone`: a weekly entry
+ * whose seed this run played at full length without hitting its code, so it
+ * must leave the list (it only shrinks).
+ */
+export function weeklyCheck(
+  results: readonly PlayoutResult[],
+  ciEntries: readonly SeedEntry[],
+  weeklyEntries: readonly SeedEntry[],
+  steps: number,
+): { unlisted: string[]; gone: string[] } {
+  const known = new Set(
+    [...ciEntries, ...weeklyEntries].map((e) =>
+      weeklyKey(e.format, e.deckSeed, e.code),
+    ),
+  );
+  const found = new Set<string>();
+  const unlisted: string[] = [];
+  for (const r of results) {
+    for (const f of r.failures) {
+      const key = weeklyKey(r.format, r.seed, f.code);
+      if (found.has(key)) continue;
+      found.add(key);
+      if (!known.has(key))
+        unlisted.push(
+          `${r.format} seed ${r.seed}: ${failureKey(f)} ${f.detail}`,
+        );
+    }
+  }
+  const played = new Set(results.map((r) => `${r.format}#${r.seed}`));
+  const gone =
+    steps === PLAYOUT_STEPS
+      ? weeklyEntries
+          .filter(
+            (e) =>
+              played.has(`${e.format}#${e.deckSeed}`) &&
+              !found.has(weeklyKey(e.format, e.deckSeed, e.code)),
+          )
+          .map((e) => `${e.format} seed ${e.deckSeed}: ${e.code}`)
+      : [];
+  return { unlisted, gone };
+}
+
 /** Key a failure compares on. The detail is for people, not for matching. */
 export function failureKey(f: { code: string; step: number }): string {
   return `${f.code}@${f.step}`;

@@ -24,6 +24,7 @@ import {
   PLAYOUT_STEPS,
   compareWithSeeds,
   playout,
+  playoutSeedList,
   readSeeds,
   type Format,
 } from "./harness.js";
@@ -33,33 +34,6 @@ import {
   readGenerated,
   writePlayoutRecord,
 } from "../ability-fire/coverage.js";
-
-/** Per-format CI seed counts. `npm run playouts` plays more. */
-const CI_SEEDS: Record<Format, number> = {
-  learn_to_play_starter: 4,
-  learn_to_play_expanded: 4,
-  startup: 4,
-  core: 2,
-  standard: 2,
-  eternal: 2,
-};
-
-/**
- * The seeds CI plays for `format`: 1..`CI_SEEDS`, then every other seed
- * `tests/fixtures/playout-seeds.json` records for it, in order.
- */
-export function playoutSeedList(format: Format, seeds = readSeeds()): number[] {
-  const pinned = seeds.entries
-    .filter((e) => e.format === format)
-    .map((e) => e.deckSeed);
-  const list = [
-    ...new Set([
-      ...Array.from({ length: CI_SEEDS[format] }, (_, i) => i + 1),
-      ...pinned,
-    ]),
-  ];
-  return list.sort((a, b) => a - b);
-}
 
 export function describePlayouts(formats: readonly Format[]): void {
   beforeAll(() => {
