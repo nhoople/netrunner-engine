@@ -30,13 +30,16 @@ import { abilitiesSuppressed } from "../../src/state/continuous/abilities.js";
 
 import { drawCards } from "../../src/effects/searchAndDeck/draw.js";
 import type { GameState } from "../../src/state/types/game.js";
-import type { Server, ServerId } from "../../src/state/types/servers.js";
+import type { ServerId } from "../../src/state/types/servers.js";
 import type { Primitive } from "../../src/effects/ir/primitive.js";
 import { onRunnerEventPlayed } from "../../src/state/cardFlags/cardDeclarations.js";
 import { beginRunnerTurnFlags } from "../../src/state/turnAndActions/turn.js";
 import { RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE } from "../../src/state/setupAndEnd/additionalIdentities.js";
 import { autoWalk, enterStep } from "../../src/timing/machine.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";
+import type { ZoneId } from "../../src/state/types/shared.js";
+import { identityZone, installRoot } from "../rulings/rulings-helpers.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -49,7 +52,7 @@ function put(
   s: GameState,
   defId: string,
   id: string,
-  zone: string,
+  zone: ZoneId,
 ): GameState["cards"][string] {
   const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
@@ -150,7 +153,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     const estelle = put(s, "estelle-moon", "estelle-1", "server:remote-1:root");
     estelle.powerCounters = 3;
-    for (let i = 0; i < 4; i++) put(s, "hedge-fund", `hf-${i}`, "corp:rnd");
+    for (let i = 0; i < 4; i++) put(s, "hedge-fund", `hf-${i}`, "corp:rd");
     s.corp.deck = ["hf-0", "hf-1", "hf-2", "hf-3"];
     s.corp.hand = [];
     s.corp.credits = 5;
@@ -174,7 +177,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Lawyer Up: choosing 2 tags removes them and draws 3", () => {
     const s = createInitialState();
-    put(s, "lawyer-up", "lawyer-1", "runner:play");
+    put(s, "lawyer-up", "lawyer-1", "runner:play-area");
     for (let i = 0; i < 4; i++)
       put(s, "sure-gamble", `sg-${i}`, "runner:stack");
     s.runner.deck = ["sg-0", "sg-1", "sg-2", "sg-3"];
@@ -195,10 +198,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Special Report: shuffle 1 HQ card into R&D, then draw 1", () => {
     const s = createInitialState();
-    put(s, "special-report", "sr-1", "corp:play");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "hedge-fund", "hq-2", "corp:hand");
-    for (let i = 0; i < 3; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rnd");
+    put(s, "special-report", "sr-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "hedge-fund", "hq-2", "corp:hq");
+    for (let i = 0; i < 3; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
     s.corp.hand = ["hq-1", "hq-2"];
     s.corp.deck = ["rd-0", "rd-1", "rd-2"];
     runKind(s, "sr-1", "shuffle_any_hq_draw");
@@ -349,7 +352,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["estelle-1"],
-    } as Server;
+    };
     runKind(s, "he3-1", "helium3_place_up_to_2_power");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids).toContain("helium3-2:estelle-1");
@@ -396,7 +399,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Three Steps Ahead: pays 2 per successful run, including repeats on one server", () => {
     const s = createInitialState();
-    put(s, "three-steps-ahead", "tsa-1", "runner:play");
+    put(s, "three-steps-ahead", "tsa-1", "runner:play-area");
     s.turn.successfulRunCountThisTurn = 2;
     s.turn.successfulRunServersThisTurn = ["hq"]; // both runs were on HQ
     s.runner.credits = 3;
@@ -471,8 +474,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Neurospike: net damage equals agenda points scored this turn", () => {
     const s = createInitialState();
-    put(s, "neurospike", "ns-1", "runner:play");
-    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
+    put(s, "neurospike", "ns-1", "runner:play-area");
+    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:grip");
     s.runner.hand = ["sg-0", "sg-1", "sg-2", "sg-3"];
     s.turn.agendaPointsScoredThisTurn = 3;
     runKind(s, "ns-1", "net_damage_agenda_points_this_turn");
@@ -488,7 +491,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["rex-1"],
-    } as Server;
+    };
     s.corp.credits = 5;
     runKind(s, "rex-1", "rex_campaign_when_empty");
     const after = applyAction(s, { type: "choose_option", optionId: "gain-5" });
@@ -501,7 +504,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "hades-fragment", "hades-1", "corp:score");
     put(s, "hedge-fund", "arch-1", "corp:archives");
-    put(s, "hedge-fund", "rd-1", "corp:rnd");
+    put(s, "hedge-fund", "rd-1", "corp:rd");
     s.corp.discardPile = ["arch-1"];
     s.corp.deck = ["rd-1"];
     runKind(s, "hades-1", "may_add_archives_card_to_rd_bottom_only");
@@ -545,10 +548,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Corporate Shuffle: shuffles all of HQ into R&D and draws 5", () => {
     const s = createInitialState();
-    put(s, "corporate-shuffle", "cs-1", "corp:play");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "hedge-fund", "hq-2", "corp:hand");
-    for (let i = 0; i < 5; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rnd");
+    put(s, "corporate-shuffle", "cs-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "hedge-fund", "hq-2", "corp:hq");
+    for (let i = 0; i < 5; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
     s.corp.hand = ["hq-1", "hq-2"];
     s.corp.deck = ["rd-0", "rd-1", "rd-2", "rd-3", "rd-4"];
     runKind(s, "cs-1", "shuffle_corporate_hq_to_rd_draw", { draw: 5 });
@@ -558,9 +561,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Election Day: trashes all of HQ (minimum 1) and draws 5", () => {
     const s = createInitialState();
-    put(s, "election-day", "ed-1", "corp:play");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    for (let i = 0; i < 5; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rnd");
+    put(s, "election-day", "ed-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    for (let i = 0; i < 5; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
     s.corp.hand = ["hq-1"];
     s.corp.deck = ["rd-0", "rd-1", "rd-2", "rd-3", "rd-4"];
     runKind(s, "ed-1", "trash_hq_draw", { amount: 5 });
@@ -571,8 +574,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Shannon Claire: draws from the bottom of R&D", () => {
     const s = createInitialState();
     put(s, "shannon-claire", "sh-1", "server:remote-1:root");
-    put(s, "hedge-fund", "top-1", "corp:rnd");
-    put(s, "hedge-fund", "bottom-1", "corp:rnd");
+    put(s, "hedge-fund", "top-1", "corp:rd");
+    put(s, "hedge-fund", "bottom-1", "corp:rd");
     s.corp.deck = ["top-1", "bottom-1"];
     s.corp.hand = [];
     runKind(s, "sh-1", "draw_from_bottom_of_rd", { amount: 1 });
@@ -583,8 +586,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Shannon Claire: searches an agenda to the bottom of R&D", () => {
     const s = createInitialState();
     put(s, "shannon-claire", "sh-1", "server:remote-1:root");
-    put(s, "hostile-takeover", "ht-1", "corp:rnd");
-    put(s, "hedge-fund", "rd-1", "corp:rnd");
+    put(s, "hostile-takeover", "ht-1", "corp:rd");
+    put(s, "hedge-fund", "rd-1", "corp:rd");
     s.corp.deck = ["ht-1", "rd-1"];
     runKind(s, "sh-1", "search_rd_or_archives_agenda_to_bottom_rd");
     const after = applyAction(s, {
@@ -600,8 +603,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Sensie Actors Union: adds 1 HQ card to the bottom of R&D", () => {
     const s = createInitialState();
     put(s, "sensie-actors-union", "sensie-1", "server:remote-1:root");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "hedge-fund", "rd-1", "corp:rnd");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "hedge-fund", "rd-1", "corp:rd");
     s.corp.hand = ["hq-1"];
     s.corp.deck = ["rd-1"];
     runKind(s, "sensie-1", "sensie_add_one_hq_to_bottom_rd");
@@ -621,7 +624,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Eureka!: a revealed event is trashed, not installed", () => {
     const s = createInitialState();
-    put(s, "eureka", "eu-1", "runner:play");
+    put(s, "eureka", "eu-1", "runner:play-area");
     put(s, "sure-gamble", "top-1", "runner:stack");
     s.runner.deck = ["top-1"];
     runKind(s, "eu-1", "reveal_install_or_trash", { discount: 5 });
@@ -657,7 +660,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     silver.rezzed = true;
     s.servers["hq"].ice = ["ng-1"];
     s.servers["rd"].ice = ["nsilver-1"];
-    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
+    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `sg-${i}`, "runner:grip");
     s.runner.hand = ["sg-0", "sg-1", "sg-2"];
     runKind(s, "ng-1", "next_gold_net_damage");
     expect(s.runner.hand.length).toBe(1);
@@ -667,7 +670,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Enhanced Vision: reveals a random HQ card in the log", () => {
     const s = createInitialState();
     put(s, "enhanced-vision", "ev-1", "runner:installed");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     s.corp.hand = ["hq-1"];
     runKind(s, "ev-1", "reveal_random_hq_card");
     expect(s.log.some((l) => l.includes("Hedge Fund"))).toBe(true);
@@ -695,7 +698,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: ["iw-1"],
       root: [],
-    } as Server;
+    };
     runKind(s, "mj-1", "derez_remote_ice");
     const after = applyAction(s, {
       type: "choose_option",
@@ -739,7 +742,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Reshape: swaps 2 unrezzed pieces of ice", () => {
     const s = createInitialState();
-    put(s, "reshape", "resh-1", "corp:play");
+    put(s, "reshape", "resh-1", "corp:play-area");
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     put(s, "enigma", "en-1", "server:rd:ice");
     s.servers["hq"].ice = ["iw-1"];
@@ -794,7 +797,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "data-loop", "dl-1", "server:hq:ice");
     for (const id of ["g1", "g2", "g3"])
-      put(s, "sure-gamble", id, "runner:hand");
+      put(s, "sure-gamble", id, "runner:grip");
     put(s, "sure-gamble", "top-0", "runner:stack");
     s.runner.hand = ["g1", "g2", "g3"];
     s.runner.deck = ["top-0"];
@@ -812,12 +815,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("run-flag kinds set their remainder-of-run restrictions", () => {
     const s = createInitialState();
-    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
-    put(s, "armored-servers", "as-1", "corp:identity");
+    // A run approaching HQ, which has no ice yet (CR 6.9.4).
+    s.run = runState("hq", "movement");
+    put(s, "armored-servers", "as-1", "corp:score");
     runKind(s, "as-1", "armored_servers_activate_this_run");
     expect(s.run!.armoredServersTrashGripAdditionalCost).toBe(true);
 
-    put(s, "signal-jamming", "sj-1", "corp:play");
+    put(s, "signal-jamming", "sj-1", "corp:play-area");
     runKind(s, "sj-1", "forbid_installs_until_run_end");
     expect(s.run!.forbidInstallsUntilRunEnd).toBe(true);
 
@@ -825,11 +829,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "emp-1", "rez_emp_device_limit_ice_this_run");
     expect(s.run!.bfMaxIceRezThisRun).toBe(1);
 
-    put(s, "sync-bre", "sb-1", "corp:identity");
+    put(s, "sync-bre", "sb-1", "server:hq:ice");
     runKind(s, "sb-1", "breach_reduce_access_remainder_of_run", { amount: 1 });
     expect(s.run!.breachAccessReduction).toBe(1);
 
-    put(s, "labyrinthine-servers", "lab-1", "corp:identity");
+    put(s, "labyrinthine-servers", "lab-1", "corp:score");
     runKind(s, "lab-1", "prevent_labyrinthine_jack_out");
     expect(s.run!.cannotJackOut).toBe(true);
   });
@@ -850,7 +854,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Bloodletter: may trash the top 2 cards of the stack instead of a program", () => {
     const s = createInitialState();
-    put(s, "bloodletter", "bl-1", "corp:play");
+    put(s, "bloodletter", "bl-1", "corp:play-area");
     for (const id of ["t1", "t2", "t3"])
       put(s, "sure-gamble", id, "runner:stack");
     s.runner.deck = ["t1", "t2", "t3"];
@@ -914,9 +918,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Localized Product Line: takes all copies of a card from R&D to HQ", () => {
     const s = createInitialState();
-    put(s, "localized-product-line", "lpl-1", "corp:play");
-    put(s, "hedge-fund", "hf-1", "corp:rnd");
-    put(s, "hedge-fund", "hf-2", "corp:rnd");
+    put(s, "localized-product-line", "lpl-1", "corp:play-area");
+    put(s, "hedge-fund", "hf-1", "corp:rd");
+    put(s, "hedge-fund", "hf-2", "corp:rd");
     s.corp.deck = ["hf-1", "hf-2"];
     s.corp.hand = [];
     runKind(s, "lpl-1", "search_rd_copies_to_hq");
@@ -935,7 +939,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["ebc-1", "ad-1"],
-    } as Server;
+    };
     runKind(s, "ebc-1", "may_rez_card_with_discount", { discount: 1 });
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids.some((id) => id.includes("ad-1"))).toBe(true);
@@ -944,8 +948,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Woman in the Red Dress: reveals the top card of R&D and the Corp may draw it", () => {
     const s = createInitialState();
     put(s, "woman-in-the-red-dress", "wrd-1", "runner:installed");
-    put(s, "hedge-fund", "top-1", "corp:rnd");
-    put(s, "hedge-fund", "bottom-1", "corp:rnd");
+    put(s, "hedge-fund", "top-1", "corp:rd");
+    put(s, "hedge-fund", "bottom-1", "corp:rd");
     s.corp.deck = ["top-1", "bottom-1"]; // index 0 is the top (commitDraw shifts)
     s.corp.hand = [];
     runKind(s, "wrd-1", "reveal_top_rd_corp_may_draw");
@@ -1010,7 +1014,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["rg-2"],
-    } as Server;
+    };
     s.corp.scoreArea = ["rg-1"];
     runKind(s, "rg-1", "score_another_installed_copy_of_self");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
@@ -1034,7 +1038,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("deck orientation: Accelerated Diagnostics looks at the top 3 of R&D", () => {
     let s = createInitialState();
-    put(s, "accelerated-diagnostics", "ad-1", "corp:play");
+    put(s, "accelerated-diagnostics", "ad-1", "corp:play-area");
     put(s, "hedge-fund", "top-op", "corp:rd");
     put(s, "ice-wall", "top-2", "corp:rd");
     put(s, "ice-wall", "top-3", "corp:rd");
@@ -1064,10 +1068,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("deck orientation: Keyhole trashes 1 of the top 3 of R&D, then shuffles", () => {
     const s = createInitialState();
     put(s, "keyhole", "kh-1", "runner:installed");
-    put(s, "hostile-takeover", "top-1", "corp:rnd");
-    put(s, "hedge-fund", "top-2", "corp:rnd");
-    put(s, "ice-wall", "top-3", "corp:rnd");
-    put(s, "hedge-fund", "bottom-1", "corp:rnd");
+    put(s, "hostile-takeover", "top-1", "corp:rd");
+    put(s, "hedge-fund", "top-2", "corp:rd");
+    put(s, "ice-wall", "top-3", "corp:rd");
+    put(s, "hedge-fund", "bottom-1", "corp:rd");
     s.corp.deck = ["top-1", "top-2", "top-3", "bottom-1"];
     runKind(s, "kh-1", "breach_instead_keyhole");
     // Any of the 3 looked cards may be trashed, not only a program.
@@ -1086,7 +1090,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("deck orientation: Inject trashes the top 4 of the stack, gaining per program", () => {
     const s = createInitialState();
-    put(s, "inject", "inj-1", "runner:play");
+    put(s, "inject", "inj-1", "runner:play-area");
     put(s, "corroder", "top-prog", "runner:stack");
     put(s, "sure-gamble", "top-2", "runner:stack");
     put(s, "sure-gamble", "top-3", "runner:stack");
@@ -1104,9 +1108,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("deck orientation: Power Shutdown trashes from the top of R&D", () => {
     const s = createInitialState();
-    put(s, "power-shutdown", "ps-1", "corp:play");
-    put(s, "hedge-fund", "top-1", "corp:rnd");
-    put(s, "hedge-fund", "bottom-1", "corp:rnd");
+    put(s, "power-shutdown", "ps-1", "corp:play-area");
+    put(s, "hedge-fund", "top-1", "corp:rd");
+    put(s, "hedge-fund", "bottom-1", "corp:rd");
     s.corp.deck = ["top-1", "bottom-1"];
     runKind(s, "ps-1", "trash_rd", { amount: 1 });
     expect(s.corp.discardPile).toContain("top-1");
@@ -1116,8 +1120,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("deck orientation: Equivocation reveals the top card of R&D", () => {
     const s = createInitialState();
     put(s, "equivocation", "eq-1", "runner:installed");
-    put(s, "hedge-fund", "top-1", "corp:rnd");
-    put(s, "ice-wall", "bottom-1", "corp:rnd");
+    put(s, "hedge-fund", "top-1", "corp:rd");
+    put(s, "ice-wall", "bottom-1", "corp:rd");
     s.corp.deck = ["top-1", "bottom-1"];
     runKind(s, "eq-1", "may_reveal_force_draw");
     // The Runner decides before seeing the card (CR 1.21.3).
@@ -1148,7 +1152,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("deck orientation: Oracle May draws a matching top card and gains 2", () => {
     const s = createInitialState();
-    put(s, "oracle-may", "om-1", "runner:identity");
+    put(s, "oracle-may", "om-1", "runner:installed");
     put(s, "corroder", "top-1", "runner:stack");
     put(s, "sure-gamble", "second-1", "runner:stack");
     s.runner.deck = ["top-1", "second-1"];
@@ -1188,7 +1192,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("The All-Seeing I: removing bad publicity is offered instead of trashing resources", () => {
     const s = createInitialState();
-    put(s, "the-all-seeing-i", "asi-1", "corp:play");
+    put(s, "the-all-seeing-i", "asi-1", "corp:play-area");
     s.corp.badPublicity = 1;
     runKind(s, "asi-1", "trash_all_resources_unless_remove_bad_publicity");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
@@ -1198,7 +1202,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Windfall: trashes the top card after shuffling and gains its install cost", () => {
     const s = createInitialState();
-    put(s, "windfall", "wf-1", "runner:play");
+    put(s, "windfall", "wf-1", "runner:play-area");
     put(s, "corroder", "only-1", "runner:stack");
     s.runner.deck = ["only-1"];
     s.runner.credits = 5;
@@ -1230,7 +1234,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Nasir Meidan: loses all credits in the pool", () => {
     const s = createInitialState();
-    put(s, "nasir-meidan-cyber-explorer", "nasir-1", "runner:identity");
+    put(s, "nasir-meidan-cyber-explorer", "nasir-1", identityZone(s, "runner"));
     s.runner.credits = 9;
     runKind(s, "nasir-1", "lose_nasir_all_credits");
     expect(s.runner.credits).toBe(0);
@@ -1239,9 +1243,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Vanadis Armory: trashes top cards of R&D equal to damage suffered this turn", () => {
     const s = createInitialState();
     put(s, "salvaged-vanadis-armory", "va-1", "runner:installed");
-    put(s, "hedge-fund", "top-1", "corp:rnd");
-    put(s, "hedge-fund", "top-2", "corp:rnd");
-    put(s, "hedge-fund", "third-1", "corp:rnd");
+    put(s, "hedge-fund", "top-1", "corp:rd");
+    put(s, "hedge-fund", "top-2", "corp:rd");
+    put(s, "hedge-fund", "third-1", "corp:rd");
     s.corp.deck = ["top-1", "top-2", "third-1"];
     s.turn.damageSufferedThisTurn = 2;
     runKind(s, "va-1", "trash_top_rd_equal_damage_suffered_this_turn");
@@ -1254,8 +1258,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Waiver: trashes grip cards with cost at most the trace excess", () => {
     const s = createInitialState();
     put(s, "waiver", "wv-1", "server:hq:ice");
-    put(s, "corroder", "cheap-1", "runner:hand"); // install cost 2
-    put(s, "blackat", "pricey-1", "runner:hand"); // install cost 4+
+    put(s, "corroder", "cheap-1", "runner:grip"); // install cost 2
+    put(s, "blackat", "pricey-1", "runner:grip"); // install cost 4+
     s.runner.hand = ["cheap-1", "pricey-1"];
     s.turn.lastTraceExcess = 3;
     runKind(s, "wv-1", "reveal_grip_trash_cost_lte_excess");
@@ -1279,7 +1283,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "whampoa-reclamation", "wr-1", "server:remote-1:root");
     put(s, "hedge-fund", "arch-1", "corp:archives");
-    put(s, "hedge-fund", "rd-1", "corp:rnd");
+    put(s, "hedge-fund", "rd-1", "corp:rd");
     s.corp.discardPile = ["arch-1"];
     s.corp.deck = ["rd-1"];
     runKind(s, "wr-1", "trash_whampoa_hq_archives_to_rd_bottom");
@@ -1337,8 +1341,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Hemorrhage: the Corp chooses which HQ card to trash", () => {
     const s = createInitialState();
     put(s, "hemorrhage", "hem-1", "runner:installed");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "ice-wall", "hq-2", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "ice-wall", "hq-2", "corp:hq");
     s.corp.hand = ["hq-1", "hq-2"];
     runKind(s, "hem-1", "corp_trash_from_hq");
     const after = applyAction(s, {
@@ -1371,7 +1375,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Reclamation Order: adds only copies of the named card to HQ", () => {
     const s = createInitialState();
-    put(s, "reclamation-order", "ro-1", "corp:play");
+    put(s, "reclamation-order", "ro-1", "corp:play-area");
     put(s, "hedge-fund", "arch-1", "corp:archives");
     put(s, "hedge-fund", "arch-2", "corp:archives");
     put(s, "ice-wall", "arch-3", "corp:archives");
@@ -1452,10 +1456,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Caprice Nisei: differing secret spends end the run; matching spends do not", () => {
     const s = createInitialState();
     put(s, "caprice-nisei", "cap-1", "server:remote-1:root");
-    s.run = {
-      attackedServerId: "remote-1",
-      position: null,
-    } as GameState["run"];
+    s.run = runState("remote-1", "movement");
     s.runner.credits = 5;
     s.corp.credits = 5;
     runKind(s, "cap-1", "spend_caprice_nisei_secret");
@@ -1470,10 +1471,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
     const s2 = createInitialState();
     put(s2, "caprice-nisei", "cap-1", "server:remote-1:root");
-    s2.run = {
-      attackedServerId: "remote-1",
-      position: null,
-    } as GameState["run"];
+    s2.run = runState("remote-1", "movement");
     s2.runner.credits = 5;
     s2.corp.credits = 5;
     runKind(s2, "cap-1", "spend_caprice_nisei_secret");
@@ -1486,7 +1484,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Push Your Luck: wrong even/odd guess pays twice the secret spend; Corp spends nothing", () => {
     const s = createInitialState();
-    put(s, "push-your-luck", "pyl-1", "runner:play");
+    put(s, "push-your-luck", "pyl-1", "runner:play-area");
     s.runner.credits = 6;
     s.corp.credits = 5;
     runKind(s, "pyl-1", "spend_push_your_luck_secret_guess");
@@ -1500,7 +1498,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Rigged Results: Corp guesses the amount without spending; a wrong guess offers a run", () => {
     const s = createInitialState();
-    put(s, "rigged-results", "rr-1", "runner:play");
+    put(s, "rigged-results", "rr-1", "runner:play-area");
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.servers["hq"].ice = ["iw-1"];
     s.runner.credits = 5;
@@ -1542,7 +1540,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "clone-chip", "hw-1", "runner:installed");
     put(s, "street-peddler", "res-1", "runner:installed");
     put(s, "ghost-runner", "virt-1", "runner:installed");
-    put(s, "sure-gamble", "grip-1", "runner:hand");
+    put(s, "sure-gamble", "grip-1", "runner:grip");
     s.runner.installed = ["hw-1", "res-1", "virt-1"];
     s.runner.hand = ["grip-1"];
     s.runner.credits = 7;
@@ -1578,7 +1576,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("O2 Shortage: if the Runner declines to trash a grip card, the Corp gains 2 clicks", () => {
     const s = createInitialState();
-    put(s, "o2-shortage", "o2-1", "corp:play");
+    put(s, "o2-shortage", "o2-1", "corp:play-area");
     s.corp.clicks = 3;
     runKind(
       s,
@@ -1605,7 +1603,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Standoff: if the Runner declines to trash, the Corp draws 1 and gains 5", () => {
     const s = createInitialState();
     put(s, "standoff", "so-1", "corp:score");
-    put(s, "hedge-fund", "rd-1", "corp:rnd");
+    put(s, "hedge-fund", "rd-1", "corp:rd");
     s.corp.deck = ["rd-1"];
     s.corp.hand = [];
     s.corp.credits = 3;
@@ -1649,8 +1647,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Snoop: reveals the grip and trashes 1 of those cards", () => {
     const s = createInitialState();
     put(s, "snoop", "snoop-1", "server:hq:ice");
-    put(s, "corroder", "g1", "runner:hand");
-    put(s, "sure-gamble", "g2", "runner:hand");
+    put(s, "corroder", "g1", "runner:grip");
+    put(s, "sure-gamble", "g2", "runner:grip");
     s.runner.hand = ["g1", "g2"];
     runKind(s, "snoop-1", "reveal_grip_may_trash_one");
     const opt = s.pendingChoice?.options[0];
@@ -1760,7 +1758,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Snatch and Grab: successful trace trashes a connection unless the Runner takes a tag", () => {
     const s = createInitialState();
-    put(s, "snatch-and-grab", "snatch-1", "corp:play");
+    put(s, "snatch-and-grab", "snatch-1", "corp:play-area");
     put(s, "john-masanori", "conn-1", "runner:installed");
     s.runner.installed = ["conn-1"];
     s.runner.link = 0;
@@ -1778,7 +1776,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.runner.discardPile).toContain("conn-1");
 
     const s2 = createInitialState();
-    put(s2, "snatch-and-grab", "snatch-1", "corp:play");
+    put(s2, "snatch-and-grab", "snatch-1", "corp:play-area");
     put(s2, "john-masanori", "conn-1", "runner:installed");
     s2.runner.installed = ["conn-1"];
     s2.runner.link = 0;
@@ -1799,7 +1797,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Threat Level Alpha: gives tags equal to the Runner's tags, minimum 1", () => {
     const s = createInitialState();
-    put(s, "threat-level-alpha", "tla-1", "corp:play");
+    put(s, "threat-level-alpha", "tla-1", "corp:play-area");
     s.runner.tags = 0;
     runKind(s, "tla-1", "give_tags_equal_to_runner_tags_min_1");
     expect(s.runner.tags).toBe(1);
@@ -1818,7 +1816,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Best Defense: trashes an installed card with install cost at most the Runner's tags", () => {
     const s = createInitialState();
-    put(s, "best-defense", "bd-1", "corp:play");
+    put(s, "best-defense", "bd-1", "corp:play-area");
     put(s, "corroder", "cheap-1", "runner:installed");
     put(s, "paperclip", "pricey-1", "runner:installed");
     s.runner.installed = ["cheap-1", "pricey-1"];
@@ -1830,7 +1828,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Financial Collapse: the Runner loses 2 per installed resource or trashes one to prevent", () => {
     const s = createInitialState();
-    put(s, "financial-collapse", "fc-1", "corp:play");
+    put(s, "financial-collapse", "fc-1", "corp:play-area");
     put(s, "street-peddler", "res-1", "runner:installed");
     put(s, "daily-casts", "res-2", "runner:installed");
     s.runner.installed = ["res-1", "res-2"];
@@ -1843,7 +1841,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Kuwinda K4H1U3: a failed trace adds a power counter", () => {
     const s = createInitialState();
-    const src = put(s, "kuwinda-k4h1u3", "kuw-1", "corp:installed");
+    const src = installRoot(s, "kuwinda-k4h1u3", "kuw-1", false);
     src.powerCounters = 2;
     s.runner.link = 99;
     runKind(s, "kuw-1", "trace_kuwinda");
@@ -1857,7 +1855,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Deuces Wild: resolves two different modes in the chosen order", () => {
     const s = createInitialState();
-    put(s, "deuces-wild", "dw-1", "runner:play");
+    put(s, "deuces-wild", "dw-1", "runner:play-area");
     s.runner.credits = 2;
     s.runner.tags = 1;
     runKind(s, "dw-1", "resolve_two");
@@ -1915,7 +1913,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Tenma Line: swapping two installed ice exchanges their servers", () => {
     const s = createInitialState();
-    put(s, "tenma-line", "tenma-1", "corp:installed");
+    installRoot(s, "tenma-line", "tenma-1", false);
     put(s, "ice-wall", "iw-hq", "server:hq:ice");
     put(s, "ice-wall", "iw-rd", "server:rd:ice");
     s.servers["hq"].ice = ["iw-hq"];
@@ -1937,7 +1935,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Constellation Protocol: moves 1 advancement counter between ice", () => {
     const s = createInitialState();
-    put(s, "constellation-protocol", "con-1", "corp:installed");
+    installRoot(s, "constellation-protocol", "con-1", false);
     const a = put(s, "ice-wall", "iw-a", "server:hq:ice");
     const b = put(s, "fire-wall", "iw-b", "server:rd:ice");
     a.advancementCounters = 2;
@@ -1956,10 +1954,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Ark Lockdown: naming a card removes all heap copies of it from the game", () => {
     const s = createInitialState();
-    put(s, "ark-lockdown", "ark-1", "corp:play");
-    put(s, "sure-gamble", "h1", "runner:discard");
-    put(s, "sure-gamble", "h2", "runner:discard");
-    put(s, "corroder", "h3", "runner:discard");
+    put(s, "ark-lockdown", "ark-1", "corp:play-area");
+    put(s, "sure-gamble", "h1", "runner:heap");
+    put(s, "sure-gamble", "h2", "runner:heap");
+    put(s, "corroder", "h3", "runner:heap");
     s.runner.discardPile = ["h1", "h2", "h3"];
     runKind(s, "ark-1", "name_and_rfg_heap_copies");
     const opt = s.pendingChoice?.options.find((o) => o.id.startsWith("ark:"));
@@ -2050,15 +2048,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Product Recall: trashing a rezzed asset gains its printed trash cost", () => {
     const s = createInitialState();
-    put(s, "product-recall", "pr-1", "corp:play");
-    const asset = put(s, "adonis-campaign", "asset-1", "remote:1:root");
+    put(s, "product-recall", "pr-1", "corp:play-area");
+    const asset = put(s, "adonis-campaign", "asset-1", "server:remote-1:root");
     asset.rezzed = true;
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["asset-1"],
-    } as Server;
+    };
     s.corp.credits = 3;
     runKind(s, "pr-1", "trash_rezzed_gain_trash_cost");
     expect(s.corp.discardPile).toContain("asset-1");
@@ -2067,9 +2065,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Disposable HQ: adds all of HQ to the bottom of R&D", () => {
     const s = createInitialState();
-    put(s, "disposable-hq", "dhq-1", "corp:play");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "hedge-fund", "hq-2", "corp:hand");
+    put(s, "disposable-hq", "dhq-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "hedge-fund", "hq-2", "corp:hq");
     put(s, "ice-wall", "rd-1", "corp:rd");
     s.corp.hand = ["hq-1", "hq-2"];
     s.corp.deck = ["rd-1"];
@@ -2084,7 +2082,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Bloo Moose: removing a heap card from the game gains 2 credits", () => {
     const s = createInitialState();
     put(s, "bloo-moose", "bloo-1", "runner:installed");
-    put(s, "sure-gamble", "heap-1", "runner:discard");
+    put(s, "sure-gamble", "heap-1", "runner:heap");
     s.runner.discardPile = ["heap-1"];
     s.runner.credits = 3;
     runKind(s, "bloo-1", "rfg_heap_gain_credits");
@@ -2099,7 +2097,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Game Day: draws until the grip equals max hand size", () => {
     const s = createInitialState();
-    put(s, "game-day", "gd-1", "runner:play");
+    put(s, "game-day", "gd-1", "runner:play-area");
     for (let i = 0; i < 5; i++)
       put(s, "sure-gamble", `stk-${i}`, "runner:stack");
     s.runner.deck = ["stk-0", "stk-1", "stk-2", "stk-3", "stk-4"];
@@ -2112,7 +2110,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Blockade Runner: shuffles 1 grip card into the stack", () => {
     const s = createInitialState();
     put(s, "blockade-runner", "br-1", "runner:installed");
-    put(s, "sure-gamble", "grip-1", "runner:hand");
+    put(s, "sure-gamble", "grip-1", "runner:grip");
     s.runner.hand = ["grip-1"];
     s.runner.deck = [];
     runKind(s, "br-1", "shuffle_one_grip_into_stack");
@@ -2122,14 +2120,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Restoring Face: trashes a sysop and removes 1 bad publicity", () => {
     const s = createInitialState();
-    put(s, "restoring-face", "rf-1", "corp:play");
-    put(s, "akitaro-watanabe", "sysop-1", "remote:1:root");
+    put(s, "restoring-face", "rf-1", "corp:play-area");
+    put(s, "akitaro-watanabe", "sysop-1", "server:remote-1:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["sysop-1"],
-    } as Server;
+    };
     s.corp.badPublicity = 2;
     runKind(s, "rf-1", "trash_exec_sysop_clone_remove_bp");
     expect(s.corp.discardPile).toContain("sysop-1");
@@ -2141,8 +2139,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Hasty Relocation: moves up to 3 HQ cards to the top of R&D", () => {
     const s = createInitialState();
-    put(s, "hasty-relocation", "hr-1", "corp:play");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "hasty-relocation", "hr-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     put(s, "ice-wall", "rd-1", "corp:rd");
     s.corp.hand = ["hq-1"];
     s.corp.deck = ["rd-1"];
@@ -2154,7 +2152,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Shattered Remains: paying 1 on access trashes 1 hardware per advancement counter", () => {
     const s = createInitialState();
-    const src = put(s, "shattered-remains", "sr-1", "remote:1:root");
+    const src = put(s, "shattered-remains", "sr-1", "server:remote-1:root");
     src.advancementCounters = 2;
     put(s, "clone-chip", "hw-1", "runner:installed");
     put(s, "clone-chip", "hw-2", "runner:installed");
@@ -2182,28 +2180,24 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Mad Dash: stealing an agenda scores an extra point; otherwise take 1 meat damage", () => {
     const s = createInitialState();
-    put(s, "mad-dash", "md-1", "runner:play");
-    s.run = {
-      position: null,
-      attackedServerId: "hq",
+    put(s, "mad-dash", "md-1", "runner:play-area");
+    s.run = runState("hq", "ends", {
       agendasStolenThisRun: 1,
       accessCandidates: [],
-    } as GameState["run"];
+    });
     runKind(s, "md-1", "mad_dash_on_run_end");
     // Mad Dash itself enters the Runner's score area as a 1-point agenda.
     expect(s.runner.scoreArea).toContain("md-1");
     expect(s.cards["md-1"]?.agendaPoints).toBe(1);
 
     const s2 = createInitialState();
-    put(s2, "mad-dash", "md-1", "runner:play");
-    put(s2, "sure-gamble", "grip-1", "runner:hand");
+    put(s2, "mad-dash", "md-1", "runner:play-area");
+    put(s2, "sure-gamble", "grip-1", "runner:grip");
     s2.runner.hand = ["grip-1"];
-    s2.run = {
-      position: null,
-      attackedServerId: "hq",
+    s2.run = runState("hq", "ends", {
       agendasStolenThisRun: 0,
       accessCandidates: [],
-    } as GameState["run"];
+    });
     runKind(s2, "md-1", "mad_dash_on_run_end");
     expect(s2.runner.hand).toEqual([]); // meat damage trashes the grip card
   });
@@ -2212,7 +2206,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "capstone", "cap-1", "runner:installed");
     put(s, "corroder", "inst-1", "runner:installed");
-    put(s, "corroder", "grip-1", "runner:hand");
+    put(s, "corroder", "grip-1", "runner:grip");
     put(s, "sure-gamble", "stk-1", "runner:stack");
     s.runner.installed = ["cap-1", "inst-1"];
     s.runner.hand = ["grip-1"];
@@ -2229,7 +2223,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Media Blitz: the Corp chooses a Runner-scored agenda to copy", () => {
     const s = createInitialState();
-    put(s, "media-blitz", "mb-1", "corp:play");
+    put(s, "media-blitz", "mb-1", "corp:play-area");
     put(s, "project-beale", "scored-1", "runner:score");
     s.runner.scoreArea = ["scored-1"];
     runKind(s, "mb-1", "gain_text_of_runner_scored_agenda");
@@ -2239,7 +2233,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Executive Search Firm: finds a card with any listed subtype in R&D", () => {
     const s = createInitialState();
-    put(s, "executive-search-firm", "esf-1", "corp:installed");
+    installRoot(s, "executive-search-firm", "esf-1", false);
     put(s, "hedge-fund", "match-1", "corp:rd");
     put(s, "ice-wall", "other-1", "corp:rd");
     s.corp.deck = ["match-1", "other-1"];
@@ -2253,7 +2247,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     const src = put(s, "chatterjee-university", "chat-1", "runner:installed");
     src.powerCounters = 2;
-    put(s, "corroder", "prog-1", "runner:hand");
+    put(s, "corroder", "prog-1", "runner:grip");
     s.runner.hand = ["prog-1"];
     s.runner.installed = ["chat-1"];
     runKind(s, "chat-1", "install_chatterjee_program_discount");
@@ -2267,7 +2261,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("The Future Is Now: searches R&D for any card and adds it to HQ", () => {
     const s = createInitialState();
-    put(s, "the-future-is-now", "fin-1", "corp:play");
+    put(s, "the-future-is-now", "fin-1", "corp:play-area");
     put(s, "hedge-fund", "rd-1", "corp:rd");
     put(s, "ice-wall", "rd-2", "corp:rd");
     s.corp.deck = ["rd-1", "rd-2"];
@@ -2283,7 +2277,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Consulting Visit: finds an operation in R&D", () => {
     const s = createInitialState();
-    put(s, "consulting-visit", "cv-1", "corp:play");
+    put(s, "consulting-visit", "cv-1", "corp:play-area");
     put(s, "hedge-fund", "op-1", "corp:rd");
     put(s, "ice-wall", "rd-2", "corp:rd");
     s.corp.deck = ["op-1", "rd-2"];
@@ -2296,8 +2290,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Casting Call: installs an agenda from HQ faceup", () => {
     const s = createInitialState();
-    put(s, "casting-call", "cc-1", "corp:play");
-    put(s, "project-beale", "ag-1", "corp:hand");
+    put(s, "casting-call", "cc-1", "corp:play-area");
+    put(s, "project-beale", "ag-1", "corp:hq");
     s.corp.hand = ["ag-1"];
     runKind(s, "cc-1", "install_agenda_faceup");
     const after = applyAction(s, {
@@ -2312,7 +2306,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Apex: installs a grip card facedown", () => {
     const s = createInitialState();
     put(s, "apex-invasive-predator", "apex-1", "runner:installed");
-    put(s, "corroder", "g1", "runner:hand");
+    put(s, "corroder", "g1", "runner:grip");
     s.runner.hand = ["g1"];
     runKind(s, "apex-1", "install_from_grip_facedown");
     const after = applyAction(s, {
@@ -2326,7 +2320,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Hunting Grounds: installs the top 3 cards of the stack facedown", () => {
     const s = createInitialState();
-    put(s, "hunting-grounds", "hg-1", "runner:play");
+    put(s, "hunting-grounds", "hg-1", "runner:play-area");
     for (let i = 0; i < 4; i++)
       put(s, "sure-gamble", `stk-${i}`, "runner:stack");
     s.runner.deck = ["stk-0", "stk-1", "stk-2", "stk-3"];
@@ -2350,8 +2344,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Mushin No Shin: installs an asset/agenda/upgrade from HQ and advances it 3 times", () => {
     const s = createInitialState();
-    put(s, "mushin-no-shin", "mu-1", "corp:play");
-    put(s, "melange-mining-corp", "as-1", "corp:hand");
+    put(s, "mushin-no-shin", "mu-1", "corp:play-area");
+    put(s, "melange-mining-corp", "as-1", "corp:hq");
     s.corp.hand = ["as-1"];
     s.corp.credits = 5;
     runKind(s, "mu-1", "install_mushin_from_hq_root");
@@ -2389,9 +2383,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Reclaim: installs a program, hardware, or virtual resource from the heap", () => {
     const s = createInitialState();
-    put(s, "reclaim", "rec-1", "runner:play");
-    put(s, "corroder", "heap-1", "runner:discard");
-    put(s, "street-peddler", "heap-2", "runner:discard");
+    put(s, "reclaim", "rec-1", "runner:play-area");
+    put(s, "corroder", "heap-1", "runner:heap");
+    put(s, "street-peddler", "heap-2", "runner:heap");
     s.runner.discardPile = ["heap-1", "heap-2"];
     s.runner.credits = 5;
     runKind(s, "rec-1", "install_reclaim_from_heap");
@@ -2404,7 +2398,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     const src = put(s, "davinci", "dav-1", "runner:installed");
     src.powerCounters = 2;
-    put(s, "corroder", "g1", "runner:hand");
+    put(s, "corroder", "g1", "runner:grip");
     s.runner.hand = ["g1"];
     s.runner.credits = 0;
     runKind(s, "dav-1", "install_from_grip_ignore_cost");
@@ -2421,9 +2415,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Career Fair: the Runner chooses which grip resource to install at 3 less", () => {
     const s = createInitialState();
-    put(s, "career-fair", "cf-1", "runner:play");
-    put(s, "daily-casts", "res-1", "runner:hand");
-    put(s, "street-peddler", "res-2", "runner:hand");
+    put(s, "career-fair", "cf-1", "runner:play-area");
+    put(s, "daily-casts", "res-1", "runner:grip");
+    put(s, "street-peddler", "res-2", "runner:grip");
     s.runner.hand = ["res-1", "res-2"];
     s.runner.credits = 3;
     runKind(s, "cf-1", "install_resource_discount", { discount: 3 });
@@ -2442,11 +2436,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("The Foundry: after rezzing the first ice of the turn, finds another copy", () => {
     const s = createInitialState();
-    put(s, "the-foundry-refining-the-process", "tf-1", "corp:score");
+    put(s, "the-foundry-refining-the-process", "tf-1", identityZone(s, "corp"));
+    s.corp.identityId = "tf-1";
     put(s, "ice-wall", "rd-1", "corp:rd");
     s.corp.deck = ["rd-1"];
     s.turn.iceRezzedThisTurn = 1;
-    s.cards["tf-1"]!.zone = "corp:identity";
     runKind(s, "tf-1", "search_foundry_copy_to_hq");
     // Only copy in R&D is Ice Wall; the identity itself is not ice, so
     // the search may legitimately find nothing — assert it does not crash
@@ -2456,7 +2450,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Cyber Threat: any server may be chosen; if the Corp declines to rez, the Runner runs it with rezzes forbidden", () => {
     const s = createInitialState();
-    put(s, "cyber-threat", "ct-1", "runner:play");
+    put(s, "cyber-threat", "ct-1", "runner:play-area");
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.servers["hq"].ice = ["iw-1"];
     s.corp.credits = 5;
@@ -2479,7 +2473,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Cyber Threat: rezzing for the Threat costs the printed rez cost", () => {
     const s = createInitialState();
-    put(s, "cyber-threat", "ct-1", "runner:play");
+    put(s, "cyber-threat", "ct-1", "runner:play-area");
     put(s, "ice-wall", "iw-1", "server:rd:ice");
     s.servers["rd"].ice = ["iw-1"];
     s.corp.credits = 5;
@@ -2506,7 +2500,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Counter Surveillance: choosing a server starts a run there", () => {
     const s = createInitialState();
-    put(s, "counter-surveillance", "cs-1", "runner:play");
+    put(s, "counter-surveillance", "cs-1", "runner:play-area");
     s.runner.tags = 2;
     runKind(s, "cs-1", "counter_surveillance_run");
     const after = applyAction(s, { type: "choose_option", optionId: "run:rd" });
@@ -2517,7 +2511,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Severnius Stim Implant: trashing 2+ grip cards offers the card picks", () => {
     const s = createInitialState();
     put(s, "severnius-stim-implant", "sev-1", "runner:installed");
-    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `g${i}`, "runner:hand");
+    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `g${i}`, "runner:grip");
     s.runner.hand = ["g0", "g1", "g2"];
     runKind(s, "sev-1", "trash_severnius_grip_run_hq_or_rd");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
@@ -2548,7 +2542,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Code Siphon: instead of breaching R&D, search the stack for a program", () => {
     const s = createInitialState();
-    put(s, "code-siphon", "cs-1", "runner:play");
+    put(s, "code-siphon", "cs-1", "runner:play-area");
     put(s, "corroder", "stk-1", "runner:stack");
     s.runner.deck = ["stk-1"];
     s.run = { attackedServerId: "rd", position: null } as GameState["run"];
@@ -2563,7 +2557,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Wanton Destruction: offers to spend clicks so the Corp trashes from HQ", () => {
     const s = createInitialState();
-    put(s, "wanton-destruction", "wd-1", "runner:play");
+    put(s, "wanton-destruction", "wd-1", "runner:play-area");
     s.runner.clicks = 2;
     s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "wd-1", "breach_instead_wanton_destruction");
@@ -2576,12 +2570,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Record Reconstructor: the Runner may put a faceup Archives card on top of R&D instead of breaching", () => {
     const s = createInitialState();
     put(s, "record-reconstructor", "rr-1", "runner:installed");
-    put(s, "hedge-fund", "arch-1", "corp:discard").faceup = true;
+    put(s, "hedge-fund", "arch-1", "corp:archives").faceup = true;
     s.corp.discardPile = ["arch-1"];
-    s.run = {
-      attackedServerId: "archives",
-      position: null,
-    } as GameState["run"];
+    s.run = runState("archives", "success", { successful: true });
     runKind(s, "rr-1", "breach_instead_record_reconstructor_archives");
     expect(s.pendingChoice?.chooser).toBe("runner");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
@@ -2610,15 +2601,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Jak Sinclair: the next run cannot use programs", () => {
     const s = createInitialState();
-    put(s, "jak-sinclair", "jak-1", "runner:score");
-    s.cards["jak-1"]!.zone = "runner:identity";
+    put(s, "jak-sinclair", "jak-1", "runner:installed");
     runKind(s, "jak-1", "jak_sinclair_run_without_programs");
     expect(s.turn.dadCannotUseProgramsThisRun).toBe(true);
   });
 
   it("Social Engineering: marks an unrezzed piece of ice", () => {
     const s = createInitialState();
-    put(s, "social-engineering", "se-1", "runner:play");
+    put(s, "social-engineering", "se-1", "runner:play-area");
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.servers["hq"].ice = ["iw-1"];
     runKind(s, "se-1", "social_engineering");
@@ -2632,10 +2622,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Power Nap: gains 2 credits plus 1 per double event in the heap", () => {
     const s = createInitialState();
-    put(s, "power-nap", "pn-1", "runner:play");
-    put(s, "power-nap", "heap-1", "runner:discard");
-    put(s, "power-nap", "heap-2", "runner:discard");
-    put(s, "sure-gamble", "heap-3", "runner:discard");
+    put(s, "power-nap", "pn-1", "runner:play-area");
+    put(s, "power-nap", "heap-1", "runner:heap");
+    put(s, "power-nap", "heap-2", "runner:heap");
+    put(s, "sure-gamble", "heap-3", "runner:heap");
     s.runner.discardPile = ["heap-1", "heap-2", "heap-3"];
     s.runner.credits = 3;
     const onPlay = playEffectFromCard(getCardDef("power-nap"));
@@ -2683,7 +2673,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Emergency Shutdown: with 2 rezzed ice, the Runner chooses which to derez", () => {
     const s = createInitialState();
-    put(s, "emergency-shutdown", "es-1", "runner:play");
+    put(s, "emergency-shutdown", "es-1", "runner:play-area");
     const a = put(s, "ice-wall", "iw-a", "server:hq:ice");
     const b = put(s, "ice-wall", "iw-b", "server:rd:ice");
     a.rezzed = true;
@@ -2702,7 +2692,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Test Ground: derezzes 1 card per advancement counter on itself", () => {
     const s = createInitialState();
-    const tg = put(s, "test-ground", "tg-1", "remote:1:root");
+    const tg = put(s, "test-ground", "tg-1", "server:remote-1:root");
     tg.advancementCounters = 1;
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = true;
@@ -2712,7 +2702,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["tg-1"],
-    } as Server;
+    };
     runKind(s, "tg-1", "derez_per_advancement_on_self");
     const opt = s.pendingChoice?.options[0];
     if (!opt) throw new Error("expected a derez option");
@@ -2737,7 +2727,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Frame Job: forfeiting the only scored agenda is automatic", () => {
     const s = createInitialState();
-    put(s, "frame-job", "fj-1", "runner:play");
+    put(s, "frame-job", "fj-1", "runner:play-area");
     put(s, "project-beale", "sc-1", "runner:score");
     s.runner.scoreArea = ["sc-1"];
     runKind(s, "fj-1", "choose_forfeit_runner_scored_agenda");
@@ -2747,15 +2737,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Expo Grid: gains 1 credit when the root of its server holds a rezzed asset", () => {
     const s = createInitialState();
-    put(s, "expo-grid", "eg-1", "remote:1:root");
-    const asset = put(s, "adonis-campaign", "as-1", "remote:1:root");
+    put(s, "expo-grid", "eg-1", "server:remote-1:root");
+    const asset = put(s, "adonis-campaign", "as-1", "server:remote-1:root");
     asset.rezzed = true;
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["eg-1", "as-1"],
-    } as Server;
+    };
     s.corp.credits = 3;
     runKind(s, "eg-1", "gain_if_rezzed_asset_in_root");
     expect(s.corp.credits).toBe(4);
@@ -2763,7 +2753,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Personalized Portal: the Corp gains 1 credit per 2 cards in the grip", () => {
     const s = createInitialState();
-    put(s, "personalized-portal", "pp-1", "corp:installed");
+    installRoot(s, "personalized-portal", "pp-1", false);
     s.runner.hand = ["a", "b", "c", "d", "e"];
     s.corp.credits = 3;
     runKind(s, "pp-1", "gain_personalized_portal");
@@ -2772,7 +2762,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("The Price of Freedom: the Corp cannot advance cards next turn", () => {
     const s = createInitialState();
-    put(s, "the-price-of-freedom", "pof-1", "runner:play");
+    put(s, "the-price-of-freedom", "pof-1", "runner:play-area");
     runKind(s, "pof-1", "corp_cannot_advance_cards_next_turn");
     expect(s.corpCannotAdvanceCardsNextTurn).toBe(true);
   });
@@ -2795,11 +2785,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Lakshmi Smartfabrics: reveals an HQ agenda worth at most its power counters", () => {
     const s = createInitialState();
-    const src = put(s, "lakshmi-smartfabrics", "lak-1", "corp:installed");
+    const src = installRoot(s, "lakshmi-smartfabrics", "lak-1", false);
     src.powerCounters = 3;
     src.rezzed = true;
-    put(s, "project-beale", "ag-1", "corp:hand");
-    put(s, "nisei-mk-ii", "ag-2", "corp:hand");
+    put(s, "project-beale", "ag-1", "corp:hq");
+    put(s, "nisei-mk-ii", "ag-2", "corp:hq");
     s.corp.hand = ["ag-1", "ag-2"];
     runKind(s, "lak-1", "cannot_steal_copies_of_revealed_agenda");
     expect(s.pendingChoice?.options.length).toBe(2);
@@ -2807,18 +2797,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Helheim Servers: ice protecting its server gets +2 strength until end of run", () => {
     const s = createInitialState();
-    put(s, "helheim-servers", "hh-1", "remote:1:root");
+    put(s, "helheim-servers", "hh-1", "server:remote-1:root");
     put(s, "ice-wall", "iw-1", "server:remote-1:ice");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: ["iw-1"],
       root: ["hh-1"],
-    } as Server;
-    s.run = {
-      attackedServerId: "remote-1",
-      position: null,
-    } as GameState["run"];
+    };
+    s.run = runState("remote-1", "movement");
     runKind(
       s,
       "hh-1",
@@ -2882,14 +2869,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Replanting: adds an installed Corp card to HQ", () => {
     const s = createInitialState();
-    put(s, "replanting", "rp-1", "corp:play");
-    put(s, "adonis-campaign", "as-1", "remote:1:root");
+    put(s, "replanting", "rp-1", "corp:play-area");
+    put(s, "adonis-campaign", "as-1", "server:remote-1:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["as-1"],
-    } as Server;
+    };
     s.corp.hand = [];
     runKind(s, "rp-1", "add_installed_to_hq");
     const after = applyAction(s, {
@@ -2996,7 +2983,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Ashen Epilogue: removes the top 5 cards of the stack from the game", () => {
     const s = createInitialState();
-    put(s, "ashen-epilogue", "ae-1", "runner:play");
+    put(s, "ashen-epilogue", "ae-1", "runner:play-area");
     for (let i = 0; i < 7; i++)
       put(s, "sure-gamble", `stk-${i}`, "runner:stack");
     s.runner.deck = [
@@ -3022,21 +3009,21 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Bad Times: the Runner's memory limit is reduced by 2 until turn end", () => {
     const s = createInitialState();
-    put(s, "bad-times", "bt-1", "corp:play");
+    put(s, "bad-times", "bt-1", "corp:play-area");
     runKind(s, "bt-1", "runner_mu_modifier_until_turn_end", { delta: -2 });
     expect(lingeringRunnerMuModifier(s)).toBe(-2);
   });
 
   it("Encore: takes an additional turn after this one", () => {
     const s = createInitialState();
-    put(s, "encore", "en-1", "runner:play");
+    put(s, "encore", "en-1", "runner:play-area");
     runKind(s, "en-1", "schedule_additional_runner_turn");
     expect(s.pendingExtraRunnerTurns).toBe(1);
   });
 
   it("Superdeep Borehole: takes 1 hosted bad publicity onto the Corp", () => {
     const s = createInitialState();
-    const src = put(s, "superdeep-borehole", "sb-1", "remote:1:root");
+    const src = put(s, "superdeep-borehole", "sb-1", "server:remote-1:root");
     src.badPublicityCounters = 6;
     s.corp.badPublicity = 0;
     runKind(s, "sb-1", "take_hosted_bad_publicity", { amount: 1 });
@@ -3089,7 +3076,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Hatchet Job: the Corp returns an installed non-virtual Runner card to the grip", () => {
     const s = createInitialState();
-    put(s, "hatchet-job", "hj-1", "corp:play");
+    put(s, "hatchet-job", "hj-1", "corp:play-area");
     put(s, "corroder", "inst-1", "runner:installed");
     s.runner.installed = ["inst-1"];
     s.runner.hand = [];
@@ -3104,7 +3091,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Ayla: the Runner chooses which set-aside card to add to the grip", () => {
     const s = createInitialState();
-    put(s, "ayla-bios-rahim-simulant-specialist", "ayla-1", "runner:identity");
+    put(
+      s,
+      "ayla-bios-rahim-simulant-specialist",
+      "ayla-1",
+      identityZone(s, "runner"),
+    );
     put(s, "sure-gamble", "sa-1", "runner:set-aside");
     put(s, "sure-gamble", "sa-2", "runner:set-aside");
     s.runner.setAside = ["sa-1", "sa-2"];
@@ -3123,7 +3115,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "muertos-gang-member", "mg-1", "runner:installed");
     const a = put(s, "ice-wall", "iw-a", "server:hq:ice");
-    const b = put(s, "adonis-campaign", "as-1", "remote:1:root");
+    const b = put(s, "adonis-campaign", "as-1", "server:remote-1:root");
     a.rezzed = true;
     b.rezzed = true;
     s.servers["hq"].ice = ["iw-a"];
@@ -3132,7 +3124,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["as-1"],
-    } as Server;
+    };
     runKind(s, "mg-1", "corp_derez_a_card");
     const after = applyAction(s, {
       type: "choose_option",
@@ -3145,15 +3137,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Leave No Trace: derezzes all ice that was rezzed during this run", () => {
     const s = createInitialState();
-    put(s, "leave-no-trace", "lnt-1", "runner:play");
+    put(s, "leave-no-trace", "lnt-1", "runner:play-area");
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = true;
     s.servers["hq"].ice = ["iw-1"];
-    s.run = {
-      position: null,
-      attackedServerId: "hq",
-      iceRezzedThisRunIds: ["iw-1"],
-    } as GameState["run"];
+    s.run = runState("hq", "movement", { iceRezzedThisRunIds: ["iw-1"] });
     runKind(s, "lnt-1", "derez_all_ice_rezzed_this_run");
     expect(s.cards["iw-1"]?.rezzed).toBe(false);
   });
@@ -3175,14 +3163,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Drive By: exposes an unrezzed remote root card and trashes it if asset or upgrade", () => {
     const s = createInitialState();
-    put(s, "drive-by", "db-1", "runner:play");
+    put(s, "drive-by", "db-1", "runner:play-area");
     put(s, "adonis-campaign", "as-1", "server:remote-1:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["as-1"],
-    } as Server;
+    };
     runKind(s, "db-1", "expose_and_trash_remote_root");
     const after = applyAction(s, {
       type: "choose_option",
@@ -3201,10 +3189,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Red Planet Couriers: moves all advancements onto 1 advanceable card", () => {
     const s = createInitialState();
-    put(s, "red-planet-couriers", "rpc-1", "corp:play");
-    const a = put(s, "project-beale", "ag-1", "remote:1:root");
-    const b = put(s, "project-beale", "ag-2", "remote:2:root");
-    const t = put(s, "project-beale", "ag-3", "remote:3:root");
+    put(s, "red-planet-couriers", "rpc-1", "corp:play-area");
+    const a = put(s, "project-beale", "ag-1", "server:remote-1:root");
+    const b = put(s, "project-beale", "ag-2", "server:remote-2:root");
+    const t = put(s, "project-beale", "ag-3", "server:remote-3:root");
     a.advancementCounters = 2;
     b.advancementCounters = 1;
     for (const [n, id] of [
@@ -3217,7 +3205,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
         kind: "remote",
         ice: [],
         root: [id],
-      } as Server;
+      };
     }
     runKind(s, "rpc-1", "move_all_advancements");
     const after = applyAction(s, {
@@ -3232,10 +3220,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Reconstruction Contract: moves any number of its advancements to an advanceable card only", () => {
     const s = createInitialState();
-    const src = put(s, "reconstruction-contract", "rc-1", "remote:1:root");
+    const src = put(
+      s,
+      "reconstruction-contract",
+      "rc-1",
+      "server:remote-1:root",
+    );
     src.advancementCounters = 2;
-    put(s, "project-beale", "ag-1", "remote:2:root");
-    put(s, "adonis-campaign", "as-1", "remote:3:root");
+    put(s, "project-beale", "ag-1", "server:remote-2:root");
+    put(s, "adonis-campaign", "as-1", "server:remote-3:root");
     for (const [n, id] of [
       [1, "rc-1"],
       [2, "ag-1"],
@@ -3246,7 +3239,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
         kind: "remote",
         ice: [],
         root: [id],
-      } as Server;
+      };
     }
     runKind(s, "rc-1", "move_any_advancements_from_self_to_advanceable");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
@@ -3277,14 +3270,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Early Premiere: pays 1 credit to place 1 advancement on a remote root card", () => {
     const s = createInitialState();
-    put(s, "early-premiere", "ep-1", "corp:installed");
-    put(s, "project-beale", "ag-1", "remote:1:root");
-    s.servers["remote-1"] = {
-      id: "remote-1",
+    installRoot(s, "early-premiere", "ep-1", false);
+    put(s, "project-beale", "ag-1", "server:remote-2:root");
+    s.servers["remote-2"] = {
+      id: "remote-2",
       kind: "remote",
       ice: [],
       root: ["ag-1"],
-    } as Server;
+    };
+    s.nextRemoteNumber = 3;
     s.corp.credits = 3;
     runKind(s, "ep-1", "pay_place_advancement");
     const after = applyAction(s, {
@@ -3298,21 +3292,21 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Psychographics: the Corp chooses X (up to tags) and the advanceable target", () => {
     const s = createInitialState();
-    put(s, "psychographics", "pg-1", "corp:play");
-    put(s, "project-beale", "ag-1", "remote:1:root");
-    put(s, "adonis-campaign", "as-1", "remote:2:root");
+    put(s, "psychographics", "pg-1", "corp:play-area");
+    put(s, "project-beale", "ag-1", "server:remote-1:root");
+    put(s, "adonis-campaign", "as-1", "server:remote-2:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["ag-1"],
-    } as Server;
+    };
     s.servers["remote-2"] = {
       id: "remote-2",
       kind: "remote",
       ice: [],
       root: ["as-1"],
-    } as Server;
+    };
     s.runner.tags = 3;
     s.corp.credits = 5;
     runKind(s, "pg-1", "place_advancements_x_from_tags");
@@ -3330,7 +3324,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Trick Shot: places hosted credits on the run", () => {
     const s = createInitialState();
-    put(s, "trick-shot", "ts-1", "runner:play");
+    put(s, "trick-shot", "ts-1", "runner:play-area");
     s.run = { attackedServerId: "rd", position: null } as GameState["run"];
     runKind(s, "ts-1", "place_event_credits", { amount: 4 });
     expect(s.run!.eventCredits).toBe(4);
@@ -3338,7 +3332,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Museum of History: shuffles 1 card from Archives into R&D", () => {
     const s = createInitialState();
-    put(s, "museum-of-history", "moh-1", "remote:1:root");
+    put(s, "museum-of-history", "moh-1", "server:remote-1:root");
     put(s, "hedge-fund", "arch-1", "corp:archives");
     s.corp.discardPile = ["arch-1"];
     s.corp.deck = [];
@@ -3349,7 +3343,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Bring Them Home: adds 2 random grip cards to the top of the stack", () => {
     const s = createInitialState();
-    put(s, "bring-them-home", "bth-1", "corp:play");
+    put(s, "bring-them-home", "bth-1", "corp:play-area");
     for (let i = 0; i < 3; i++) put(s, "sure-gamble", `g-${i}`, "runner:grip");
     s.runner.hand = ["g-0", "g-1", "g-2"];
     put(s, "sure-gamble", "stk-1", "runner:stack");
@@ -3367,7 +3361,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Bring Them Home (threat): reveals 1 random grip card and shuffles it into the stack", () => {
     const s = createInitialState();
-    put(s, "bring-them-home", "bth-1", "corp:play");
+    put(s, "bring-them-home", "bth-1", "corp:play-area");
     put(s, "sure-gamble", "g-0", "runner:grip");
     put(s, "diesel", "g-1", "runner:grip");
     s.runner.hand = ["g-0", "g-1"];
@@ -3407,15 +3401,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Liquidation: trashes any number of rezzed cards for 3 credits each", () => {
     const s = createInitialState();
-    put(s, "liquidation", "lq-1", "corp:play");
-    const a = put(s, "adonis-campaign", "as-1", "remote:1:root");
+    put(s, "liquidation", "lq-1", "corp:play-area");
+    const a = put(s, "adonis-campaign", "as-1", "server:remote-1:root");
     a.rezzed = true;
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["as-1"],
-    } as Server;
+    };
     s.corp.credits = 0;
     runKind(s, "lq-1", "trash_any_rezzed_gain_3_each");
     const after = applyAction(s, {
@@ -3432,17 +3426,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Light the Fire!: trashes all cards in the root of the attacked server", () => {
     const s = createInitialState();
     put(s, "light-the-fire", "ltf-1", "runner:installed");
-    put(s, "adonis-campaign", "as-1", "remote:1:root");
+    put(s, "adonis-campaign", "as-1", "server:remote-1:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["as-1"],
-    } as Server;
-    s.run = {
-      attackedServerId: "remote-1",
-      position: null,
-    } as GameState["run"];
+    };
+    s.run = runState("remote-1", "movement");
     runKind(s, "ltf-1", "trash_attacked_server_root");
     expect(s.corp.discardPile).toContain("as-1");
     expect(s.servers["remote-1"].root).toEqual([]);
@@ -3450,7 +3441,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Uninstall: adds an installed program or hardware to the grip", () => {
     const s = createInitialState();
-    put(s, "uninstall", "un-1", "runner:play");
+    put(s, "uninstall", "un-1", "runner:play-area");
     put(s, "corroder", "prog-1", "runner:installed");
     s.runner.installed = ["prog-1"];
     s.runner.hand = [];
@@ -3483,7 +3474,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Exploit: derezzes up to 3 pieces of ice, Runner's choice each time", () => {
     const s = createInitialState();
-    put(s, "exploit", "ex-1", "runner:play");
+    put(s, "exploit", "ex-1", "runner:play-area");
     const a = put(s, "ice-wall", "iw-a", "server:hq:ice");
     const b = put(s, "ice-wall", "iw-b", "server:rd:ice");
     a.rezzed = true;
@@ -3547,7 +3538,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "next-silver", "ns-2", "server:rd:ice");
     ice.rezzed = true;
     s.servers["rd"].ice = ["ns-2"];
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     s.corp.hand = ["hq-1"];
     s.corp.deck = [];
     runKind(s, "ns-1", "cotc_next_sapphire_hq_to_rd");
@@ -3562,7 +3553,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Brute-Force Hack: derezzes a rezzed ice with rez cost at most X", () => {
     const s = createInitialState();
-    put(s, "brute-force-hack", "bfh-1", "runner:play");
+    put(s, "brute-force-hack", "bfh-1", "runner:play-area");
     const cheap = put(s, "ice-wall", "iw-1", "server:hq:ice");
     const pricey = put(s, "tollbooth", "tb-1", "server:rd:ice");
     cheap.rezzed = true;
@@ -3583,7 +3574,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Forged Activation Orders: the Runner chooses the ice, the Corp may trash instead of rezzing", () => {
     const s = createInitialState();
-    put(s, "forged-activation-orders", "fao-1", "runner:play");
+    put(s, "forged-activation-orders", "fao-1", "runner:play-area");
     put(s, "ice-wall", "iw-a", "server:hq:ice");
     put(s, "ice-wall", "iw-b", "server:rd:ice");
     s.servers["hq"].ice = ["iw-a"];
@@ -3604,7 +3595,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Forged Activation Orders: the Corp may rez the chosen ice, paying its rez cost", () => {
     const s = createInitialState();
-    put(s, "forged-activation-orders", "fao-1", "runner:play");
+    put(s, "forged-activation-orders", "fao-1", "runner:play-area");
     const ice = put(s, "ice-wall", "iw-a", "server:hq:ice");
     s.servers["hq"].ice = ["iw-a"];
     s.corp.credits = 5;
@@ -3621,10 +3612,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Stavka: fortifies itself for the remainder of the run", () => {
     const s = createInitialState();
     put(s, "stavka", "st-1", "server:hq:ice");
-    s.run = {
-      position: null,
-      attackedServerId: "hq",
-    } as GameState["run"];
+    s.run = runState("hq", "movement");
     runKind(s, "st-1", "fortify_ice", { amount: 5 });
     expect(
       lingeringIceStrengthOfKind(s, "st-1", LINGERING_KIND_ICE_STRENGTH),
@@ -3633,9 +3621,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Replanting: installs 2 cards from HQ ignoring all costs", () => {
     const s = createInitialState();
-    put(s, "replanting", "rp-1", "corp:play");
-    put(s, "ice-wall", "iw-1", "corp:hand");
-    put(s, "adonis-campaign", "as-1", "corp:hand");
+    put(s, "replanting", "rp-1", "corp:play-area");
+    put(s, "ice-wall", "iw-1", "corp:hq");
+    put(s, "adonis-campaign", "as-1", "corp:hq");
     s.corp.hand = ["iw-1", "as-1"];
     runKind(s, "rp-1", "install_2_from_hq_ignore_costs");
     let after = applyAction(s, {
@@ -3718,7 +3706,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "glenn-station", "gs-1", "server:hq:root");
     s.servers["hq"]!.root = ["gs-1"];
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     s.corp.hand = ["hq-1"];
     runKind(s, "gs-1", "glenn_host_from_hq");
     const after = applyAction(s, {
@@ -3743,17 +3731,22 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("SSO Industries: advances ice by points on installed faceup agendas, not scored ones", () => {
     const s = createInitialState();
-    put(s, "sso-industries-fueling-innovation", "sso-1", "corp:identity");
+    put(
+      s,
+      "sso-industries-fueling-innovation",
+      "sso-1",
+      identityZone(s, "corp"),
+    );
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.servers["hq"].ice = ["iw-1"];
-    const faceup = put(s, "project-beale", "ag-1", "remote:1:root");
+    const faceup = put(s, "project-beale", "ag-1", "server:remote-1:root");
     faceup.faceup = true;
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["ag-1"],
-    } as Server;
+    };
     put(s, "hostile-takeover", "sc-1", "corp:score");
     s.corp.scoreArea = ["sc-1"]; // scored points must not count
     runKind(s, "sso-1", "advance_sso_ice");
@@ -3772,10 +3765,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("SYN Attack: the Corp chooses which 2 cards to discard", () => {
     const s = createInitialState();
-    put(s, "syn-attack", "syn-1", "runner:play");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "hedge-fund", "hq-2", "corp:hand");
-    put(s, "hedge-fund", "hq-3", "corp:hand");
+    put(s, "syn-attack", "syn-1", "runner:play-area");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "hedge-fund", "hq-2", "corp:hq");
+    put(s, "hedge-fund", "hq-3", "corp:hq");
     s.corp.hand = ["hq-1", "hq-2", "hq-3"];
     runKind(s, "syn-1", "corp_draw_syn_attack_discard_2_or_4");
     let after = applyAction(s, { type: "choose_option", optionId: "discard2" });
@@ -3815,7 +3808,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("License Acquisition: the Corp chooses an asset or upgrade from HQ or Archives to install and rez", () => {
     const s = createInitialState();
     put(s, "license-acquisition", "la-1", "corp:score");
-    put(s, "adonis-campaign", "as-1", "corp:hand");
+    put(s, "adonis-campaign", "as-1", "corp:hq");
     put(s, "marked-accounts", "as-2", "corp:archives");
     s.corp.hand = ["as-1"];
     s.corp.discardPile = ["as-2"];
@@ -3846,14 +3839,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("New Construction: installs 1 card from HQ in a new remote", () => {
     const s = createInitialState();
-    put(s, "new-construction", "nc-1", "remote:1:root");
+    put(s, "new-construction", "nc-1", "server:remote-1:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["nc-1"],
-    } as Server;
-    put(s, "adonis-campaign", "as-1", "corp:hand");
+    };
+    put(s, "adonis-campaign", "as-1", "corp:hq");
     s.corp.hand = ["as-1"];
     runKind(s, "nc-1", "install_from_hq_new_remote");
     const after = applyAction(s, {
@@ -3897,7 +3890,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Networking: may pay 1 credit to return itself to the grip", () => {
     const s = createInitialState();
-    put(s, "networking", "nw-1", "runner:play");
+    put(s, "networking", "nw-1", "runner:play-area");
     s.runner.credits = 3;
     runKind(s, "nw-1", "may_return_self_to_grip", { creditCost: 1 });
     const after = applyAction(s, { type: "choose_option", optionId: "return" });
@@ -3908,7 +3901,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Blue Sun: may return a rezzed card to HQ and gain its rez cost", () => {
     const s = createInitialState();
-    put(s, "blue-sun-powering-the-future", "bs-1", "corp:identity");
+    put(s, "blue-sun-powering-the-future", "bs-1", identityZone(s, "corp"));
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = true;
     s.servers["hq"].ice = ["iw-1"];
@@ -3941,7 +3934,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Targeted Marketing: can name a card that is not in the game yet", () => {
     const s = createInitialState();
-    put(s, "targeted-marketing", "tm-1", "corp:play");
+    put(s, "targeted-marketing", "tm-1", "corp:play-area");
     runKind(s, "tm-1", "name_card");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids).toContain("tm:sure-gamble");
@@ -3955,14 +3948,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Calibration Testing: places 1 advancement on a card in the root of its server", () => {
     const s = createInitialState();
-    put(s, "calibration-testing", "ct-1", "remote:1:root");
-    put(s, "project-beale", "ag-1", "remote:1:root");
+    put(s, "calibration-testing", "ct-1", "server:remote-1:root");
+    put(s, "project-beale", "ag-1", "server:remote-1:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["ct-1", "ag-1"],
-    } as Server;
+    };
     runKind(s, "ct-1", "place_advancement_on_root_of_this_server");
     const after = applyAction(s, {
       type: "choose_option",
@@ -3974,8 +3967,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Subcontract: offers up to 2 operations from HQ", () => {
     const s = createInitialState();
-    put(s, "subcontract", "sub-1", "corp:play");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "subcontract", "sub-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     s.corp.hand = ["hq-1"];
     runKind(s, "sub-1", "play_ops_from_hq", { max: 2 });
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
@@ -3985,7 +3978,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Power Shutdown: may trash any number of cards from the top of R&D", () => {
     const s = createInitialState();
-    put(s, "power-shutdown", "ps-1", "corp:play");
+    put(s, "power-shutdown", "ps-1", "corp:play-area");
     for (let i = 0; i < 7; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
     s.corp.deck = ["rd-0", "rd-1", "rd-2", "rd-3", "rd-4", "rd-5", "rd-6"];
     runKind(s, "ps-1", "power_shutdown");
@@ -4002,7 +3995,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Invasion of Privacy: after a successful trace, trashes up to X resources or events from the grip", () => {
     const s = createInitialState();
-    put(s, "invasion-of-privacy", "iop-1", "corp:play");
+    put(s, "invasion-of-privacy", "iop-1", "corp:play-area");
     put(s, "daily-casts", "grip-1", "runner:grip");
     put(s, "sure-gamble", "grip-2", "runner:grip");
     put(s, "corroder", "grip-3", "runner:grip");
@@ -4027,14 +4020,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Political Graffiti: hosts itself on an agenda in the Corp's score area instead of breaching", () => {
     const s = createInitialState();
-    put(s, "political-graffiti", "pg-1", "runner:play");
+    put(s, "political-graffiti", "pg-1", "runner:play-area");
     put(s, "project-beale", "sc-1", "corp:score");
     put(s, "nisei-mk-ii", "sc-2", "corp:score");
     s.corp.scoreArea = ["sc-1", "sc-2"];
-    s.run = {
-      attackedServerId: "archives",
-      position: null,
-    } as GameState["run"];
+    s.run = runState("archives", "success", { successful: true });
     runKind(s, "pg-1", "host_on_scored_agenda");
     const opt = s.pendingChoice?.options[0];
     if (!opt) throw new Error("expected a host choice");
@@ -4054,7 +4044,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Jinteki Biotech: flips the identity to its other face", () => {
     const s = createInitialState();
-    const id = put(s, "jinteki-biotech-life-imagined", "jb-1", "corp:identity");
+    const id = put(
+      s,
+      "jinteki-biotech-life-imagined",
+      "jb-1",
+      identityZone(s, "corp"),
+    );
     s.corp.identityId = "jb-1";
     runKind(s, "jb-1", "jinteki_biotech_flip");
     expect(id.identityFlipped).toBe(true);
@@ -4163,7 +4158,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Reverse Infection: purges viruses, then trashes 1 stack card per 3 removed", () => {
     const s = createInitialState();
-    put(s, "reverse-infection", "ri-1", "corp:play");
+    put(s, "reverse-infection", "ri-1", "corp:play-area");
     const a = put(s, "corroder", "v-1", "runner:installed");
     const b = put(s, "corroder", "v-2", "runner:installed");
     a.virusCounters = 2;
@@ -4202,7 +4197,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Defense Construct: adds 1 facedown Archives card to HQ per advancement", () => {
     const s = createInitialState();
-    const src = put(s, "defense-construct", "dc-1", "remote:1:root");
+    const src = put(s, "defense-construct", "dc-1", "server:remote-1:root");
     src.advancementCounters = 2;
     put(s, "hedge-fund", "arch-1", "corp:archives");
     put(s, "hedge-fund", "arch-2", "corp:archives");
@@ -4226,7 +4221,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("An Offer You Can't Refuse: the Corp chooses a central, then the Runner may run it", () => {
     const s = createInitialState();
-    put(s, "an-offer-you-cant-refuse", "off-1", "corp:play");
+    put(s, "an-offer-you-cant-refuse", "off-1", "corp:play-area");
     runKind(s, "off-1", "an_offer_you_cant_refuse");
     const after = applyAction(s, {
       type: "choose_option",
@@ -4253,7 +4248,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Malia Z0L0K4: chooses an installed non-virtual resource to blank", () => {
     const s = createInitialState();
-    put(s, "malia-z0l0k4", "mz-1", "remote:1:root");
+    put(s, "malia-z0l0k4", "mz-1", "server:remote-1:root");
     put(s, "daily-casts", "res-1", "runner:installed");
     s.runner.installed = ["res-1"];
     runKind(s, "mz-1", "choose_malia_resource");
@@ -4329,7 +4324,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Frantic Coding: installs 1 program from the top 10 at a 5-credit discount, trashes the rest", () => {
     const s = createInitialState();
-    put(s, "frantic-coding", "fc-1", "runner:play");
+    put(s, "frantic-coding", "fc-1", "runner:play-area");
     put(s, "corroder", "prog-1", "runner:stack");
     put(s, "sure-gamble", "stk-1", "runner:stack");
     put(s, "sure-gamble", "stk-2", "runner:stack");
@@ -4349,7 +4344,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Nuvem Sá: may trash the top card of R&D", () => {
     const s = createInitialState();
-    put(s, "nuvem-sa-law-of-the-land", "nv-1", "corp:identity");
+    put(s, "nuvem-sa-law-of-the-land", "nv-1", identityZone(s, "corp"));
     put(s, "hedge-fund", "rd-1", "corp:rd");
     put(s, "hedge-fund", "rd-2", "corp:rd");
     s.corp.deck = ["rd-1", "rd-2"];
@@ -4427,7 +4422,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Ibrahim Salem: names a type, then trashes 1 grip card of that type", () => {
     const s = createInitialState();
-    put(s, "ibrahim-salem", "is-1", "remote:1:root");
+    put(s, "ibrahim-salem", "is-1", "server:remote-1:root");
     put(s, "corroder", "g-1", "runner:grip");
     put(s, "corroder", "g-2", "runner:grip");
     put(s, "sure-gamble", "g-3", "runner:grip");
@@ -4477,13 +4472,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Herald: may pay up to 2 credits to place that many advancements", () => {
     const s = createInitialState();
     put(s, "herald", "hr-1", "server:rd:ice");
-    put(s, "project-beale", "ag-1", "remote:1:root");
+    put(s, "project-beale", "ag-1", "server:remote-1:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["ag-1"],
-    } as Server;
+    };
     s.corp.credits = 5;
     runKind(s, "hr-1", "pay_up_to_place_advancements", { max: 2 });
     const after = applyAction(s, {
@@ -4497,20 +4492,20 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("PAD Factory: places an advancement on a card that cannot be scored until next turn", () => {
     const s = createInitialState();
-    put(s, "pad-factory", "pf-1", "remote:1:root");
-    put(s, "project-beale", "ag-1", "remote:2:root");
+    put(s, "pad-factory", "pf-1", "server:remote-1:root");
+    put(s, "project-beale", "ag-1", "server:remote-2:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["pf-1"],
-    } as Server;
+    };
     s.servers["remote-2"] = {
       id: "remote-2",
       kind: "remote",
       ice: [],
       root: ["ag-1"],
-    } as Server;
+    };
     runKind(s, "pf-1", "place_advancement_cannot_score_until_next_turn");
     const after = applyAction(s, {
       type: "choose_option",
@@ -4800,7 +4795,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Azmari EdTech: naming a type pays 2 on the first matching play each turn", () => {
     const s = createInitialState();
-    put(s, "azmari-edtech-shaping-the-future", "az-1", "corp:identity");
+    put(s, "azmari-edtech-shaping-the-future", "az-1", identityZone(s, "corp"));
     s.corp.identityId = "az-1";
     s.corp.credits = 5;
     runKind(s, "az-1", "cotc_azmari_name_card_type");
@@ -4812,9 +4807,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     // The name persists on the identity (printed: "the type you last named").
     expect(after.state.cards["az-1"]?.azmariNamedType).toBe("event");
 
-    put(after.state, "sure-gamble", "sg-1", "runner:hand");
-    put(after.state, "sure-gamble", "sg-2", "runner:hand");
-    put(after.state, "sure-gamble", "sg-3", "runner:hand");
+    put(after.state, "sure-gamble", "sg-1", "runner:grip");
+    put(after.state, "sure-gamble", "sg-2", "runner:grip");
+    put(after.state, "sure-gamble", "sg-3", "runner:grip");
     onRunnerEventPlayed(after.state, "sg-1");
     expect(after.state.corp.credits).toBe(7);
     // Only the first matching play each turn pays.
@@ -4830,7 +4825,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("White Hat: Corp must resolve Trace[3]; a failed trace reveals HQ", () => {
     const s = createInitialState();
     put(s, "white-hat", "wh-1", "runner:play-area");
-    put(s, "hedge-fund", "hf-1", "corp:hand");
+    put(s, "hedge-fund", "hf-1", "corp:hq");
     s.corp.hand = ["hf-1"];
     // Link 99 with 0/0 bids makes the trace fail (printed: reveal HQ).
     s.runner.link = 99;
@@ -4854,7 +4849,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       s,
       "jemison-astronautics-sacrifice-audacity-success",
       "jem-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.corp.identityId = "jem-1";
     put(s, "nisei-mk-ii", "nisei-1", "server:remote-1:root");
@@ -4863,7 +4858,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["nisei-1"],
-    } as Server;
+    };
     s.lastForfeitedAgendaPoints = 2;
     runKind(s, "jem-1", "place_advancements_on_forfeit");
     expect(s.pendingChoice?.chooser).toBe("corp");
@@ -4886,7 +4881,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["pad-1"],
-    } as Server;
+    };
     runKind(s, "stp-1", "expose_non_ice_then_run");
     expect(s.pendingChoice?.chooser).toBe("runner");
     const after = applyAction(s, {
@@ -4952,7 +4947,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Scavenge: installs a program from the grip at the discount", () => {
     const s = createInitialState();
     put(s, "scavenge", "sc-1", "runner:play-area");
-    put(s, "corroder", "prog-1", "runner:hand");
+    put(s, "corroder", "prog-1", "runner:grip");
     s.runner.hand = ["prog-1"];
     s.runner.installed = [];
     s.runner.credits = 5;
@@ -4965,7 +4960,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Jinteki Biotech: places 4 advancement counters on an advanceable card", () => {
     const s = createInitialState();
-    put(s, "jinteki-biotech-life-imagined", "jb-1", "corp:identity");
+    put(s, "jinteki-biotech-life-imagined", "jb-1", identityZone(s, "corp"));
     s.corp.identityId = "jb-1";
     put(s, "nisei-mk-ii", "nisei-1", "server:remote-1:root");
     s.servers["remote-1"] = {
@@ -4973,7 +4968,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["nisei-1"],
-    } as Server;
+    };
     runKind(s, "jb-1", "jinteki_biotech_place_4_advancement");
     const after = applyAction(s, {
       type: "choose_option",
@@ -5015,7 +5010,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["nisei-1"],
-    } as Server;
+    };
     s.lastForfeitedAdvancementRequirement = 4;
     runKind(s, "suc-1", "advance_equal_forfeit_advancement_requirement");
     const after = applyAction(s, {
@@ -5040,9 +5035,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("CBI Raid: Corp chooses the order of HQ cards onto the top of R&D", () => {
     const s = createInitialState();
     put(s, "cbi-raid", "cbi-1", "runner:play-area");
-    put(s, "hedge-fund", "hf-a", "corp:hand");
-    put(s, "hedge-fund", "hf-b", "corp:hand");
-    put(s, "pad-campaign", "pad-1", "corp:hand");
+    put(s, "hedge-fund", "hf-a", "corp:hq");
+    put(s, "hedge-fund", "hf-b", "corp:hq");
+    put(s, "pad-campaign", "pad-1", "corp:hq");
     s.corp.hand = ["hf-a", "hf-b", "pad-1"];
     s.corp.deck = [];
     s.run = {
@@ -5148,13 +5143,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: ["iw-1"],
       root: [],
-    } as Server;
+    };
     s.servers["remote-2"] = {
       id: "remote-2",
       kind: "remote",
       ice: ["en-1"],
       root: [],
-    } as Server;
+    };
     // Clear centrals so only the two remotes are candidates.
     s.servers["hq"]!.ice = [];
     s.servers["rd"]!.ice = [];
@@ -5224,7 +5219,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["pad-1"],
-    } as Server;
+    };
     runKind(s, "cp-1", "choose_remote_card_cannot_rez_this_turn");
     const after = applyAction(s, {
       type: "choose_option",
@@ -5346,13 +5341,17 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "bp-1", "dtwn_bacterial_programming");
     expect(s.pendingChoice?.chooser).toBe("corp");
     expect(s.pendingChoice?.options.map((o) => o.id)).toContain("begin");
-    expect(s.cards["bp-1"]?.dtwnBacterialLooked).toHaveLength(7);
+    // The engine keeps this on the card through a cast (CardInstance lacks it).
+    expect(
+      (s.cards["bp-1"] as { dtwnBacterialLooked?: string[] } | undefined)
+        ?.dtwnBacterialLooked,
+    ).toHaveLength(7);
   });
 
   it("Emergent Creativity: offers trash-from-grip then search", () => {
     const s = createInitialState();
     put(s, "emergent-creativity", "ec-1", "runner:play-area");
-    put(s, "corroder", "prog-1", "runner:hand");
+    put(s, "corroder", "prog-1", "runner:grip");
     s.runner.hand = ["prog-1"];
     runKind(s, "ec-1", "dtwn_emergent_creativity");
     expect(s.pendingChoice?.chooser).toBe("runner");
@@ -5486,7 +5485,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "london-library", "ll-1", "runner:installed");
     s.runner.installed = ["ll-1"];
-    put(s, "corroder", "prog-1", "runner:hand");
+    put(s, "corroder", "prog-1", "runner:grip");
     s.runner.hand = ["prog-1"];
     runKind(s, "ll-1", "host_non_virus_program_ignore_cost");
     const after = applyAction(s, {
@@ -5508,7 +5507,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["nisei-1"],
-    } as Server;
+    };
     runKind(s, "ti-1", "host_on_agenda");
     const after = applyAction(s, {
       type: "choose_option",
@@ -5567,9 +5566,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Information Sifting: Corp assigns HQ into two piles; Runner chooses one", () => {
     const s = createInitialState();
     put(s, "information-sifting", "is-1", "runner:play-area");
-    put(s, "hedge-fund", "hf-a", "corp:hand");
-    put(s, "hedge-fund", "hf-b", "corp:hand");
-    put(s, "pad-campaign", "pad-1", "corp:hand");
+    put(s, "hedge-fund", "hf-a", "corp:hq");
+    put(s, "hedge-fund", "hf-b", "corp:hq");
+    put(s, "pad-campaign", "pad-1", "corp:hq");
     s.corp.hand = ["hf-a", "hf-b", "pad-1"];
     s.run = {
       attackedServerId: "hq",
@@ -5634,7 +5633,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Successful Field Test: may install any number from HQ ignoring costs", () => {
     const s = createInitialState();
     put(s, "successful-field-test", "sft-1", "corp:score");
-    put(s, "pad-campaign", "pad-1", "corp:hand");
+    put(s, "pad-campaign", "pad-1", "corp:hq");
     s.corp.hand = ["pad-1"];
     runKind(s, "sft-1", "install_any_number_from_hq_ignore_costs");
     expect(s.pendingChoice?.chooser).toBe("corp");
@@ -5649,7 +5648,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Asa Group: may install a non-agenda from HQ into the same server", () => {
     const s = createInitialState();
-    put(s, "asa-group-security-through-vigilance", "asa-1", "corp:identity");
+    put(
+      s,
+      "asa-group-security-through-vigilance",
+      "asa-1",
+      identityZone(s, "corp"),
+    );
     s.corp.identityId = "asa-1";
     put(s, "pad-campaign", "pad-1", "server:remote-1:root");
     s.servers["remote-1"] = {
@@ -5657,9 +5661,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["pad-1"],
-    } as Server;
+    };
     s.turn.installedThisTurn = ["pad-1"];
-    put(s, "ice-wall", "iw-1", "corp:hand");
+    put(s, "ice-wall", "iw-1", "corp:hq");
     s.corp.hand = ["iw-1"];
     runKind(s, "asa-1", "install_asa_non_agenda_same_server");
     expect(s.pendingChoice?.chooser).toBe("corp");
@@ -5678,8 +5682,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["wp-1"],
-    } as Server;
-    put(s, "pad-campaign", "pad-1", "corp:hand");
+    };
+    put(s, "pad-campaign", "pad-1", "corp:hq");
     s.corp.hand = ["pad-1"];
     s.corp.credits = 10;
     runKind(s, "wp-1", "install_asset_from_hq_rez_discount", { discount: 2 });
@@ -5723,12 +5727,17 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Hayley Kaplan: may install another card of the same type from the grip", () => {
     const s = createInitialState();
-    put(s, "hayley-kaplan-universal-scholar", "hk-1", "runner:identity");
+    put(
+      s,
+      "hayley-kaplan-universal-scholar",
+      "hk-1",
+      identityZone(s, "runner"),
+    );
     s.runner.identityId = "hk-1";
     put(s, "corroder", "prog-1", "runner:installed");
     s.runner.installed = ["prog-1"];
     s.turn.installedThisTurn = ["prog-1"];
-    put(s, "datasucker", "prog-2", "runner:hand");
+    put(s, "datasucker", "prog-2", "runner:grip");
     s.runner.hand = ["prog-2"];
     s.runner.credits = 10;
     runKind(s, "hk-1", "install_hayley_same_type_from_grip");
@@ -5740,14 +5749,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Priority Construction: installs ice outermost on a remote with advancements", () => {
     const s = createInitialState();
     put(s, "priority-construction", "pc-1", "corp:play-area");
-    put(s, "ice-wall", "iw-1", "corp:hand");
+    put(s, "ice-wall", "iw-1", "corp:hq");
     s.corp.hand = ["iw-1"];
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: [],
-    } as Server;
+    };
     runKind(
       s,
       "pc-1",
@@ -5768,9 +5777,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Mti Mwekundu: installs ice from HQ innermost on the attacked server", () => {
     const s = createInitialState();
-    put(s, "mti-mwekundu-life-improved", "mti-1", "corp:identity");
+    put(s, "mti-mwekundu-life-improved", "mti-1", identityZone(s, "corp"));
     s.corp.identityId = "mti-1";
-    put(s, "ice-wall", "iw-1", "corp:hand");
+    put(s, "ice-wall", "iw-1", "corp:hq");
     s.corp.hand = ["iw-1"];
     put(s, "enigma", "en-1", "server:hq:ice");
     s.servers["hq"]!.ice = ["en-1"];
@@ -5897,7 +5906,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Méliès U: may trash the top of R&D; if so, add 1 from Archives to HQ", () => {
     const s = createInitialState();
-    put(s, "melies-u-only-the-brightest", "mel-1", "corp:identity");
+    put(s, "melies-u-only-the-brightest", "mel-1", identityZone(s, "corp"));
     s.corp.identityId = "mel-1";
     put(s, "hedge-fund", "hf-top", "corp:rd");
     put(s, "pad-campaign", "pad-1", "corp:archives");
@@ -5991,7 +6000,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Team Sponsorship: may install from HQ or Archives ignoring install cost", () => {
     const s = createInitialState();
     put(s, "team-sponsorship", "ts-1", "corp:score");
-    put(s, "pad-campaign", "pad-1", "corp:hand");
+    put(s, "pad-campaign", "pad-1", "corp:hq");
     s.corp.hand = ["pad-1"];
     runKind(s, "ts-1", "may_install_from_hq_or_archives_ignore_costs");
     expect(s.pendingChoice?.chooser).toBe("corp");
@@ -6004,7 +6013,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Bloom: may install ice from HQ inward of itself ignoring costs", () => {
     const s = createInitialState();
     put(s, "bloom", "bloom-1", "server:hq:ice");
-    put(s, "ice-wall", "iw-1", "corp:hand");
+    put(s, "ice-wall", "iw-1", "corp:hq");
     s.corp.hand = ["iw-1"];
     s.servers["hq"]!.ice = ["bloom-1"];
     s.run = {
@@ -6039,7 +6048,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "nihongai-grid", "nih-1", "server:hq:root");
     for (let i = 0; i < 7; i++) put(s, "hedge-fund", `hf-${i}`, "corp:rd");
-    put(s, "pad-campaign", "pad-1", "corp:hand");
+    put(s, "pad-campaign", "pad-1", "corp:hq");
     // Top is index 0; bottom is last.
     s.corp.deck = ["hf-0", "hf-1", "hf-2", "hf-3", "hf-4", "hf-5", "hf-6"];
     s.corp.hand = ["pad-1"];
@@ -6083,7 +6092,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["pj-1"],
-    } as Server;
+    };
     s.corp.credits = 5;
     runKind(s, "pj-1", "may_pay_credits_for_net_damage_per_advancement", {
       amount: 1,
@@ -6126,7 +6135,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Pivot: may play or install a card from HQ", () => {
     const s = createInitialState();
     put(s, "pivot", "piv-1", "corp:play-area");
-    put(s, "pad-campaign", "pad-1", "corp:hand");
+    put(s, "pad-campaign", "pad-1", "corp:hq");
     s.corp.hand = ["pad-1"];
     s.corp.credits = 10;
     runKind(s, "piv-1", "may_play_or_install_from_hq");
@@ -6196,13 +6205,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["mcc-1"],
-    } as Server;
+    };
     s.servers["remote-2"] = {
       id: "remote-2",
       kind: "remote",
       ice: [],
       root: ["nisei-1"],
-    } as Server;
+    };
     runKind(s, "mcc-1", "move_mumbad_construction_advancement_to_faceup");
     // Single faceup destination (other than self) auto-moves.
     expect(mcc.advancementCounters).toBe(1);
@@ -6212,9 +6221,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Salem's Hospitality: names a card; grip copies of that name are trashed", () => {
     const s = createInitialState();
     put(s, "salems-hospitality", "salem-1", "corp:play-area");
-    put(s, "sure-gamble", "sg-1", "runner:hand");
-    put(s, "sure-gamble", "sg-2", "runner:hand");
-    put(s, "diesel", "d-1", "runner:hand");
+    put(s, "sure-gamble", "sg-1", "runner:grip");
+    put(s, "sure-gamble", "sg-2", "runner:grip");
+    put(s, "diesel", "d-1", "runner:grip");
     s.runner.hand = ["sg-1", "sg-2", "d-1"];
     s.runner.discardPile = [];
     runKind(s, "salem-1", "name_reveal_trash_grip_copies");
@@ -6234,11 +6243,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "tori-hanzo", "tori-1", "server:hq:root");
     // May/pay is the interrupt ability's 2¢ cost; this kind only replaces.
-    s.run = {
-      attackedServerId: "hq",
-      position: null,
-      netDamageWould: 1,
-    } as GameState["run"];
+    s.run = runState("hq", "movement", { netDamageWould: 1 });
     s.pendingDamage = {
       type: "net",
       remaining: 3,
@@ -6259,7 +6264,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["pad-1"],
-    } as Server;
+    };
     runKind(s, "ab-1", "place_up_to_n_advancements_on_advanceable_installed", {
       max: 2,
     });
@@ -6271,8 +6276,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("New Angeles Sol: may play a current from HQ or Archives", () => {
     const s = createInitialState();
-    put(s, "new-angeles-sol-your-news", "sol-1", "corp:identity");
-    put(s, "enforced-curfew", "cur-1", "corp:hand");
+    put(s, "new-angeles-sol-your-news", "sol-1", identityZone(s, "corp"));
+    put(s, "enforced-curfew", "cur-1", "corp:hq");
     s.corp.hand = ["cur-1"];
     s.corp.credits = 10;
     runKind(s, "sol-1", "play_current_from_hq_or_archives");
@@ -6343,7 +6348,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["zb-1", "hid-1"],
-    } as Server;
+    };
     s.pendingExpose = { cardId: "hid-1", phase: "interrupt" };
     s.cards["hid-1"]!.faceup = false;
     runKind(s, "zb-1", "prevent_pending_expose", { amount: 1 });
@@ -6448,8 +6453,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Reeducation: reeducation_hq_bottom_rd_draw_runner_grip_to_stack offers HQ picks", () => {
     const s = createInitialState();
     put(s, "reeducation", "re-1", "corp:score");
-    put(s, "hedge-fund", "hf-1", "corp:hand");
-    put(s, "pad-campaign", "pad-1", "corp:hand");
+    put(s, "hedge-fund", "hf-1", "corp:hq");
+    put(s, "pad-campaign", "pad-1", "corp:hq");
     s.corp.hand = ["hf-1", "pad-1"];
     for (let i = 0; i < 3; i++) {
       put(s, "hedge-fund", `rd-${i}`, "corp:rd");
@@ -6464,7 +6469,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Sacrifice: removes BP equal to forfeited AP and gains that many credits", () => {
     const s = createInitialState();
-    put(s, "sacrifice", "sac-1", "corp:play");
+    put(s, "sacrifice", "sac-1", "corp:play-area");
     s.lastForfeitedAgendaPoints = 2;
     s.corp.badPublicity = 3;
     s.corp.credits = 4;
@@ -6481,7 +6486,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     vik.rezzed = true;
     s.servers["hq"]!.ice = ["rav-1"];
     s.servers["rd"]!.ice = ["vik-1"];
-    put(s, "sure-gamble", "sg-1", "runner:hand");
+    put(s, "sure-gamble", "sg-1", "runner:grip");
     s.runner.hand = ["sg-1"];
     runKind(s, "rav-1", "resolve_bioroid_subroutine");
     // The Corp chooses which subroutine (CR 1.15.2).
@@ -6492,7 +6497,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Deep Dive: sets aside top of R&D, accesses with clicks, then shuffles remainder back", () => {
     const s = createInitialState();
-    put(s, "deep-dive", "dd-1", "runner:play");
+    put(s, "deep-dive", "dd-1", "runner:play-area");
     for (let i = 0; i < 5; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
     put(s, "hostile-takeover", "ht-1", "corp:rd");
     s.corp.deck = ["ht-1", "rd-0", "rd-1", "rd-2", "rd-3", "rd-4"];
@@ -6509,11 +6514,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "marathon", "mar-1", "runner:heap");
     s.runner.discardPile = ["mar-1"];
     s.runner.clicks = 2;
-    s.run = {
-      position: null,
-      attackedServerId: "remote-1",
+    s.run = runState("remote-1", "ends", {
+      successful: true,
       runSourceId: "mar-1",
-    } as GameState["run"];
+    });
     runKind(s, "mar-1", "resolve_marathon");
     expect(s.runner.clicks).toBe(3);
     expect(s.runner.hand).toContain("mar-1");
@@ -6525,8 +6529,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "moon-pool", "mp-1", "corp:archives");
     s.corp.discardPile = ["mp-1"];
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "hedge-fund", "hq-2", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "hedge-fund", "hq-2", "corp:hq");
     s.corp.hand = ["hq-1", "hq-2"];
     const facedown = put(s, "hostile-takeover", "fa-1", "corp:archives");
     facedown.faceup = false;
@@ -6539,7 +6543,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["host-1"],
-    } as Server;
+    };
     runKind(s, "mp-1", "resolve_moon_pool", {
       trashHqMax: 2,
       revealArchivesMax: 2,
@@ -6582,8 +6586,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "moon-pool", "mp-1", "corp:archives");
     s.corp.discardPile = ["mp-1"];
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "ice-wall", "hq-2", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "ice-wall", "hq-2", "corp:hq");
     s.corp.hand = ["hq-1", "hq-2"];
     put(s, "hostile-takeover", "fa-1", "corp:archives").faceup = false;
     s.corp.discardPile.push("fa-1");
@@ -6643,7 +6647,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["asset-1"],
-    } as Server;
+    };
     put(s, "corroder", "prog-1", "runner:installed");
     s.runner.installed = ["prog-1"];
     runKind(s, "mp-1", "resolve_moon_pool", {
@@ -6673,7 +6677,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["mp-1"],
-    } as Server;
+    };
     s.corp.hand = [];
     s.corp.discardPile = [];
     s.corp.clicks = 3;
@@ -6703,7 +6707,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["sd-1"],
-    } as Server;
+    };
     put(s, "hedge-fund", "arc-1", "corp:archives").faceup = true;
     put(s, "ice-wall", "arc-2", "corp:archives").faceup = true;
     s.corp.discardPile = ["arc-1", "arc-2"];
@@ -6752,7 +6756,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Mutate: reveals until ice, installs/rezzes in trashed slot, shuffles R&D", () => {
     const s = createInitialState();
-    put(s, "mutate", "mut-1", "corp:play");
+    put(s, "mutate", "mut-1", "corp:play-area");
     put(s, "hedge-fund", "op-1", "corp:rd");
     put(s, "ice-wall", "iw-new", "corp:rd");
     put(s, "hedge-fund", "op-2", "corp:rd");
@@ -6774,9 +6778,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Simulation Reset: trashes HQ, shuffles that many Archives into R&D, draws, RFGs", () => {
     const s = createInitialState();
-    put(s, "simulation-reset", "sr-1", "corp:play");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "hedge-fund", "hq-2", "corp:hand");
+    put(s, "simulation-reset", "sr-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "hedge-fund", "hq-2", "corp:hq");
     s.corp.hand = ["hq-1", "hq-2"];
     put(s, "hedge-fund", "arch-1", "corp:archives");
     s.corp.discardPile = ["arch-1"];
@@ -6796,9 +6800,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Simulation Reset: the Corp picks which Archives cards go back to R&D", () => {
     const s = createInitialState();
-    put(s, "simulation-reset", "sr-1", "corp:play");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "ice-wall", "hq-2", "corp:hand");
+    put(s, "simulation-reset", "sr-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "ice-wall", "hq-2", "corp:hq");
     s.corp.hand = ["hq-1", "hq-2"];
     put(s, "hostile-takeover", "arch-1", "corp:archives").faceup = true;
     put(s, "project-atlas", "arch-2", "corp:archives").faceup = true;
@@ -6870,7 +6874,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Trade-In: gains half install cost then offers hardware from stack", () => {
     const s = createInitialState();
-    put(s, "trade-in", "ti-1", "runner:play");
+    put(s, "trade-in", "ti-1", "runner:play-area");
     s.turn.tradeInCredits = 1; // half of Desperado's 3
     s.runner.credits = 4;
     put(s, "desperado", "desp-1", "runner:stack");
@@ -6892,7 +6896,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("24/7 News Cycle: offers when-scored on a scored agenda", () => {
     const s = createInitialState();
-    put(s, "24-7-news-cycle", "news-1", "corp:play");
+    put(s, "24-7-news-cycle", "news-1", "corp:play-area");
     put(s, "hostile-takeover", "ht-1", "corp:score");
     s.corp.scoreArea = ["ht-1"];
     s.corp.credits = 2;
@@ -6909,15 +6913,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Beta Build: returns tracked installed program to stack top when still installed", () => {
     const s = createInitialState();
-    put(s, "beta-build", "bb-1", "runner:play");
+    put(s, "beta-build", "bb-1", "runner:play-area");
     put(s, "corroder", "prog-1", "runner:installed");
     s.runner.installed = ["prog-1"];
     s.runner.deck = [];
-    s.run = {
-      position: null,
-      attackedServerId: "hq",
-      betaBuildTrackedInstallId: "prog-1",
-    } as GameState["run"];
+    s.run = runState("hq", "movement", { betaBuildTrackedInstallId: "prog-1" });
     runKind(s, "bb-1", "return_tracked_install_to_stack_top_if_installed");
     expect(s.runner.installed).not.toContain("prog-1");
     expect(s.runner.deck[0]).toBe("prog-1");
@@ -6926,9 +6926,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Fear the Masses: reveals grip copies, skips breach, trashes 1+copies from R&D", () => {
     const s = createInitialState();
-    put(s, "fear-the-masses", "ftm-1", "runner:play");
-    put(s, "fear-the-masses", "ftm-2", "runner:hand");
-    put(s, "fear-the-masses", "ftm-3", "runner:hand");
+    put(s, "fear-the-masses", "ftm-1", "runner:play-area");
+    put(s, "fear-the-masses", "ftm-2", "runner:grip");
+    put(s, "fear-the-masses", "ftm-3", "runner:grip");
     s.runner.hand = ["ftm-2", "ftm-3"];
     for (let i = 0; i < 5; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
     s.corp.deck = ["rd-0", "rd-1", "rd-2", "rd-3", "rd-4"];
@@ -6975,8 +6975,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Perfect Recall: reveals an HQ card and forbids steal/trash of that title this run", () => {
     const s = createInitialState();
     put(s, "perfect-recall", "pr-1", "server:hq:root");
-    put(s, "hostile-takeover", "ht-1", "corp:hand");
-    put(s, "hedge-fund", "hf-1", "corp:hand");
+    put(s, "hostile-takeover", "ht-1", "corp:hq");
+    put(s, "hedge-fund", "hf-1", "corp:hq");
     s.corp.hand = ["ht-1", "hf-1"];
     s.servers["hq"]!.root = ["pr-1"];
     s.run = { attackedServerId: "hq", position: null } as GameState["run"];
@@ -6999,15 +6999,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     const pb = put(s, "plan-b", "pb-1", "server:remote-1:root");
     pb.advancementCounters = 2;
-    put(s, "hostile-takeover", "ht-1", "corp:hand");
-    put(s, "priority-requisition", "pr-1", "corp:hand");
+    put(s, "hostile-takeover", "ht-1", "corp:hq");
+    put(s, "priority-requisition", "pr-1", "corp:hq");
     s.corp.hand = ["ht-1", "pr-1"];
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["pb-1"],
-    } as Server;
+    };
     runKind(s, "pb-1", "may_reveal_score_from_hq");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
       "pb:ht-1",
@@ -7025,10 +7025,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Bamboo Dome: reveals top 3 of R&D, adds 1 to HQ, returns others on top in order", () => {
     const s = createInitialState();
     put(s, "bamboo-dome", "bd-1", "server:rd:root");
-    put(s, "hedge-fund", "rd-0", "corp:rnd");
-    put(s, "pad-campaign", "rd-1", "corp:rnd");
-    put(s, "ice-wall", "rd-2", "corp:rnd");
-    put(s, "hostile-takeover", "rd-3", "corp:rnd");
+    put(s, "hedge-fund", "rd-0", "corp:rd");
+    put(s, "pad-campaign", "rd-1", "corp:rd");
+    put(s, "ice-wall", "rd-2", "corp:rd");
+    put(s, "hostile-takeover", "rd-3", "corp:rd");
     s.corp.deck = ["rd-0", "rd-1", "rd-2", "rd-3"];
     s.corp.hand = [];
     s.servers["rd"]!.root = ["bd-1"];
@@ -7057,8 +7057,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Open Forum: reveals top of R&D into HQ, then puts 1 HQ card on R&D top", () => {
     const s = createInitialState();
     put(s, "open-forum", "of-1", "server:remote-1:root");
-    put(s, "hedge-fund", "top-1", "corp:rnd");
-    put(s, "pad-campaign", "hq-1", "corp:hand");
+    put(s, "hedge-fund", "top-1", "corp:rd");
+    put(s, "pad-campaign", "hq-1", "corp:hq");
     s.corp.deck = ["top-1"];
     s.corp.hand = ["hq-1"];
     s.servers["remote-1"] = {
@@ -7066,7 +7066,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["of-1"],
-    } as Server;
+    };
     runKind(s, "of-1", "reveal_top_rd_to_hq_then_hq_to_rd_top");
     expect(s.corp.hand).toEqual(expect.arrayContaining(["hq-1", "top-1"]));
     expect(s.corp.deck).toEqual([]);
@@ -7085,7 +7085,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Concerto: reveals stack top into grip and places its play/install cost as hosted credits", () => {
     const s = createInitialState();
-    put(s, "concerto", "con-1", "runner:play");
+    put(s, "concerto", "con-1", "runner:play-area");
     put(s, "sure-gamble", "top-1", "runner:stack");
     s.runner.deck = ["top-1"];
     s.runner.hand = [];
@@ -7098,7 +7098,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Shoot the Moon: rezzes 1 unrezzed ice per Runner tag ignoring costs", () => {
     const s = createInitialState();
-    put(s, "shoot-the-moon", "stm-1", "corp:play");
+    put(s, "shoot-the-moon", "stm-1", "corp:play-area");
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     put(s, "enigma", "en-1", "server:rd:ice");
     s.servers["hq"]!.ice = ["iw-1"];
@@ -7160,7 +7160,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["qs-1"],
-    } as Server;
+    };
     s.lastForfeitedAgendaPoints = 1;
     s.corp.credits = 1;
     runKind(s, "qs-1", "rez_up_to_3_ice_discount");
@@ -7186,8 +7186,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Mumbad City Hall: offers an alliance from R&D to reveal and play/install", () => {
     const s = createInitialState();
     put(s, "mumbad-city-hall", "mch-1", "server:remote-1:root");
-    put(s, "product-recall", "pr-1", "corp:rnd");
-    put(s, "hedge-fund", "hf-1", "corp:rnd");
+    put(s, "product-recall", "pr-1", "corp:rd");
+    put(s, "hedge-fund", "hf-1", "corp:rd");
     s.corp.deck = ["hf-1", "pr-1"];
     s.corp.hand = [];
     s.servers["remote-1"] = {
@@ -7195,7 +7195,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["mch-1"],
-    } as Server;
+    };
     runKind(s, "mch-1", "search_alliance_play_or_install");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
       "choose-card:pr-1",
@@ -7235,7 +7235,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Kabonesa Wu: searches stack for a non-virus program and installs at −1¢", () => {
     const s = createInitialState();
-    put(s, "kabonesa-wu-netspace-thrillseeker", "kw-1", "runner:identity");
+    put(
+      s,
+      "kabonesa-wu-netspace-thrillseeker",
+      "kw-1",
+      identityZone(s, "runner"),
+    );
     put(s, "corroder", "prog-1", "runner:stack");
     put(s, "datasucker", "ds-1", "runner:stack");
     put(s, "sure-gamble", "sg-1", "runner:stack");
@@ -7258,10 +7263,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Recruiting Trip: reveals up to X different sysops from R&D into HQ then shuffles", () => {
     const s = createInitialState();
-    put(s, "recruiting-trip", "rt-1", "corp:play");
-    put(s, "tori-hanzo", "sys-1", "corp:rnd");
-    put(s, "midori", "sys-2", "corp:rnd");
-    put(s, "hedge-fund", "hf-1", "corp:rnd");
+    put(s, "recruiting-trip", "rt-1", "corp:play-area");
+    put(s, "tori-hanzo", "sys-1", "corp:rd");
+    put(s, "midori", "sys-2", "corp:rd");
+    put(s, "hedge-fund", "hf-1", "corp:rd");
     s.corp.deck = ["hf-1", "sys-1", "sys-2"];
     s.corp.hand = [];
     s.turn.lastPlayCostX = 2;
@@ -7325,7 +7330,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Hostage: searches stack for a connection, adds it to grip, and may install it", () => {
     const s = createInitialState();
-    put(s, "hostage", "hos-1", "runner:play");
+    put(s, "hostage", "hos-1", "runner:play-area");
     put(s, "kati-jones", "kj-1", "runner:stack");
     put(s, "sure-gamble", "sg-1", "runner:stack");
     s.runner.deck = ["sg-1", "kj-1"];
@@ -7363,12 +7368,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: ["iw-1"],
       root: ["sd-1", "pad-1"],
-    } as Server;
-    s.run = {
-      attackedServerId: "remote-1",
-      position: null,
-    } as GameState["run"];
-    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
+    };
+    s.run = runState("remote-1", "movement");
+    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:grip");
     s.runner.hand = ["sg-0", "sg-1", "sg-2", "sg-3"];
     s.runner.link = 0;
     runKind(s, "sd-1", "self_destruct_ability");
@@ -7392,21 +7394,18 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Because I Can: shuffles all cards in the attacked remote root into R&D", () => {
     const s = createInitialState();
-    put(s, "because-i-can", "bic-1", "runner:play");
+    put(s, "because-i-can", "bic-1", "runner:play-area");
     put(s, "pad-campaign", "pad-1", "server:remote-1:root");
     put(s, "hostile-takeover", "ht-1", "server:remote-1:root");
-    put(s, "hedge-fund", "rd-1", "corp:rnd");
+    put(s, "hedge-fund", "rd-1", "corp:rd");
     s.corp.deck = ["rd-1"];
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["pad-1", "ht-1"],
-    } as Server;
-    s.run = {
-      attackedServerId: "remote-1",
-      position: null,
-    } as GameState["run"];
+    };
+    s.run = runState("remote-1", "success", { successful: true });
     runKind(s, "bic-1", "shuffle_because_i_can_root");
     expect(s.servers["remote-1"]!.root).toEqual([]);
     expect(s.corp.deck).toEqual(
@@ -7440,10 +7439,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Jinteki Biotech (Tank): shuffles all of Archives into R&D", () => {
     const s = createInitialState();
-    put(s, "jinteki-biotech-life-imagined", "jb-1", "corp:identity");
+    put(s, "jinteki-biotech-life-imagined", "jb-1", identityZone(s, "corp"));
     put(s, "hedge-fund", "a-1", "corp:archives");
     put(s, "pad-campaign", "a-2", "corp:archives");
-    put(s, "hedge-fund", "rd-0", "corp:rnd");
+    put(s, "hedge-fund", "rd-0", "corp:rd");
     s.corp.identityId = "jb-1";
     s.corp.discardPile = ["a-1", "a-2"];
     s.corp.deck = ["rd-0"];
@@ -7567,7 +7566,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Reuse: spends 1 click as an additional cost", () => {
     const s = createInitialState();
-    put(s, "reuse", "reuse-1", "corp:play");
+    put(s, "reuse", "reuse-1", "corp:play-area");
     s.corp.clicks = 3;
     runKind(s, "reuse-1", "spend_click_additional_cost");
     expect(s.corp.clicks).toBe(2);
@@ -7575,7 +7574,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Bahia Bands: marks hosted credits spendable for trash costs", () => {
     const s = createInitialState();
-    const bahia = put(s, "bahia-bands", "bb-1", "runner:play");
+    const bahia = put(s, "bahia-bands", "bb-1", "runner:play-area");
     bahia.hostedCredits = 4;
     runKind(s, "bb-1", "spend_enable_hosted_credits_for", {
       purposes: ["trash"],
@@ -7677,8 +7676,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["shi-1"],
-    } as Server;
-    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
+    };
+    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `sg-${i}`, "runner:grip");
     s.runner.hand = ["sg-0", "sg-1", "sg-2"];
     s.corp.credits = 5;
     runKind(s, "shi-1", "spend_shi_kyu_for_net_damage");
@@ -7705,7 +7704,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["shi-2"],
-    } as Server;
+    };
     s2.corp.credits = 4;
     runKind(s2, "shi-2", "spend_shi_kyu_for_net_damage");
     let after2 = applyAction(s2, { type: "choose_option", optionId: "shi:1" });
@@ -7783,7 +7782,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("By Any Means: activates trash-on-access (not Archives) for the turn", () => {
     const s = createInitialState();
-    put(s, "by-any-means", "bam-1", "runner:play");
+    put(s, "by-any-means", "bam-1", "runner:play-area");
     expect(s.turn.ssByAnyMeansActive).toBeFalsy();
     runKind(s, "bam-1", "ss_activate_by_any_means");
     expect(s.turn.ssByAnyMeansActive).toBe(true);
@@ -7791,11 +7790,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Wake Up Call: Runner trashes the chosen hardware or suffers 4 meat", () => {
     const s = createInitialState();
-    put(s, "wake-up-call", "wuc-1", "corp:play");
+    put(s, "wake-up-call", "wuc-1", "corp:play-area");
     put(s, "desperado", "hw-1", "runner:installed");
     put(s, "daily-casts", "res-1", "runner:installed");
     s.runner.installed = ["hw-1", "res-1"];
-    for (let i = 0; i < 5; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
+    for (let i = 0; i < 5; i++) put(s, "sure-gamble", `sg-${i}`, "runner:grip");
     s.runner.hand = ["sg-0", "sg-1", "sg-2", "sg-3", "sg-4"];
     runKind(s, "wuc-1", "ss_wake_up_call");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
@@ -7818,8 +7817,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("The Supplier: hosts a resource or hardware from the grip", () => {
     const s = createInitialState();
     put(s, "the-supplier", "sup-1", "runner:installed");
-    put(s, "daily-casts", "dc-1", "runner:hand");
-    put(s, "sure-gamble", "sg-1", "runner:hand");
+    put(s, "daily-casts", "dc-1", "runner:grip");
+    put(s, "sure-gamble", "sg-1", "runner:grip");
     s.runner.installed = ["sup-1"];
     s.runner.hand = ["dc-1", "sg-1"];
     runKind(s, "sup-1", "supplier_host_from_grip");
@@ -7866,14 +7865,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     const allele = put(s, "allele-repression", "ar-1", "server:remote-1:root");
     allele.advancementCounters = 1;
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     put(s, "pad-campaign", "arch-1", "corp:archives");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["ar-1"],
-    } as Server;
+    };
     s.corp.hand = ["hq-1"];
     s.corp.discardPile = ["arch-1"];
     runKind(s, "ar-1", "swap_hq_archives_per_advancement_on_self");
@@ -7892,7 +7891,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Exchange of Information: swaps one Corp scored agenda with one Runner scored agenda", () => {
     const s = createInitialState();
-    put(s, "exchange-of-information", "eoi-1", "corp:play");
+    put(s, "exchange-of-information", "eoi-1", "corp:play-area");
     put(s, "hostile-takeover", "ht-1", "corp:score");
     put(s, "priority-requisition", "pr-1", "runner:score");
     s.corp.scoreArea = ["ht-1"];
@@ -7930,13 +7929,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     const sakai = put(s, "toshiyuki-sakai", "sak-1", "server:remote-1:root");
     sakai.advancementCounters = 2;
-    put(s, "hostile-takeover", "hq-1", "corp:hand");
+    put(s, "hostile-takeover", "hq-1", "corp:hq");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["sak-1"],
-    } as Server;
+    };
     s.corp.hand = ["hq-1"];
     runKind(s, "sak-1", "may_swap_with_hq");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
@@ -7963,8 +7962,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["cwp-1"],
-    } as Server;
-    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
+    };
+    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:grip");
     s.runner.hand = ["sg-0", "sg-1", "sg-2", "sg-3"];
     runKind(s, "cwp-1", "tdatd_city_works_meat");
     expect(s.runner.hand.length).toBe(1);
@@ -7973,14 +7972,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Falsified Credentials: naming the exposed remote card's type gains 5", () => {
     const s = createInitialState();
-    put(s, "falsified-credentials", "fc-1", "runner:play");
+    put(s, "falsified-credentials", "fc-1", "runner:play-area");
     put(s, "adonis-campaign", "as-1", "server:remote-1:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["as-1"],
-    } as Server;
+    };
     s.runner.credits = 2;
     runKind(s, "fc-1", "tdatd_falsified_credentials");
     expect(s.pendingChoice?.options.map((o) => o.id)).toContain(
@@ -8001,11 +8000,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Glut Cipher: with 5+ Archives, adds 5 to HQ then trashes 5 at random", () => {
     const s = createInitialState();
-    put(s, "glut-cipher", "gc-1", "runner:play");
+    put(s, "glut-cipher", "gc-1", "runner:play-area");
     for (let i = 0; i < 5; i++) {
       put(s, "hedge-fund", `arch-${i}`, "corp:archives");
     }
-    put(s, "pad-campaign", "hq-keep", "corp:hand");
+    put(s, "pad-campaign", "hq-keep", "corp:hq");
     s.corp.discardPile = ["arch-0", "arch-1", "arch-2", "arch-3", "arch-4"];
     s.corp.hand = ["hq-keep"];
     runKind(s, "gc-1", "tdatd_glut_cipher");
@@ -8045,7 +8044,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Tennin Institute: may place 1 advancement on an installed (including unrezzed) card", () => {
     const s = createInitialState();
-    put(s, "tennin-institute-the-secrets-within", "ten-1", "corp:identity");
+    put(
+      s,
+      "tennin-institute-the-secrets-within",
+      "ten-1",
+      identityZone(s, "corp"),
+    );
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.servers["hq"]!.ice = ["iw-1"];
     expect(s.cards["iw-1"]?.rezzed).toBeFalsy();
@@ -8072,7 +8076,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["amani-1"],
-    } as Server;
+    };
     put(s, "hostile-takeover", "ht-1", "corp:score");
     put(s, "corroder", "prog-1", "runner:installed");
     s.corp.scoreArea = ["ht-1"];
@@ -8138,7 +8142,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["bs-1"],
-    } as Server;
+    };
     s.corp.badPublicity = 0;
     s.turn.pendingBadPublicityTake = 1;
     s.runner.link = 0;
@@ -8156,7 +8160,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["bs-2"],
-    } as Server;
+    };
     s2.corp.badPublicity = 0;
     s2.turn.pendingBadPublicityTake = 2;
     s2.runner.link = 99;
@@ -8191,7 +8195,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("AgInfusion: trashes approached unrezzed ice and redirects the run", () => {
     const s = createInitialState();
-    put(s, "aginfusion-new-miracles-for-a-new-world", "agi-1", "corp:identity");
+    put(
+      s,
+      "aginfusion-new-miracles-for-a-new-world",
+      "agi-1",
+      identityZone(s, "corp"),
+    );
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     put(s, "enigma", "en-1", "server:rd:ice");
     s.servers["hq"]!.ice = ["iw-1"];
@@ -8218,10 +8227,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("The Noble Path: trashes all cards from the grip", () => {
     const s = createInitialState();
-    put(s, "the-noble-path", "tnp-1", "runner:play");
-    put(s, "sure-gamble", "sg-0", "runner:hand");
-    put(s, "diesel", "sg-1", "runner:hand");
-    put(s, "sure-gamble", "sg-2", "runner:hand");
+    put(s, "the-noble-path", "tnp-1", "runner:play-area");
+    put(s, "sure-gamble", "sg-0", "runner:grip");
+    put(s, "diesel", "sg-1", "runner:grip");
+    put(s, "sure-gamble", "sg-2", "runner:grip");
     s.runner.hand = ["sg-0", "sg-1", "sg-2"];
     runKind(s, "tnp-1", "trash_all_cards_from_grip");
     expect(s.runner.hand).toEqual([]);
@@ -8232,7 +8241,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Apocalypse: trashes all installed Corp cards", () => {
     const s = createInitialState();
-    put(s, "apocalypse", "apo-1", "runner:play");
+    put(s, "apocalypse", "apo-1", "runner:play-area");
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     put(s, "adonis-campaign", "as-1", "server:remote-1:root");
     s.servers["hq"]!.ice = ["iw-1"];
@@ -8241,7 +8250,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["as-1"],
-    } as Server;
+    };
     runKind(s, "apo-1", "trash_all_installed_corp_cards");
     expect(s.corp.discardPile).toEqual(
       expect.arrayContaining(["iw-1", "as-1"]),
@@ -8252,11 +8261,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Distract the Masses: trashes up to 2 from HQ then shuffles up to 2 Archives into R&D", () => {
     const s = createInitialState();
-    put(s, "distract-the-masses", "dtm-1", "corp:play");
-    put(s, "hedge-fund", "hq-0", "corp:hand");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "distract-the-masses", "dtm-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-0", "corp:hq");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     put(s, "hedge-fund", "arch-0", "corp:archives");
-    put(s, "hedge-fund", "rd-0", "corp:rnd");
+    put(s, "hedge-fund", "rd-0", "corp:rd");
     s.corp.hand = ["hq-0", "hq-1"];
     s.corp.discardPile = ["arch-0"];
     s.corp.deck = ["rd-0"];
@@ -8292,7 +8301,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Trade-In: additional cost trashes installed hardware and records half install cost", () => {
     const s = createInitialState();
-    put(s, "trade-in", "ti-1", "runner:play");
+    put(s, "trade-in", "ti-1", "runner:play-area");
     put(s, "desperado", "hw-1", "runner:installed");
     s.runner.installed = ["hw-1"];
     runKind(s, "ti-1", "trash_hardware_additional_cost");
@@ -8310,7 +8319,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Power Grid Overload: trashes hardware with install cost ≤ last trace excess", () => {
     const s = createInitialState();
-    put(s, "power-grid-overload", "pgo-1", "corp:play");
+    put(s, "power-grid-overload", "pgo-1", "corp:play-area");
     put(s, "clone-chip", "cheap-1", "runner:installed"); // install 1
     put(s, "desperado", "pricey-1", "runner:installed"); // install 3
     s.runner.installed = ["cheap-1", "pricey-1"];
@@ -8339,7 +8348,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Hellion Beta Test: trashes up to 2 installed non-program cards", () => {
     const s = createInitialState();
-    put(s, "hellion-beta-test", "hbt-1", "corp:play");
+    put(s, "hellion-beta-test", "hbt-1", "corp:play-area");
     put(s, "desperado", "hw-1", "runner:installed");
     put(s, "daily-casts", "res-1", "runner:installed");
     put(s, "corroder", "prog-1", "runner:installed");
@@ -8370,9 +8379,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Reuse: trashes any number from HQ then gains 2¢ per trashed card", () => {
     const s = createInitialState();
-    put(s, "reuse", "reuse-1", "corp:play");
-    put(s, "hedge-fund", "hq-0", "corp:hand");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "reuse", "reuse-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-0", "corp:hq");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     s.corp.hand = ["hq-0", "hq-1"];
     s.corp.credits = 5;
     runKind(s, "reuse-1", "trash_hq_gain_credits");
@@ -8400,9 +8409,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Audacity: trashes all of HQ then places a total of 2 advancements", () => {
     const s = createInitialState();
-    put(s, "audacity", "aud-1", "corp:play");
-    put(s, "hedge-fund", "hq-0", "corp:hand");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "audacity", "aud-1", "corp:play-area");
+    put(s, "hedge-fund", "hq-0", "corp:hq");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     const agenda = put(s, "hostile-takeover", "ht-1", "server:remote-1:root");
     agenda.advancementCounters = 0;
     s.corp.hand = ["hq-0", "hq-1"];
@@ -8411,7 +8420,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["ht-1"],
-    } as Server;
+    };
     runKind(s, "aud-1", "trash_hq_place_total_2_advancements");
     expect(s.corp.hand).toEqual([]);
     expect(s.corp.discardPile).toEqual(
@@ -8431,8 +8440,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Sisyphus Protocol: trashing a chosen HQ card reencounters the pending ice", () => {
     const s = createInitialState();
     put(s, "sisyphus-protocol", "sp-1", "corp:score");
-    put(s, "hedge-fund", "hq-keep", "corp:hand");
-    put(s, "hedge-fund", "hq-trash", "corp:hand");
+    put(s, "hedge-fund", "hq-keep", "corp:hq");
+    put(s, "hedge-fund", "hq-trash", "corp:hq");
     const ice = put(s, "enforcer-1-0", "ice-1", "server:hq:ice");
     ice.rezzed = true;
     s.corp.scoreArea = ["sp-1"];
@@ -8460,7 +8469,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Hunter Seeker: trashes 1 installed card (Corp or Runner)", () => {
     const s = createInitialState();
-    put(s, "hunter-seeker", "hs-1", "corp:play");
+    put(s, "hunter-seeker", "hs-1", "corp:play-area");
     put(s, "desperado", "hw-1", "runner:installed");
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.runner.installed = ["hw-1"];
@@ -8480,7 +8489,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Run Amok: trashes 1 ice that was rezzed during this run", () => {
     const s = createInitialState();
-    put(s, "run-amok", "ra-1", "runner:play");
+    put(s, "run-amok", "ra-1", "runner:play-area");
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = true;
     s.servers["hq"]!.ice = ["iw-1"];
@@ -8496,7 +8505,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Enforcing Loyalty: trashes an installed card not matching the Runner ID faction", () => {
     const s = createInitialState();
-    put(s, "enforcing-loyalty", "el-1", "corp:play");
+    put(s, "enforcing-loyalty", "el-1", "corp:play-area");
     put(s, "corroder", "anarch-1", "runner:installed"); // anarch
     put(s, "plascrete-carapace", "neutral-1", "runner:installed"); // matches neutral ID
     s.runner.installed = ["anarch-1", "neutral-1"];
@@ -8537,7 +8546,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["azef-1"],
-    } as Server;
+    };
     s.servers["hq"]!.ice = ["iw-1"];
     runKind(s, "azef-1", "trash_must_installed");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["trash:iw-1"]);
@@ -8552,8 +8561,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Null: trashing a grip card lowers the encountered ice's strength by 2 for the remainder of the run (CR 1.2.1, 9.10.1)", () => {
     const s = createInitialState();
-    put(s, "null-whistleblower", "null-1", "runner:identity");
-    put(s, "sure-gamble", "grip-1", "runner:hand");
+    put(s, "null-whistleblower", "null-1", identityZone(s, "runner"));
+    put(s, "sure-gamble", "grip-1", "runner:grip");
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = true;
     ice.strength = 5;
@@ -8580,7 +8589,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Cold Read: trashes 1 program used this run and cannot be prevented", () => {
     const s = createInitialState();
-    put(s, "cold-read", "cr-1", "runner:play");
+    put(s, "cold-read", "cr-1", "runner:play-area");
     put(s, "corroder", "used-1", "runner:installed");
     put(s, "gordian-blade", "unused-1", "runner:installed");
     s.runner.installed = ["used-1", "unused-1"];
@@ -8596,7 +8605,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("The Price of Freedom: additional cost trashes an installed connection resource", () => {
     const s = createInitialState();
-    put(s, "the-price-of-freedom", "tpof-1", "runner:play");
+    put(s, "the-price-of-freedom", "tpof-1", "runner:play-area");
     put(s, "aesops-pawnshop", "conn-1", "runner:installed");
     put(s, "daily-casts", "non-1", "runner:installed");
     s.runner.installed = ["conn-1", "non-1"];
@@ -8609,7 +8618,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("En Passant: trashes 1 unrezzed ice passed during the last run", () => {
     const s = createInitialState();
-    put(s, "en-passant", "ep-1", "runner:play");
+    put(s, "en-passant", "ep-1", "runner:play-area");
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = false;
     s.servers["hq"]!.ice = ["iw-1"];
@@ -8621,7 +8630,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Retribution: trashes 1 installed program or piece of hardware", () => {
     const s = createInitialState();
-    put(s, "retribution", "ret-1", "corp:play");
+    put(s, "retribution", "ret-1", "corp:play-area");
     put(s, "corroder", "prog-1", "runner:installed");
     put(s, "desperado", "hw-1", "runner:installed");
     s.runner.installed = ["prog-1", "hw-1"];
@@ -8642,9 +8651,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     const clan = put(s, "clan-vengeance", "cv-1", "runner:installed");
     clan.powerCounters = 2;
-    put(s, "hedge-fund", "hq-0", "corp:hand");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
-    put(s, "hedge-fund", "hq-2", "corp:hand");
+    put(s, "hedge-fund", "hq-0", "corp:hq");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
+    put(s, "hedge-fund", "hq-2", "corp:hq");
     s.runner.installed = ["cv-1"];
     s.corp.hand = ["hq-0", "hq-1", "hq-2"];
     runKind(s, "cv-1", "trash_random_hq_per_power_on_self");
@@ -8666,7 +8675,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Mutate: additional cost trashes a chosen rezzed piece of ice", () => {
     const s = createInitialState();
-    put(s, "mutate", "mut-1", "corp:play");
+    put(s, "mutate", "mut-1", "corp:play-area");
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = true;
     s.servers["hq"]!.ice = ["iw-1"];
@@ -8700,7 +8709,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       kind: "remote",
       ice: [],
       root: ["pad-1"],
-    } as Server;
+    };
     runKind(s, "po-1", "trash_rezzed_paying_trash_cost");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
       expect.arrayContaining(["po:pad-1"]),
@@ -8717,7 +8726,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Sadaka: trashes 1 HQ card then 1 resource", () => {
     const s = createInitialState();
     put(s, "sadaka", "sad-1", "server:hq:ice");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     put(s, "daily-casts", "res-1", "runner:installed");
     s.servers["hq"]!.ice = ["sad-1"];
     s.corp.hand = ["hq-1"];
@@ -8745,7 +8754,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Trojan Horse: trashes a program with install cost ≤ last trace excess", () => {
     const s = createInitialState();
-    put(s, "trojan-horse", "th-1", "corp:play");
+    put(s, "trojan-horse", "th-1", "corp:play-area");
     put(s, "corroder", "cheap-1", "runner:installed"); // install 2
     put(s, "gordian-blade", "pricey-1", "runner:installed"); // install 4
     s.runner.installed = ["cheap-1", "pricey-1"];
@@ -8768,7 +8777,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "the-twins", "twins-1", "server:hq:root");
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = true;
-    put(s, "ice-wall", "hq-copy", "corp:hand");
+    put(s, "ice-wall", "hq-copy", "corp:hq");
     s.servers["hq"]!.ice = ["iw-1"];
     s.servers["hq"]!.root = ["twins-1"];
     s.corp.hand = ["hq-copy"];
@@ -8854,7 +8863,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Apocalypse: turns all installed Runner cards facedown", () => {
     const s = createInitialState();
-    put(s, "apocalypse", "apo-1", "runner:play");
+    put(s, "apocalypse", "apo-1", "runner:play-area");
     const a = put(s, "corroder", "prog-1", "runner:installed");
     const b = put(s, "desperado", "hw-1", "runner:installed");
     a.faceup = true;
@@ -8868,7 +8877,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Matryoshka: turns hosted cards faceup", () => {
     const s = createInitialState();
     const host = put(s, "matryoshka", "mat-1", "runner:installed");
-    const guest = put(s, "matryoshka", "mat-2", "runner:hosted");
+    const guest = put(s, "matryoshka", "mat-2", "hosted:mat-1");
     guest.faceup = false;
     guest.hostId = "mat-1";
     host.hostedCardIds = ["mat-2"];
@@ -8908,7 +8917,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Contaminate: places 3 virus on an installed Runner card with none", () => {
     const s = createInitialState();
-    put(s, "contaminate", "ctm-1", "runner:play");
+    put(s, "contaminate", "ctm-1", "runner:play-area");
     const prog = put(s, "corroder", "prog-1", "runner:installed");
     prog.virusCounters = 0;
     s.runner.installed = ["prog-1"];
@@ -8918,7 +8927,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Embezzle: names a type, reveals 2 from HQ, trashes matches for 4¢ each", () => {
     const s = createInitialState();
-    put(s, "embezzle", "emb-1", "runner:play");
+    put(s, "embezzle", "emb-1", "runner:play-area");
     put(s, "pad-campaign", "hq-1", "corp:hq");
     put(s, "hedge-fund", "hq-2", "corp:hq");
     s.corp.hand = ["hq-1", "hq-2"];
@@ -9016,7 +9025,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Standard Procedure: names a type, reveals the grip, gains 2¢ per match", () => {
     const s = createInitialState();
-    put(s, "standard-procedure", "sp-1", "corp:play");
+    put(s, "standard-procedure", "sp-1", "corp:play-area");
     put(s, "sure-gamble", "g-1", "runner:grip");
     put(s, "sure-gamble", "g-2", "runner:grip");
     put(s, "corroder", "prog-1", "runner:grip");
@@ -9051,7 +9060,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Independent Thinking: trashing 1 installed card then finishing draws 1", () => {
     const s = createInitialState();
-    put(s, "independent-thinking", "it-1", "runner:play");
+    put(s, "independent-thinking", "it-1", "runner:play-area");
     put(s, "corroder", "prog-1", "runner:installed");
     for (let i = 0; i < 3; i++)
       put(s, "sure-gamble", `sg-${i}`, "runner:stack");

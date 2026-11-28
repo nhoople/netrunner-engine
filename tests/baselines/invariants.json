@@ -727,8 +727,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Ark Lockdown: naming a card removes all heap copies of it from the game": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Asmund Pudlat: may add 1 hosted card to the grip": [
       "NO_ZONE",
@@ -754,8 +753,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Bamboo Dome: reveals top 3 of R&D, adds 1 to HQ, returns others on top in order": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Bishop: hosts on ice that is not already hosting a Caïssa": [
       "RUNNER_CARD_REZZED"
@@ -802,12 +800,10 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > CBI Raid: Corp chooses the order of HQ cards onto the top of R&D": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Calibration Testing: places 1 advancement on a card in the root of its server": [
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Caprice Nisei: differing secret spends end the run; matching spends do not": [
       "NO_ZONE",
@@ -820,8 +816,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Career Fair: the Runner chooses which grip resource to install at 3 less": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Careful Planning: chosen unrezzed remote card cannot be rezzed this turn": [
       "NO_ZONE",
@@ -846,7 +841,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Constellation Protocol: moves 1 advancement counter between ice": [
-      "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Corporate Troubleshooter: spends X¢ to give chosen ice +X strength this turn": [
@@ -881,8 +875,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Data Loop: Runner adds 2 grip cards to the top of the stack": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Defense Construct: adds 1 facedown Archives card to HQ per advancement": [
       "NO_ZONE",
@@ -898,8 +891,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Distract the Masses: trashes up to 2 from HQ then shuffles up to 2 Archives into R&D": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Diversion of Funds: may force Corp to lose up to 5¢ instead of breaching HQ": [
       "NO_ZONE",
@@ -913,9 +905,7 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Early Premiere: pays 1 credit to place 1 advancement on a remote root card": [
-      "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Embezzle: names a type, reveals 2 from HQ, trashes matches for 4¢ each": [
       "NO_ZONE",
@@ -946,8 +936,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Fear the Masses: reveals grip copies, skips breach, trashes 1+copies from R&D": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Financial Collapse: the Runner loses 2 per installed resource or trashes one to prevent": [
       "NO_ZONE",
@@ -984,8 +973,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Hades Fragment: adds an Archives card to the bottom of R&D": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Hafrún: Corp chooses an installed Runner card that cannot break subs this run": [
       "RUNNER_CARD_REZZED"
@@ -1008,12 +996,10 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Hemorrhage: the Corp chooses which HQ card to trash": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Herald: may pay up to 2 credits to place that many advancements": [
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Holmegaard: trashes 1 installed icebreaker the Corp chooses": [
       "RUNNER_CARD_REZZED"
@@ -1039,8 +1025,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Information Sifting: Corp assigns HQ into two piles; Runner chooses one": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Injection Attack: chooses an icebreaker then starts a run with +2 strength": [
       "NO_ZONE",
@@ -1081,7 +1066,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Kuwinda K4H1U3: a failed trace adds a power counter": [
-      "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Lawyer Up: choosing 2 tags removes them and draws 3": [
@@ -1094,8 +1078,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > License Acquisition: the Corp chooses an asset or upgrade from HQ or Archives to install and rez": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Liquidation: trashes any number of rezzed cards for 3 credits each": [
       "NO_ZONE",
@@ -1164,16 +1147,14 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Moon Pool: RFGs self, trashes HQ, reveals facedown Archives into R&D, advances": [
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Moon Pool: leaving the game is the cost, so it never enters Archives (CR 1.16.1)": [
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Moon Pool: the Corp may trash and reveal nothing": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Moon Pool: the counter may go on any installed card (CR 1.18.2)": [
       "NO_ZONE",
@@ -1185,8 +1166,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Muertos Gang Member: the Corp chooses a rezzed card to derez": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Muertos Gang Member: when it leaves play, the Corp may rez a card ignoring cost": [
       "NO_ZONE",
@@ -1194,13 +1174,11 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Mumbad City Hall: offers an alliance from R&D to reveal and play/install": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Mushin No Shin: installs an asset/agenda/upgrade from HQ and advances it 3 times": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Mutate: additional cost trashes a chosen rezzed piece of ice": [
       "NO_ZONE",
@@ -1220,13 +1198,11 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > New Construction: installs 1 card from HQ in a new remote": [
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Nihongai Grid: looks at the top 5 of R&D (not the bottom) to swap with HQ": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Nuvem Sá: may trash the top card of R&D": [
       "NO_ZONE",
@@ -1251,8 +1227,7 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > PAD Factory: places an advancement on a card that cannot be scored until next turn": [
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Paige Piper: puts stack copies of the just-installed card into the heap": [
       "NO_ZONE",
@@ -1267,12 +1242,10 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Perfect Recall: reveals an HQ card and forbids steal/trash of that title this run": [
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Plan B: offers to score an HQ agenda with requirement ≤ its advancements": [
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Planned Assault: plays a run event from the stack (paying its cost)": [
       "NO_ZONE",
@@ -1306,8 +1279,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Psychographics: the Corp chooses X (up to tags) and the advanceable target": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Puffer: may place a power counter on itself": [
       "NO_ZONE",
@@ -1329,13 +1301,11 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Reconstruction Contract: moves any number of its advancements to an advanceable card only": [
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Red Planet Couriers: moves all advancements onto 1 advanceable card": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Remote Enforcement: installs and rezzes R&D ice protecting a remote": [
       "NO_ZONE",
@@ -1347,8 +1317,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Replanting: installs 2 cards from HQ ignoring all costs": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Reshape: swaps 2 unrezzed pieces of ice": [
       "NO_ZONE",
@@ -1368,8 +1337,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Reuse: trashes any number from HQ then gains 2¢ per trashed card": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Rex Campaign: when empty, may gain 5 credits and trash itself": [
       "RUNNER_CARD_REZZED"
@@ -1391,13 +1359,11 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > SSO Industries: advances ice by points on installed faceup agendas, not scored ones": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > SYN Attack: the Corp chooses which 2 cards to discard": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Sadaka: Corp may arrange or shuffle the looked-at top of R&D": [
       "NO_ZONE",
@@ -1408,8 +1374,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Salem's Hospitality: names a card; grip copies of that name are trashed": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Sealed Vault: stores and takes any number of credits, not necessarily all": [
       "NO_ZONE",
@@ -1423,8 +1388,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Shannon Claire: searches an agenda to the bottom of R&D": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Shattered Remains: paying 1 on access trashes 1 hardware per advancement counter": [
       "NO_ZONE",
@@ -1432,8 +1396,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Shi.Kyū: Corp spends credits; Runner may take that net or score it as −1": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Shiro: Corp may pay 1¢ else Runner breaches R&D with no root access (CR 7.3)": [
       "NO_ZONE",
@@ -1446,17 +1409,14 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Simulation Reset: the Corp picks which Archives cards go back to R&D": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Simulation Reset: trashes HQ, shuffles that many Archives into R&D, draws, RFGs": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Sisyphus Protocol: trashing a chosen HQ card reencounters the pending ice": [
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Snatch and Grab: successful trace trashes a connection unless the Runner takes a tag": [
       "NO_ZONE",
@@ -1464,8 +1424,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Snoop: reveals the grip and trashes 1 of those cards": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Social Engineering: marks an unrezzed piece of ice": [
       "NO_ZONE",
@@ -1477,8 +1436,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Special Report: shuffle 1 HQ card into R&D, then draw 1": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Spin Doctor: removed from the game as the cost, it is not among the cards to shuffle back": [
       "RUNNER_CARD_REZZED"
@@ -1526,7 +1484,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Tenma Line: swapping two installed ice exchanges their servers": [
-      "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Tennin Institute: may place 1 advancement on an installed (including unrezzed) card": [
@@ -1534,8 +1491,7 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Test Ground: derezzes 1 card per advancement counter on itself": [
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > The Back: shuffles up to 2 heap [trash] cards per power counter into the stack": [
       "NO_ZONE",
@@ -1547,8 +1503,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > The Supplier: hosts a resource or hardware from the grip": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > The Turning Wheel: chooses HQ or R&D for +1 access this run": [
       "RUNNER_CARD_REZZED"
@@ -1613,8 +1568,7 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Wake Up Call: Runner trashes the chosen hardware or suffers 4 meat": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Wari: names a subtype, exposes ice, and bounces it to HQ if it matches": [
       "RUNNER_CARD_REZZED"
@@ -1627,16 +1581,14 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Whampoa Reclamation: adds an Archives card to the bottom of R&D": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Will-o'-the-Wisp: may trash self and a breaker used this run": [
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Woman in the Red Dress: reveals the top card of R&D and the Corp may draw it": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Worlds Plaza: installs and rezzes an asset from HQ with a rez discount": [
       "RUNNER_CARD_REZZED"
