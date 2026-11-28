@@ -14,6 +14,7 @@
  * programs declared a lower `breaker.strength`, and `effectiveBreakerStrength`
  * read that first; it now reads the printed strength.
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -42,8 +43,8 @@ beforeAll(() => {
   loadCardCatalog(true);
 });
 
-function put(s: GameState, defId: string, id: string, zone: string) {
-  const card = instantiateCard(defId, id, zone as never);
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
+  const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;
 }

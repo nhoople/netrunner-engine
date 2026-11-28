@@ -7,6 +7,7 @@
  * behavior and cites the rule it follows. The first six blocks are the
  * visibility leaks: a seat saw a card it may not see (CR 10.2.2a).
  */
+import type { ZoneId } from "../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -73,8 +74,8 @@ function pick(s: GameState, optionId: string): void {
   run(s, choice.sourceId, option.effect);
 }
 
-function put(s: GameState, defId: string, id: string, zone: string) {
-  const card = instantiateCard(defId, id, zone as never);
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
+  const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;
 }

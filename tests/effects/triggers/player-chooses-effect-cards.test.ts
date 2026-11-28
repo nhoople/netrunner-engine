@@ -10,6 +10,7 @@
  * CR 10.12.2: the Corp chooses the HQ cards a sabotage trashes.
  * Card text wins where it says more (CR 1.2.1).
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -43,7 +44,7 @@ function must(state: GameState, action: Action): GameState {
   return result.state;
 }
 
-function put(s: GameState, defId: string, id: string, zone: string) {
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
   const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;
@@ -527,7 +528,7 @@ describe("Titanium Ribs: the Runner chooses the cards damage trashes (card text)
 describe("Peer Review (card text; CR 1.21.3)", () => {
   it("the Corp picks the card that stays hidden, and the rest are named", () => {
     const s = corpTurn();
-    put(s, "peer-review", "pr-1", "corp:play");
+    put(s, "peer-review", "pr-1", "corp:play-area");
     hq(s, [
       ["hedge-fund", "h-1"],
       ["ice-wall", "h-2"],
@@ -574,7 +575,7 @@ describe("the mark is random (CR 10.11.2a)", () => {
 describe("Meeting of Minds: reveal any number (card text; CR 1.21.3)", () => {
   it("the Runner says which matching cards are revealed", () => {
     const s = runnerTurn();
-    put(s, "meeting-of-minds", "mom-1", "runner:play");
+    put(s, "meeting-of-minds", "mom-1", "runner:play-area");
     grip(s, [
       ["daily-casts", "g-1"],
       ["sure-gamble", "g-2"],
@@ -670,7 +671,7 @@ describe("searching R&D (CR 8.7)", () => {
 describe("other instructions where the player picks (CR 1.15.2)", () => {
   it("Trust Operation: the Corp picks the Archives card", () => {
     const s = corpTurn();
-    put(s, "trust-operation", "to-1", "corp:play");
+    put(s, "trust-operation", "to-1", "corp:play-area");
     archives(s, [
       ["pad-campaign", "a-1", true],
       ["ice-wall", "a-2", true],
@@ -696,7 +697,7 @@ describe("other instructions where the player picks (CR 1.15.2)", () => {
 
   it("Glut Cipher: the Corp picks the 5 Archives cards, and the log names none", () => {
     const s = runnerTurn();
-    put(s, "glut-cipher", "gc-1", "runner:play");
+    put(s, "glut-cipher", "gc-1", "runner:play-area");
     archives(s, [
       ["hedge-fund", "a-0", false],
       ["ice-wall", "a-1", false],
@@ -732,7 +733,7 @@ describe("other instructions where the player picks (CR 1.15.2)", () => {
 
   it("Glut Cipher: nothing happens with fewer than 5 cards in Archives", () => {
     const s = runnerTurn();
-    put(s, "glut-cipher", "gc-1", "runner:play");
+    put(s, "glut-cipher", "gc-1", "runner:play-area");
     archives(s, [["hedge-fund", "a-0", false]]);
     run(s, "gc-1", "tdatd_glut_cipher");
     expect(s.pendingChoice ?? null).toBeNull();
@@ -741,7 +742,7 @@ describe("other instructions where the player picks (CR 1.15.2)", () => {
 
   it("Hasty Relocation: the Corp picks every card, the last one included", () => {
     const s = corpTurn();
-    put(s, "hasty-relocation", "hr-1", "corp:play");
+    put(s, "hasty-relocation", "hr-1", "corp:play-area");
     hq(s, [
       ["hedge-fund", "h-1"],
       ["ice-wall", "h-2"],

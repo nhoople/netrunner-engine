@@ -2,6 +2,7 @@
  * Board helpers shared by the official-rulings tests
  * (tests/rulings/rulings-*.test.ts, CR audit tool 1.14).
  */
+import type { ZoneId } from "../../src/state/types/shared.js";
 import {
   applyAction,
   createInitialState,
@@ -9,7 +10,6 @@ import {
   legalActions,
 } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
-import type { ZoneId } from "../../src/state/types/shared.js";
 import type { Action } from "../../src/state/types/actions.js";
 import type { ServerId } from "../../src/state/types/servers.js";
 import { passIdle } from "../../src/demo/passIdle.js";
@@ -29,8 +29,8 @@ export function fresh(): GameState {
   return s;
 }
 
-export function put(s: GameState, defId: string, id: string, zone: string) {
-  const card = instantiateCard(defId, id, zone as never);
+export function put(s: GameState, defId: string, id: string, zone: ZoneId) {
+  const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;
 }

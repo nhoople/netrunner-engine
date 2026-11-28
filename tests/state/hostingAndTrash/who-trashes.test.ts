@@ -9,6 +9,7 @@
  * a cost of 0 can still be paid.
  * CR 8.6.3: cards an effect plays are chosen and played one at a time.
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { checkpointAfterInstruction } from "../../../src/legality/checkpoints.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -33,7 +34,7 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.147.29");
 });
 
-function put(s: GameState, defId: string, id: string, zone: string) {
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
   const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;
@@ -50,7 +51,7 @@ function board(activeSide: "corp" | "runner"): GameState {
   s.priorityStack = [];
   s.corp.hand = [];
   s.runner.hand = [];
-  const rezzed = (defId: string, id: string, zone: string) => {
+  const rezzed = (defId: string, id: string, zone: ZoneId) => {
     const card = put(s, defId, id, zone);
     card.rezzed = true;
     card.faceup = true;

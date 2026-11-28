@@ -2,6 +2,7 @@
  * Project Yagi-Uda swaps 1 HQ card with 1 card in the root of or protecting
  * the attacked server (CR 8.8.2, 8.8.4b, 6.2.7c, 6.2.7e).
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -39,7 +40,7 @@ function addCard(
   s: GameState,
   def: string,
   id: string,
-  zone: string,
+  zone: ZoneId,
   rezzed = false,
 ) {
   const card = instantiateCard(def, id, zone);
@@ -99,7 +100,7 @@ function pick(s: GameState, hqCardId: string, serverCardId: string) {
 }
 
 function offeredPairs(s: GameState): string[] {
-  addCard(s, "project-yagi-uda", "yagi", "corp:scored");
+  addCard(s, "project-yagi-uda", "yagi", "corp:score");
   const r = evalEffect(
     { state: s, sourceId: "yagi" },
     { op: "do", action: { kind: "swap_yagi_hq_with_attacked_root_or_ice" } },

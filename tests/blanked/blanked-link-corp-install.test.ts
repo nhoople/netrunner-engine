@@ -155,7 +155,7 @@ describe("blanked link and Corp install costs (CR 9.12.1d)", () => {
     const dzmz = instantiateCard("dzmz-optimizer", "dz-1", "runner:installed");
     s.cards["dz-1"] = dzmz;
     s.runner.installed = ["dz-1"];
-    const prog = instantiateCard("corroder", "cor-1", "runner:hand");
+    const prog = instantiateCard("corroder", "cor-1", "runner:grip");
     s.cards["cor-1"] = prog;
     const printed = prog.installCost;
     expect(runnerInstallCost(s, prog)).toBeLessThan(printed);

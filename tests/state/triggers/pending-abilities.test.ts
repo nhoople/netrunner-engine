@@ -1152,7 +1152,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const agenda = instantiateCard(
       "priority-requisition",
       "pr-1",
-      "corp:score-area",
+      "corp:score",
     );
     s.cards["pad-1"] = pad;
     s.cards["pr-1"] = agenda;
@@ -2117,8 +2117,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:stack");
       s.runner.deck.push(id);
     }
-    const iceA = instantiateCard("ice-wall", "ice-a", "corp:remote-1:ice");
-    const iceB = instantiateCard("ice-wall", "ice-b", "corp:remote-1:ice");
+    const iceA = instantiateCard("ice-wall", "ice-a", "server:remote-1:ice");
+    const iceB = instantiateCard("ice-wall", "ice-b", "server:remote-1:ice");
     s.cards["ice-a"] = iceA;
     s.cards["ice-b"] = iceB;
     s.servers["remote-1"] = {
@@ -4560,13 +4560,9 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     const hat = instantiateCard("top-hat", "th-1", "runner:installed");
     hat.mayInsteadOfBreachRdAccessOneOfTopN = 3;
     const ad = instantiateCard("analog-dreamers", "ad-1", "runner:installed");
-    const pm = instantiateCard("puppet-master", "pm-1", "corp:score-area");
+    const pm = instantiateCard("puppet-master", "pm-1", "corp:score");
     pm.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced = true;
-    const dnn = instantiateCard(
-      "dedicated-neural-net",
-      "dnn-1",
-      "corp:score-area",
-    );
+    const dnn = instantiateCard("dedicated-neural-net", "dnn-1", "corp:score");
     dnn.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess = true;
     s.cards["th-1"] = hat;
     s.cards["ad-1"] = ad;

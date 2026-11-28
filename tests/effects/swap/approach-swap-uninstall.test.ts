@@ -4,6 +4,7 @@
  * counters are trashed and the swap's checkpoint occurs (CR 8.8.4b). The
  * Runner keeps approaching the new ice (CR 6.2.7b).
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -38,7 +39,7 @@ function addCard(
   s: GameState,
   def: string,
   id: string,
-  zone: string,
+  zone: ZoneId,
   rezzed = false,
 ) {
   const card = instantiateCard(def, id, zone);
@@ -173,7 +174,7 @@ describe("Midori through its trigger: the chosen ice is swapped in, not rezzed i
 describe("a choice keyed by a grip card id resolves its own effect", () => {
   it("Bahia Bands' install from grip keeps its 1 credit discount", () => {
     let s = createInitialState();
-    addCard(s, "bahia-bands", "bb", "runner:play");
+    addCard(s, "bahia-bands", "bb", "runner:play-area");
     const corroder = addCard(s, "corroder", "cor", "runner:grip");
     s.runner.hand = ["cor"];
     s.runner.credits = 10;

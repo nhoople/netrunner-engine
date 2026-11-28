@@ -73,7 +73,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
   it("drops The Cleaners meat-damage increase while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const cleaners = instantiateCard("the-cleaners", "tc-1", "corp:score-area");
+    const cleaners = instantiateCard("the-cleaners", "tc-1", "corp:score");
     s.cards["tc-1"] = cleaners;
     s.corp.scoreArea = ["tc-1"];
 
@@ -85,7 +85,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
   it("drops Net Quarantine link-as-0 and link-spend credits while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const nq = instantiateCard("net-quarantine", "nq-1", "corp:score-area");
+    const nq = instantiateCard("net-quarantine", "nq-1", "corp:score");
     s.cards["nq-1"] = nq;
     s.corp.scoreArea = ["nq-1"];
     s.runner.link = 2;
@@ -101,7 +101,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
     expect(s.trace?.netQuarantineLinkZero).toBe(true);
 
     const blanked = structuredClone(createInitialState());
-    const nq2 = instantiateCard("net-quarantine", "nq-1", "corp:score-area");
+    const nq2 = instantiateCard("net-quarantine", "nq-1", "corp:score");
     suppressAbilities(blanked, nq2.id);
     blanked.cards["nq-1"] = nq2;
     blanked.corp.scoreArea = ["nq-1"];

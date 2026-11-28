@@ -1,3 +1,4 @@
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -23,7 +24,7 @@ function put(
   s: GameState,
   defId: string,
   id: string,
-  zone: string,
+  zone: ZoneId,
 ): GameState["cards"][string] {
   const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;

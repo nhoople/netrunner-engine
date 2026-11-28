@@ -31,7 +31,7 @@ function setupRun(s: GameState): GameState {
   s.cards["bs-1"] = bs;
   s.servers.hq.ice = ["bs-1"];
   for (let i = 0; i < 6; i++) {
-    const c = instantiateCard("sure-gamble", `grip-${i}`, "runner:hand");
+    const c = instantiateCard("sure-gamble", `grip-${i}`, "runner:grip");
     s.cards[`grip-${i}`] = c;
   }
   s.runner.hand = ["grip-0", "grip-1", "grip-2", "grip-3", "grip-4", "grip-5"];

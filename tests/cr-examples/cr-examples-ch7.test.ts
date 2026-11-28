@@ -23,6 +23,7 @@ import type { Action } from "../../src/state/types/actions.js";
 import type { GameState } from "../../src/state/types/game.js";
 import type { ServerId } from "../../src/state/types/servers.js";
 import { trashCard } from "../../src/state/hostingAndTrash/trash.js";
+import { hostCard } from "../../src/state/hostingAndTrash/host.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -239,7 +240,14 @@ describe("CR examples, chapter 7", () => {
     expect(s.run?.accessCandidates).toContain("flag-1");
     s = must(s, { type: "access_card", cardId: "flag-1" });
     s.servers.hq.root = [];
-    flagship.zone = "runner:hosted";
+    const cupellation = instantiateCard(
+      "cupellation",
+      "cup-1",
+      "runner:installed",
+    );
+    s.cards["cup-1"] = cupellation;
+    s.runner.installed.push("cup-1");
+    hostCard(s, "flag-1", "cup-1");
     applyRunAccessRestrictions(s);
     expect(s.run?.accessCandidates).toContain("hq-other");
     expect(s.run?.accessCandidates).not.toContain("hq-seen");

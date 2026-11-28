@@ -351,7 +351,7 @@ describe("midnight-sun", () => {
         s.cards["an-1"] = ice;
         s.corp.hand = [];
         s.runner.hand = ["r1", "r2"].map((id) => {
-          const c = instantiateCard("sure-gamble", id, "runner:hand");
+          const c = instantiateCard("sure-gamble", id, "runner:grip");
           s.cards[id] = c;
           return id;
         });
@@ -370,11 +370,11 @@ describe("midnight-sun", () => {
         const ice = instantiateCard("anemone", "an-1", "server:hq:ice");
         ice.unsupported = [];
         s.cards["an-1"] = ice;
-        const card = instantiateCard("hedge-fund", "hq-1", "corp:hand");
+        const card = instantiateCard("hedge-fund", "hq-1", "corp:hq");
         s.cards["hq-1"] = card;
         s.corp.hand = ["hq-1"];
         s.runner.hand = ["r1", "r2", "r3"].map((id) => {
-          const c = instantiateCard("sure-gamble", id, "runner:hand");
+          const c = instantiateCard("sure-gamble", id, "runner:grip");
           s.cards[id] = c;
           return id;
         });
@@ -407,14 +407,14 @@ describe("midnight-sun", () => {
         s.cards["an-1"] = an;
         s.servers[remoteId].ice = ["an-1"];
 
-        const hq = instantiateCard("hedge-fund", "hq-1", "corp:hand");
+        const hq = instantiateCard("hedge-fund", "hq-1", "corp:hq");
         s.cards["hq-1"] = hq;
         s.corp.hand = ["hq-1"];
         s.corp.credits = 10;
         s.runner.clicks = 4;
         s.runner.credits = 10;
         s.runner.hand = ["r1", "r2", "r3"].map((id) => {
-          const c = instantiateCard("sure-gamble", id, "runner:hand");
+          const c = instantiateCard("sure-gamble", id, "runner:grip");
           s.cards[id] = c;
           return id;
         });

@@ -13,6 +13,7 @@
  * CR 6.2.6: the Runner's position is an element of the path, not an index.
  * Card text decides whether the install cost is paid (CR 1.2.1).
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iceAtRunnerPosition } from "../../../src/state/uninstallAndPosition/runPosition.js";
 import {
@@ -44,7 +45,7 @@ function must(state: GameState, action: Action): GameState {
   return result.state;
 }
 
-function put(s: GameState, defId: string, id: string, zone: string) {
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
   const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;
@@ -346,7 +347,7 @@ describe("an ability install during a run (CR 6.2.6)", () => {
 describe("install and rez (CR 8.5.15, 8.5.13d)", () => {
   function trustOperation(scoredAgenda: boolean): GameState {
     const s = corpTurn();
-    put(s, "trust-operation", "to-1", "corp:play");
+    put(s, "trust-operation", "to-1", "corp:play-area");
     archives(s, [["archer", "archer", true]]);
     s.corp.scoreArea = [];
     if (scoredAgenda) {
@@ -415,7 +416,7 @@ describe("install and rez (CR 8.5.15, 8.5.13d)", () => {
 describe("the reveal record (CR 1.21.3)", () => {
   it("shows both players the title, carries no card id, and leaves the card facedown", () => {
     const s = corpTurn();
-    put(s, "trust-operation", "to-1", "corp:play");
+    put(s, "trust-operation", "to-1", "corp:play-area");
     archives(s, [["hostile-takeover", "agenda", false]]);
     run(s, "to-1", "install_and_rez_from_archives_free");
     expect(s.cards["agenda"].zone).toMatch(/^server:remote-\d+:root$/);
@@ -489,7 +490,7 @@ describe("card definitions say whether the install cost is paid (CR 1.2.1)", () 
 
   it("Interns: the install is required and ignores the install cost", () => {
     const s = oneIceOnHq();
-    put(s, "interns", "interns-1", "corp:play");
+    put(s, "interns", "interns-1", "corp:play-area");
     resolve(s, "interns-1", playEffectFromCard(getCardDef("interns")));
     // No "may": with 1 card that can be installed there is nothing to
     // choose but where it goes.

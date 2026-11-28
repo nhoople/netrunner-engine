@@ -1144,7 +1144,7 @@ describe("CR examples, chapter 1", () => {
       title: "Funhouse",
       type: "ice",
       side: "corp",
-      zone: "hq:ice",
+      zone: "server:hq:ice",
       faceup: true,
       rezzed: true,
     };

@@ -2,6 +2,7 @@
  * Ice an ability installs or moves goes to the outermost position unless
  * its text names another (CR 6.2.2a). Index 0 is outermost.
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   assertCardsPinnedTag,
@@ -40,7 +41,7 @@ function table(): GameState {
   return s;
 }
 
-function put(s: GameState, defId: string, id: string, zone: string): void {
+function put(s: GameState, defId: string, id: string, zone: ZoneId): void {
   s.cards[id] = instantiateCard(defId, id, zone);
 }
 
@@ -74,7 +75,7 @@ describe("ability installs put ice outermost (CR 6.2.2a)", () => {
 
   it("Restore", () => {
     const s = table();
-    put(s, "restore", "restore-1", "corp:play");
+    put(s, "restore", "restore-1", "corp:play-area");
     put(s, "enigma", "new", "corp:archives");
     s.corp.discardPile = ["new"];
     run(s, "restore-1", "install_rez_resolve", {

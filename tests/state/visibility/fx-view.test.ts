@@ -40,6 +40,7 @@ import {
   toHand,
 } from "../../rulings/rulings-helpers.js";
 import { openReactionWindow } from "../../../src/state/triggers/pendingAbilities.js";
+import { hostCard } from "../../../src/state/hostingAndTrash/host.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -208,8 +209,8 @@ describe("pending abilities in each seat's view", () => {
   it("a pending ability from a facedown card hosted on an installed card keeps its place in the Runner's view, like an installed one (CR 4.6.5, 10.2.2a)", () => {
     const s = runnerTurn(fresh());
     installRoot(s, "pad-campaign", "host-1", true);
-    put(s, "pad-campaign", "hosted-1", "corp:hosted").faceup = false;
-    s.cards["host-1"]!.hostedCardIds = ["hosted-1"];
+    put(s, "pad-campaign", "hosted-1", "hosted:host-1").faceup = false;
+    hostCard(s, "hosted-1", "host-1");
     s.pendingAbilities.push({
       id: "pa-test",
       abilityKey: "on-turn-begin",

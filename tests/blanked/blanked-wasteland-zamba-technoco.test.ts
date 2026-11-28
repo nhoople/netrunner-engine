@@ -79,7 +79,7 @@ describe("blanked Wasteland / Zamba / TechnoCo (CR 9.12.1d)", () => {
   it("treats Send a Message as suppressed while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const msg = instantiateCard("send-a-message", "sam-1", "corp:score-area");
+    const msg = instantiateCard("send-a-message", "sam-1", "corp:score");
     s.cards["sam-1"] = msg;
     s.corp.scoreArea = ["sam-1"];
     expect(msg.mayRezIceIgnoringCostsOnScoreOrSteal).toBe(true);

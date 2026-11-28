@@ -67,7 +67,7 @@ function install(
     };
   }
   const card = state.cards[id];
-  card.zone = `${serverId}:${pile}`;
+  card.zone = `server:${serverId}:${pile}`;
   state.servers[serverId][pile].push(id);
 }
 

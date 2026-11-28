@@ -572,7 +572,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       const agenda = instantiateCard(
         "hostile-takeover",
         "agenda-1",
-        "corp:scored",
+        "corp:score",
       );
       s.cards["echo-1"] = echo;
       s.cards["arch-1"] = archer;
