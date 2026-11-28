@@ -268,16 +268,18 @@ export function formatPool(format: string): FormatPool {
   if (cached) return cached;
   const def = readJson<{
     snapshots: { cardPoolId: string; restrictionId?: string }[];
-  }>(`formats/${format}.json`);
+  }>(`formats/formats/${format}.json`);
   const snapshot = def.snapshots[def.snapshots.length - 1]!;
   const cardPool = readJson<{ waves: string[] }>(
-    `card-pools/${snapshot.cardPoolId}.json`,
+    `formats/card-pools/${snapshot.cardPoolId}.json`,
   );
   const pool = readJson<{ waves: Record<string, { cards: string[] }> }>(
-    "pool.json",
+    "rules/pool.json",
   );
   const restriction = snapshot.restrictionId
-    ? readJson<Restriction>(`restrictions/${snapshot.restrictionId}.json`)
+    ? readJson<Restriction>(
+        `formats/restrictions/${snapshot.restrictionId}.json`,
+      )
     : null;
   for (const key of Object.keys(restriction ?? {})) {
     if (!KNOWN_RESTRICTION_FIELDS.has(key)) {

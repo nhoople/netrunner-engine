@@ -25,6 +25,8 @@ import { execFileSync } from "node:child_process";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const pin = JSON.parse(readFileSync(join(root, "data/cards-pin.json"), "utf8"));
 const outDir = join(root, "vendor/cards-data");
+// Cards v1.148.0 and later keep pool.json in data/rules/ (earlier tags: data/).
+const POOL = join("rules", "pool.json");
 
 function resolveLocalRoot() {
   if (process.env.CARDS_DATA_ROOT) return process.env.CARDS_DATA_ROOT;
@@ -35,7 +37,7 @@ function resolveLocalRoot() {
     "/home/ubuntu/netrunner-cards-data",
   ];
   for (const c of candidates) {
-    if (existsSync(join(c, "data", "pool.json"))) return c;
+    if (existsSync(join(c, "data", POOL))) return c;
   }
   return null;
 }
@@ -73,8 +75,8 @@ async function fetchFromArchive() {
     }
     const extracted = join(tmp, entries[0]);
     const dataDir = join(extracted, pin.dataPrefix ?? "data");
-    if (!existsSync(join(dataDir, "pool.json"))) {
-      throw new Error(`Archive missing ${pin.dataPrefix ?? "data"}/pool.json`);
+    if (!existsSync(join(dataDir, POOL))) {
+      throw new Error(`Archive missing ${pin.dataPrefix ?? "data"}/${POOL}`);
     }
     if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
     copyDataTree(dataDir);

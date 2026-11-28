@@ -5,7 +5,7 @@
  * name an effect its printed text never mentions. This test pairs effect kinds
  * with the phrases their printed text should hold (`end_the_run` and "end the
  * run", a `net` kind and "net damage") and checks every card in the pinned
- * catalog against `vendor/cards-data/printed/<id>.json`. It generalizes the
+ * catalog against `vendor/cards-data/print/printed/<id>.json`. It generalizes the
  * stale-text audit (meta repo `docs/plans/done/stale-text-audit.md`), which
  * caught Shiro and Inazuma by hand.
  *
@@ -71,10 +71,10 @@ import {
 } from "../../src/cards/load.js";
 import { KNOWN_PRIMITIVE_KINDS } from "../../src/effects/ir/knownKinds.js";
 
-const CARDS_PIN = "v1.147.29";
+const CARDS_PIN = "v1.148.0";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const CARDS_DIR = join(ROOT, "vendor/cards-data");
-const PRINTED_DIR = join(CARDS_DIR, "printed");
+const PRINTED_DIR = join(CARDS_DIR, "print/printed");
 const FLAGS_PATH = join(ROOT, "tests/baselines/card-flags.json");
 const BASELINE_PATH = join(ROOT, "tests/baselines/printed-phrases.json");
 const UPDATE = process.env.UPDATE_PRINTED_PHRASES === "1";
@@ -478,6 +478,8 @@ describe("kind and phrase check (CR audit tool 1.12)", () => {
   beforeAll(() => {
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertCardsPinnedTag(CARDS_PIN);
+    // A wrong folder would read every card as having no printed text.
+    if (!existsSync(PRINTED_DIR)) throw new Error(`No ${PRINTED_DIR}`);
     report = buildReport();
     baseline = readBaseline();
   }, 300_000);

@@ -32,7 +32,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.29");
+  assertCardsPinnedTag("v1.148.0");
 });
 
 const ROOT = process.cwd();
@@ -76,7 +76,7 @@ function collectKinds(node: unknown, out: Set<string>): void {
 function oneCardKinds(): number {
   const byKind = new Map<string, number>();
   for (const side of ["corp", "runner"]) {
-    for (const file of walk(join(ROOT, "vendor/cards-data", side))) {
+    for (const file of walk(join(ROOT, "vendor/cards-data/rules", side))) {
       const card = JSON.parse(readFileSync(file, "utf8")) as { id?: unknown };
       if (typeof card.id !== "string") continue;
       const kinds = new Set<string>();

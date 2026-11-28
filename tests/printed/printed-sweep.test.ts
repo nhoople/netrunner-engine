@@ -127,11 +127,11 @@ function cyclesByCard(): {
 } {
   const sets = readJson<
     Array<{ id: string; legacyCode?: string; cardCycleId: string }>
-  >(join(CARDS_DIR, "card-sets.json"));
+  >(join(CARDS_DIR, "print/card-sets.json"));
   const cycleIds = new Set(
-    readJson<Array<{ id: string }>>(join(CARDS_DIR, "card-cycles.json")).map(
-      (c) => c.id,
-    ),
+    readJson<Array<{ id: string }>>(
+      join(CARDS_DIR, "print/card-cycles.json"),
+    ).map((c) => c.id),
   );
   const cycleOfSet = new Map<string, string>();
   for (const s of sets) {
@@ -146,7 +146,7 @@ function cyclesByCard(): {
     (cycleIds.has(pack) ? pack : undefined);
   const byCard = new Map<string, Set<string>>();
   const unresolved = new Set<string>();
-  const dir = join(CARDS_DIR, "printings");
+  const dir = join(CARDS_DIR, "print/printings");
   for (const f of readdirSync(dir)) {
     if (!f.endsWith(".json")) continue;
     const p = readJson<{ cardId: string; pack: string }>(join(dir, f));
@@ -198,9 +198,9 @@ describe("printed-text sweep record", () => {
 
   it("lists each session once, with a known cycle", () => {
     const knownCycles = new Set(
-      readJson<Array<{ id: string }>>(join(CARDS_DIR, "card-cycles.json")).map(
-        (c) => c.id,
-      ),
+      readJson<Array<{ id: string }>>(
+        join(CARDS_DIR, "print/card-cycles.json"),
+      ).map((c) => c.id),
     );
     const ids = sweep.sessions.map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);

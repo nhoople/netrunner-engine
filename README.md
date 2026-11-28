@@ -108,7 +108,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 |-----------|----------|
 | Declared pin | [`data/cards-pin.json`](data/cards-pin.json) — tag, repo, archive URL, required paths |
 | Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
-| Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, `corp/`, `runner/`, `PIN.json`) |
+| Vendored files | `vendor/cards-data/`, a copy of the cards repo's `data/`: `rules/` (`schema.json`, `pool.json`, `corp/`, `runner/`), `print/` (`printed/`, `printings/`, sets and cycles), `formats/`, `rulings/`, and `PIN.json`. The cards repo's `bookkeeping/` is not vendored. Cards tags before `v1.148.0` have the flat layout (`pool.json`, `corp/`, `printed/` at the top) and do not load here |
 
 `vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (the pinned cards; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
 
@@ -197,5 +197,5 @@ src/                      # index.ts: the package entry; cli.ts: the development
 tests/                    # every test, in folders that mirror src/ or hold one kind of check; tests/README.md lists each folder
 vendor/                   # pinned data, fetched by npm run prepare-data
   cr-data/                # Comprehensive Rules JSON (nodes.json is gitignored)
-  cards-data/             # card definitions (gitignored)
+  cards-data/             # card data at the cards pin: rules/, print/, formats/, rulings/ (gitignored)
 ```

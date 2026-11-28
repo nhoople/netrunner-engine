@@ -152,7 +152,11 @@ function exampleNumbers(chapter: string): string[] {
 /** Every ruling on the given cards at the cards pin, as `<card id>#<n>`. */
 function rulingNames(cardIds: string[]): string[] {
   return cardIds.flatMap((id) => {
-    const file = join(process.cwd(), "vendor/cards-data/rulings", `${id}.json`);
+    const file = join(
+      process.cwd(),
+      "vendor/cards-data/rulings/rulings",
+      `${id}.json`,
+    );
     const { rulings } = JSON.parse(readFileSync(file, "utf8")) as {
       rulings: unknown[];
     };

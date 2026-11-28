@@ -11,7 +11,7 @@
  *   - each optional boolean or number field on `CardDef` (`src/cards/cardDef.ts`;
  *     the loader copies it onto the `CardInstance` field of the same name in
  *     `src/state/types/card.ts` and the two files it extends, except where `instantiateCard` renames it), and
- *   - each top-level property of the pinned `vendor/cards-data/schema.json`.
+ *   - each top-level property of the pinned `vendor/cards-data/rules/schema.json`.
  *
  * For each entry it records the cards that set it, the sites in `src/` (outside `src/debug/`) that read
  * it, and the effect kinds those readers build. It is written with the
@@ -103,7 +103,7 @@ import {
 } from "../../../src/cards/load.js";
 import { KNOWN_PRIMITIVE_KINDS } from "../../../src/effects/ir/knownKinds.js";
 
-const CARDS_PIN = "v1.147.29";
+const CARDS_PIN = "v1.148.0";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 const BASELINE_PATH = join(ROOT, "tests/baselines/card-flags.json");
 const CARD_LIST_LIMIT = 40;
@@ -618,7 +618,7 @@ function rawCards(): Map<string, Record<string, unknown>> {
   const dir = join(ROOT, "vendor/cards-data");
   for (const wave of CARD_STORAGE_DIRS) {
     const d = join(dir, wave);
-    if (!existsSync(d)) continue;
+    if (!existsSync(d)) throw new Error(`Missing card rules directory: ${d}`);
     for (const file of readdirSync(d)) {
       if (!file.endsWith(".json") || file.startsWith("_")) continue;
       const raw = JSON.parse(readFileSync(join(d, file), "utf8")) as Record<
@@ -711,7 +711,7 @@ function buildInventory(): Inventory {
   }
 
   const schema = JSON.parse(
-    readFileSync(join(ROOT, "vendor/cards-data/schema.json"), "utf8"),
+    readFileSync(join(ROOT, "vendor/cards-data/rules/schema.json"), "utf8"),
   ) as { properties: Record<string, Record<string, unknown>> };
   const schemaProps = new Map<string, string>();
   for (const [name, prop] of Object.entries(schema.properties)) {

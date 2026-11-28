@@ -15,7 +15,8 @@
  * have priority (CR 9.2.9c), so a priority refusal there is one.
  *
  * This module only reports. Nothing in the engine reads it. Tests run it in
- * seeded playouts (`tests/legality-agreement.test.ts`).
+ * seeded playouts (`tests/playout/legality-agreement-*.test.ts`) and on the
+ * positions they found (`tests/legality/legality-agreement.test.ts`).
  */
 
 import { applyAction } from "../actions/apply.js";

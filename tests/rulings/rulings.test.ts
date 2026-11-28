@@ -1,7 +1,7 @@
 /**
  * Official rulings as tests (CR audit tool 1.14).
  *
- * Lists every ruling at the cards pin (vendor/cards-data/rulings/<card>.json,
+ * Lists every ruling at the cards pin (vendor/cards-data/rulings/rulings/<card>.json,
  * numbered 1, 2, … in file order) and the `it()` titles in
  * tests/rulings/rulings-*.test.ts that cite it. A test cites a ruling by starting its
  * title with the card's title and a colon, and ending it with the ruling
@@ -36,7 +36,7 @@ import {
 } from "../../src/index.js";
 import { itCalls } from "../cr-citations/cr-citations.js";
 
-const CARDS_TAG = "v1.147.29";
+const CARDS_TAG = "v1.148.0";
 
 beforeAll(() => {
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
@@ -44,7 +44,7 @@ beforeAll(() => {
 });
 
 const ROOT = process.cwd();
-const RULINGS_DIR = join(ROOT, "vendor/cards-data/rulings");
+const RULINGS_DIR = join(ROOT, "vendor/cards-data/rulings/rulings");
 const BASELINE_PATH = join(ROOT, "tests/baselines/rulings.json");
 const TABLE_PATH = join(ROOT, "tests/generated/rulings-coverage.json");
 

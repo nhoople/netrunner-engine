@@ -30,7 +30,7 @@
  * shrink-only baseline `tests/baselines/timing-walk.json`, grouped by the
  * area that owns each rule (tool 1.13) and by chart line.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { setStepHook, stateToken } from "../../src/debug/stepHook.js";
 import type { StepRecord } from "../../src/debug/stepHook.js";
@@ -282,18 +282,18 @@ interface Frame {
 
 /** The text a card prints, for the paid ability window check. */
 const printed = new Map<string, string>();
+const PRINTED_DIR = join(ROOT, "vendor/cards-data/print/printed");
 function printedText(defId: string | undefined): string {
   if (!defId) return "";
   let text = printed.get(defId);
   if (text === undefined) {
+    // A wrong folder would read every card as printing nothing.
+    if (!existsSync(PRINTED_DIR)) throw new Error(`No ${PRINTED_DIR}`);
     try {
       text =
         (
           JSON.parse(
-            readFileSync(
-              join(ROOT, "vendor/cards-data/printed", `${defId}.json`),
-              "utf8",
-            ),
+            readFileSync(join(PRINTED_DIR, `${defId}.json`), "utf8"),
           ) as { strippedText?: string }
         ).strippedText ?? "";
     } catch {

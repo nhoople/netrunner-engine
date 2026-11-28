@@ -2,7 +2,7 @@
  * A debug hook that sees each step of the timing graph the engine enters
  * (`enterStep` in `src/timing/machine.ts`), including the automatic steps
  * between two player actions that the apply hook (`applyHook.ts`) never sees.
- * The timing walk (CR audit tool 1.15, `tests/timing-walk/`) uses it to check
+ * The timing walk (CR audit tool 1.15, `tests/playout/timing-walk.ts`) uses it to check
  * the steps the engine really passes through against the chapter 11 chart.
  *
  * Unset by default; the engine never sets it, and with no hook set
