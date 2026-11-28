@@ -1,0 +1,14 @@
+{
+  "//": "Typechecks the tests, the TypeScript scripts and the vitest configs, which tsconfig.json leaves out (npm run typecheck:tests).",
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true, "rootDir": "." },
+  "include": [
+    "src/**/*",
+    "tests/**/*.ts",
+    "scripts/playouts.ts",
+    "scripts/update-ability-fire.ts",
+    "vitest.config.ts",
+    "vitest.jnet.config.ts"
+  ],
+  "exclude": ["dist", "node_modules"]
+}

@@ -2,6 +2,7 @@
   "name": "vertical-slice-decline-rez",
   "timingKey": "corp.gainClicks",
   "stepId": "sec_appendix_timing_structure_corps_turn_1_a",
+  "stepNumber": "11.2_1_a",
   "done": true,
   "run": null,
   "corp": {

@@ -85,7 +85,7 @@ function snapshot(
     name,
     timingKey: s.timingKey,
     stepId: step.stepId,
-    stepNumber: step.number,
+    stepNumber: step.stepNumber,
     done: s.done,
     run: s.run
       ? {
@@ -112,9 +112,14 @@ function snapshot(
 
 function assertGolden(name: string, actual: GoldenSnapshot): void {
   const path = join(ROOT, `${name}.json`);
-  if (REFRESH || !existsSync(path)) {
+  if (REFRESH) {
     mkdirSync(ROOT, { recursive: true });
     writeFileSync(path, `${JSON.stringify(actual, null, 2)}\n`);
+  } else if (!existsSync(path)) {
+    // A missing golden fails: writing it here would let a wrong path pass.
+    throw new Error(
+      `No golden at ${path}. Write it with REFRESH_GOLDENS=1, then review and commit it.`,
+    );
   }
   const expected = JSON.parse(readFileSync(path, "utf8")) as GoldenSnapshot;
   expect(actual).toEqual(expected);
