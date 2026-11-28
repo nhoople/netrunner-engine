@@ -67,7 +67,7 @@ describe("blanked damage / jack-out / DBS (CR 9.12.1d)", () => {
   it("drops Ancestral Imager jack-out net damage while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const ai = instantiateCard("ancestral-imager", "ai-1", "corp:score-area");
+    const ai = instantiateCard("ancestral-imager", "ai-1", "corp:score");
     s.cards["ai-1"] = ai;
     s.corp.scoreArea = ["ai-1"];
 

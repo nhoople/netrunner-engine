@@ -12,6 +12,7 @@
  * CR 1.16.1a: optional interrupts cannot cancel paying a cost.
  * CR 3.5.1b, 10.3.1b: an ended current is trashed during the next checkpoint.
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   assertCardsPinnedTag,
@@ -55,8 +56,8 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.147.29");
 });
 
-function put(s: GameState, defId: string, id: string, zone: string) {
-  const card = instantiateCard(defId, id, zone as never);
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
+  const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;
 }

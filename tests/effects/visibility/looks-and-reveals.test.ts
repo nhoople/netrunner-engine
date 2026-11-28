@@ -12,6 +12,7 @@
  * CR 8.7.1: the player searching a zone looks at all the cards in it.
  * CR 1.15.2: a player chooses the cards their instruction names.
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { readdirSync, readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -53,7 +54,7 @@ const STACK = [
   "armitage-codebusting",
 ];
 
-function put(s: GameState, defId: string, id: string, zone: string) {
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
   const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;

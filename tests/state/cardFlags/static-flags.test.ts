@@ -215,7 +215,7 @@ describe("static declarations", () => {
     const id = s.cards[s.corp.identityId]!;
     id.gainCreditOnCorpTurnEndIfArchivesHasFacedown = 1;
     id.title = "Jinteki: Restoring Humanity";
-    const facedown = instantiateCard("hedge-fund", "arch-1", "corp:discard");
+    const facedown = instantiateCard("hedge-fund", "arch-1", "corp:archives");
     facedown.faceup = false;
     s.cards["arch-1"] = facedown;
     s.corp.discardPile = ["arch-1"];
@@ -231,7 +231,7 @@ describe("static declarations", () => {
     blankId.gainCreditOnCorpTurnEndIfArchivesHasFacedown = 1;
     blankId.defId = "jinteki-restoring-humanity";
     suppressAbilities(blank, blankId.id);
-    const hidden = instantiateCard("hedge-fund", "arch-2", "corp:discard");
+    const hidden = instantiateCard("hedge-fund", "arch-2", "corp:archives");
     hidden.faceup = false;
     blank.cards["arch-2"] = hidden;
     blank.corp.discardPile = ["arch-2"];

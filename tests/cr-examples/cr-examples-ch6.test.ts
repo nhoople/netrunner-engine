@@ -2,6 +2,7 @@
  * Comprehensive Rules examples from chapter 6.
  * Each test plays that example's board.
  */
+import type { ZoneId } from "../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -40,7 +41,7 @@ function must(state: GameState, action: Action): GameState {
   return passIdle(result.state);
 }
 
-function formicaryCard(id: string, zone: string) {
+function formicaryCard(id: string, zone: ZoneId) {
   return {
     id,
     defId: "formicary-fixture",

@@ -215,7 +215,7 @@ describe("creation-and-control", () => {
           installCost: 3,
           rezCost: 3,
           subtypes: ["bioroid", "sentry"],
-          zone: "corp:hand",
+          zone: "corp:hq",
           rezzed: false,
           faceup: false,
         };

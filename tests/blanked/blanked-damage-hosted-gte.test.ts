@@ -31,7 +31,7 @@ describe("blanked damage / hosted-credits threshold (CR 9.12.1d)", () => {
     const sdp = instantiateCard(
       "sentinel-defense-program",
       "sdp-1",
-      "corp:score-area",
+      "corp:score",
     );
     s.cards["sdp-1"] = sdp;
     s.corp.scoreArea = ["sdp-1"];
@@ -56,7 +56,7 @@ describe("blanked damage / hosted-credits threshold (CR 9.12.1d)", () => {
     const sdp2 = instantiateCard(
       "sentinel-defense-program",
       "sdp-2",
-      "corp:score-area",
+      "corp:score",
     );
     suppressAbilities(s, sdp2.id);
     s.cards["sdp-2"] = sdp2;

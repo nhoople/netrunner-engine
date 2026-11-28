@@ -52,10 +52,11 @@ function withRun(credits = 5): GameState {
     title: "Unless Ice",
     type: "ice",
     side: "corp",
-    zone: "hq:ice",
+    zone: "server:hq:ice",
     faceup: true,
     rezzed: true,
   };
+  s.servers.hq.ice = ["ice-1"];
   return s;
 }
 

@@ -4,6 +4,7 @@
  * paid; otherwise the instruction resolves. Cards that have the Corp trash
  * cards from HQ let the Corp choose them (CR 1.15.2).
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -34,7 +35,7 @@ function must(state: GameState, action: Action): GameState {
 
 interface Row {
   id: string;
-  zone: string;
+  zone: ZoneId;
   effect: () => Effect;
   /** What the Runner pays. */
   clicks?: number;
@@ -215,7 +216,7 @@ describe("pay-or-penalty cards are nested costs (CR 1.16.11b)", () => {
 describe("the Corp chooses which HQ cards a card trashes (CR 1.15.2)", () => {
   function corpWithHq(
     sourceDef: string,
-    zone: string,
+    zone: ZoneId,
     titles: string[],
   ): GameState {
     const s = structuredClone(createInitialState());

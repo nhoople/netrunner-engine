@@ -35,7 +35,7 @@ describe("Jeitinho heap install on bypass (CR 9.6.2)", () => {
     const agenda = instantiateCard(
       "priority-requisition",
       "ag-1",
-      "corp:score-area",
+      "corp:score",
     );
     agenda.agendaPoints = 3;
     s.cards["ag-1"] = agenda;
@@ -102,7 +102,7 @@ describe("Jeitinho heap install on bypass (CR 9.6.2)", () => {
     const agenda = instantiateCard(
       "priority-requisition",
       "ag-1",
-      "corp:score-area",
+      "corp:score",
     );
     agenda.agendaPoints = 3;
     s.cards["ag-1"] = agenda;

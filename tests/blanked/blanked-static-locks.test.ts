@@ -125,7 +125,7 @@ describe("blanked static locks / taxes (CR 9.12.1d)", () => {
     s.cards["tbf-1"] = bf;
     s.runner.installed = ["tbf-1"];
     for (const id of ["a1", "a2", "a3"] as const) {
-      const ag = instantiateCard("priority-requisition", id, "corp:score-area");
+      const ag = instantiateCard("priority-requisition", id, "corp:score");
       ag.agendaPoints = 3;
       s.cards[id] = ag;
     }

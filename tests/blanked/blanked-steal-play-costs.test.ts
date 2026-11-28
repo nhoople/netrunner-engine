@@ -109,7 +109,7 @@ describe("blanked steal and play costs (CR 9.12.1d)", () => {
     const ghost = instantiateCard("ghosttongue", "gt-1", "runner:installed");
     s.cards["gt-1"] = ghost;
     s.runner.installed = ["gt-1"];
-    const event = instantiateCard("sure-gamble", "sg-1", "runner:hand");
+    const event = instantiateCard("sure-gamble", "sg-1", "runner:grip");
     s.cards["sg-1"] = event;
 
     const printed = event.playCost ?? 0;

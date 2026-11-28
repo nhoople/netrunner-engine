@@ -64,10 +64,11 @@ describe("CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b)", () => {
       title: "Funhouse",
       type: "ice",
       side: "corp",
-      zone: "hq:ice",
+      zone: "server:hq:ice",
       faceup: true,
       rezzed: true,
     };
+    s.servers.hq.ice = ["fh-1"];
     const r = evalEffect(
       { state: s, sourceId: "fh-1" },
       fx.endTheRunUnlessTakeTags(1),

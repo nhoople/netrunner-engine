@@ -7,6 +7,7 @@
  * protects agendas; the card is played outside a run and prints no such
  * restriction (CR 1.2.1, 7.1.5, 7.1.6).
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyIntent,
@@ -73,8 +74,8 @@ function fresh(): GameState {
   return s;
 }
 
-function put(s: GameState, defId: string, id: string, zone: string) {
-  const card = instantiateCard(defId, id, zone as never);
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
+  const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;
 }

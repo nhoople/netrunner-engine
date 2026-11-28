@@ -311,7 +311,7 @@ describe("CR 9.3 ability records", () => {
   });
 
   it("restores printed subroutines when subroutines is unset (CR 9.3.7e)", () => {
-    const wall = instantiateCard("ice-wall", "iw-1", "corp:hq:ice");
+    const wall = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
     expect(wall.abilities?.some((a) => a.class === "subroutine")).toBe(true);
     expect(wall.subroutines?.some((s) => s.id === "iw-etr")).toBe(true);
     delete wall.subroutines;
@@ -502,7 +502,7 @@ describe("CR 9.3 ability records", () => {
   });
 
   it("keeps the printed subroutine when a same-id stub disagrees (CR 9.3.7e)", () => {
-    const wall = instantiateCard("ice-wall", "iw-1", "corp:hq:ice");
+    const wall = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
     wall.subroutines = [
       {
         id: "iw-etr",

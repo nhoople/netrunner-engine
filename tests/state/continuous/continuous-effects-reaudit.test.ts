@@ -14,6 +14,7 @@
  * Paths already covered by a CR example test (9.4.4, 9.4.5, 9.10.3a–c,
  * 9.10.5, 9.12.1c, 9.12.1e) are listed in the PR, not repeated here.
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   abilitiesSuppressed,
@@ -59,8 +60,8 @@ beforeAll(() => {
 
 // --- Board helpers ---------------------------------------------------------
 
-function put(s: GameState, defId: string, id: string, zone: string) {
-  const card = instantiateCard(defId, id, zone as never);
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
+  const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;
 }

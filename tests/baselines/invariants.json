@@ -2307,8 +2307,7 @@
     ],
     "midnight-sun > midnight-sun-anemone > MS Anemone trash_hq.then (onRez during run) > onRez during run offers trash→net; decline leaves HQ": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ],
     "midnight-sun > midnight-sun-backroom-mad-bigdeal > MS Big Deal place_advancements thenMayScore + rfg_self > RFGs even when scoring declined": [
       "RUNNER_CARD_REZZED"
@@ -3296,9 +3295,6 @@
   },
   "tests/state/keywordsAndCredits/funhouse-nested-cost.test.ts": {
     "CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b) > offers take-tag vs ETR when nested cost is payable": [
-      "ENCOUNTER_ICE_MISMATCH",
-      "NO_ZONE",
-      "POSITION_OUT_OF_RANGE",
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -3315,19 +3311,12 @@
   },
   "tests/state/keywordsAndCredits/nested-unless.test.ts": {
     "nested cost unless (CR 1.16.11b) > a cost with several parts is paid in full or not at all > pays every part and skips the instruction": [
-      "ENCOUNTER_ICE_MISMATCH",
-      "NO_ZONE",
-      "POSITION_OUT_OF_RANGE",
       "RUNNER_CARD_REZZED"
     ],
     "nested cost unless (CR 1.16.11b) > declining the cost resolves the instruction": [
-      "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
     "nested cost unless (CR 1.16.11b) > paying the cost does not resolve the instruction": [
-      "ENCOUNTER_ICE_MISMATCH",
-      "NO_ZONE",
-      "POSITION_OUT_OF_RANGE",
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -3432,8 +3421,7 @@
   "tests/state/run/brainstorm-run-scope.test.ts": {
     "Brainstorm run-scoped subroutines > gains X = grip size per run, not cumulatively across runs": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
+      "RUNNER_CARD_REZZED"
     ]
   },
   "tests/state/run/deeper-run.test.ts": {

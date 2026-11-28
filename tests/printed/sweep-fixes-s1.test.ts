@@ -6,6 +6,7 @@
  * text wins over the model (CR 1.2.1). Each test name states the printed
  * behavior and cites the rule it follows.
  */
+import type { ZoneId } from "../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -143,8 +144,8 @@ function breach(s: GameState, server: ServerId): void {
   enterStep(s, "breach.awaitAccess");
 }
 
-function put(s: GameState, defId: string, id: string, zone: string) {
-  const card = instantiateCard(defId, id, zone as never);
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
+  const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;
 }

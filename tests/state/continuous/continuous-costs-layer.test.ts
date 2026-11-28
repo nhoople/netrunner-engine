@@ -54,7 +54,7 @@ describe("continuous cost layer (M5 residual)", () => {
     tech.rezzed = true;
     s.cards["tc-1"] = tech;
     s.servers.hq.root = ["tc-1"];
-    const prog = instantiateCard("corroder", "prog-1", "runner:hand");
+    const prog = instantiateCard("corroder", "prog-1", "runner:grip");
     s.cards["prog-1"] = prog;
     s.runner.hand = ["prog-1"];
 

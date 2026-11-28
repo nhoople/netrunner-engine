@@ -4,6 +4,7 @@
  * not pick which card is trashed or forfeited when more than one would do.
  * CR 4.4.6b: cards trashed from HQ as a cost enter Archives facedown.
  */
+import type { ZoneId } from "../../../src/state/types/shared.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -31,7 +32,7 @@ function must(state: GameState, action: Action): GameState {
   return result.state;
 }
 
-function put(s: GameState, defId: string, id: string, zone: string) {
+function put(s: GameState, defId: string, id: string, zone: ZoneId) {
   const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
   return card;

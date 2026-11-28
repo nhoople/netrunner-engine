@@ -111,7 +111,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
       ice: [],
       root: ["tc-1"],
     };
-    const icebreaker = instantiateCard("corroder", "cor-1", "runner:hand");
+    const icebreaker = instantiateCard("corroder", "cor-1", "runner:grip");
     s.cards["cor-1"] = icebreaker;
 
     const printed = icebreaker.installCost;
@@ -126,7 +126,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
     const wm = instantiateCard("water-monopoly", "wm-1", "corp:score");
     s.cards["wm-1"] = wm;
     s.corp.scoreArea = ["wm-1"];
-    const res = instantiateCard("public-sympathy", "ps-1", "runner:hand");
+    const res = instantiateCard("public-sympathy", "ps-1", "runner:grip");
     s.cards["ps-1"] = res;
 
     const printed = res.installCost;
