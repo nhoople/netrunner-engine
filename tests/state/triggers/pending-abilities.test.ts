@@ -1167,6 +1167,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       ice: [],
       root: ["pad-1"],
     };
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
 
     noteStoredConditional(s, {
       cardId: "pad-1",
@@ -1224,6 +1225,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       ice: [],
       root: ["pad-1"],
     };
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
 
     noteInlineConditional(s, {
       cardId: "pe-1",
@@ -2810,6 +2812,7 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
       root: ["pad-1"],
       ice: [],
     };
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
     const pending = createPendingAbilityInstance(s, {
       abilityKey: "on-turn-begin",
       sourceId: "pad-1",
@@ -4374,6 +4377,7 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ice: [],
       root: ["pad-1"],
     };
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
 
     await markInlineAtCheckpoint(s, {
       sourceId: "pad-1",

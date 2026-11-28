@@ -209,6 +209,7 @@ describe("trace-amount", () => {
           root: ["pad-1"],
           ice: [],
         };
+        s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         expect(runnerTrashCostForCard(s, "pad-1")).toBe(2);
 
         const enc = instantiateCard("pad-campaign", "ep-1", "server:hq:root");

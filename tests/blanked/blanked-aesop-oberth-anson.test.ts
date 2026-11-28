@@ -106,6 +106,7 @@ describe("blanked Aesop / Oberth / Anson (CR 9.12.1d)", () => {
       root: [],
       ice: [],
     } as (typeof s.servers)["hq"];
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
     const et = instantiateCard("estelle-moon", "et-1", "server:remote-1:root");
     et.rezzed = true;
     s.cards["et-1"] = et;

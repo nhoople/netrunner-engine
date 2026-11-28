@@ -693,6 +693,7 @@ describe("system-core-2019", () => {
           root: ["pad"],
           ice: [],
         };
+        s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         const r = evalEffect(
           { state: s, sourceId: s.runner.identityId },
           fx.returnInstalledCorpToHq("choose", { unrezzedOnly: true }),

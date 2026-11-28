@@ -159,6 +159,7 @@ describe("the-automata-initiative", () => {
             ice: [],
             root: [],
           };
+          s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         }
         s.servers["remote-1"].root.push("sand-1");
         const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");

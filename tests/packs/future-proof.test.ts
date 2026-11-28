@@ -178,6 +178,7 @@ describe("future-proof", () => {
           root: ["ruhr-1"],
           ice: [],
         };
+        s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         expect(additionalRunInitiateTax(s, "remote-1")).toEqual({
           credits: 0,
           clicks: 1,

@@ -154,6 +154,7 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
       root: [],
       ice: [],
     } as (typeof s.servers)["hq"];
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
     s.run = {
       id: "run-1",
       attackedServerId: "remote-1",

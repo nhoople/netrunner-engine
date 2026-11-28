@@ -1202,6 +1202,7 @@ describe("parhelion", () => {
           root: ["ag-1"],
           ice: [],
         };
+        s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         // Ensure remote exists in servers map used by createInitialState
         if (!s.servers["remote-1"]) {
           (
@@ -2183,6 +2184,7 @@ describe("parhelion", () => {
             ice: [],
             root: [],
           };
+          s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         }
         s.servers["remote-1"].root = ["keel-1"];
         s.corp.credits = 5;

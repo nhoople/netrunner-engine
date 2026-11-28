@@ -5281,6 +5281,7 @@ describe("midnight-sun", () => {
             ice: [],
             root: [],
           };
+          s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         }
         const asset = instantiateCard(
           "pad-campaign",
@@ -5334,6 +5335,7 @@ describe("midnight-sun", () => {
             ice: [],
             root: ["agenda-1"],
           };
+          s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         } else {
           s.servers["remote-1"].root = ["agenda-1"];
         }

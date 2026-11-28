@@ -1361,6 +1361,7 @@ describe("downfall", () => {
           root: ["rs-1"],
           ice: [],
         };
+        s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         expect(additionalRunInitiateTax(s, "remote-1")).toEqual({
           credits: 4,
           clicks: 0,
@@ -1402,6 +1403,7 @@ describe("downfall", () => {
           root: ["cs-1"],
           ice: [],
         };
+        s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         expect(additionalRunInitiateTax(s, "remote-1")).toEqual({
           credits: 3,
           clicks: 3,
@@ -1728,6 +1730,7 @@ describe("downfall", () => {
           root: ["cs-1"],
           ice: [],
         };
+        s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         expect(additionalRunInitiateTax(s, "remote-1")).toEqual({
           credits: 2,
           clicks: 2,
