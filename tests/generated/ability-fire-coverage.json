@@ -8,18 +8,18 @@
     "abilities": 2301,
     "firedInPlayouts": 97,
     "neverFired": 2204,
-    "neverFiredNoTest": 1211,
-    "neverRun": 156,
+    "neverFiredNoTest": 1208,
+    "neverRun": 150,
     "byArea": {
       "area 1": {
         "neverFired": 288,
         "noTest": 149,
-        "neverRun": 15
+        "neverRun": 14
       },
       "area 2": {
         "neverFired": 17,
         "noTest": 8,
-        "neverRun": 2
+        "neverRun": 1
       },
       "area 3": {
         "neverFired": 17,
@@ -44,7 +44,7 @@
       "area 7": {
         "neverFired": 39,
         "noTest": 13,
-        "neverRun": 2
+        "neverRun": 1
       },
       "area 8": {
         "neverFired": 27,
@@ -53,8 +53,8 @@
       },
       "area 9": {
         "neverFired": 164,
-        "noTest": 108,
-        "neverRun": 14
+        "noTest": 106,
+        "neverRun": 13
       },
       "area 11": {
         "neverFired": 503,
@@ -74,11 +74,11 @@
       "area 14": {
         "neverFired": 197,
         "noTest": 141,
-        "neverRun": 5
+        "neverRun": 3
       },
       "area 15": {
         "neverFired": 441,
-        "noTest": 261,
+        "noTest": 260,
         "neverRun": 43
       },
       "fidelity": {
@@ -258,22 +258,22 @@
   "sweeps": {
     "tests/cards/card-executes.test.ts > each card's printed abilities execute > evaluates play, rez, subroutines, and paid abilities without throwing": 1066,
     "tests/cards/card-executes.test.ts > each card's printed abilities execute > evaluates those trees on a hand, an install, a run, and a breach": 1066,
+    "tests/playout/timing-walk.test.ts > timing walk in the seeded playouts (CR audit tool 1.15) > every turn, run, breach and access in the seeded playouts follows the chapter 11 charts (CR 5.6, 5.7, 6.9, 7.2, 7.3.4, 9.2.7)": 72,
+    "tests/printed/printed-board.test.ts > printed one-instruction subroutines > changes the board by the number printed on the subroutine": 60,
     "tests/timing/choice-timing.test.ts > a paid ability refuses when its requirement is missing > follows the last option when a choice has two ways to continue": 323,
     "tests/timing/choice-timing.test.ts > a paid ability refuses when its requirement is missing > refuses an encounter ability with no encounter, and passes that check once one is open": 28,
     "tests/timing/choice-timing.test.ts > a paid ability refuses when its requirement is missing > skips an instruction with no card to act on, and continues once a card is there": 319,
     "tests/timing/choice-timing.test.ts > conditional abilities resolve on their turn step > follows a choice opened when the turn, run, encounter, or success step resolves": 234,
     "tests/timing/choice-timing.test.ts > interrupt windows and subroutine resolution > resolves the next unbroken subroutine on its encounter step": 299,
     "tests/timing/choice-timing.test.ts > interrupt windows and subroutine resolution > uses an interrupt-only ability while that interrupt is open": 31,
-    "tests/timing/choice-timing.test.ts > later turn steps > resolves turn end, approach, pass, breach, run end, and access": 74,
+    "tests/timing/choice-timing.test.ts > later turn steps > resolves turn end, approach, pass, breach, run end, and access": 94,
     "tests/timing/choice-timing.test.ts > later turn steps > scores an agenda from its server and steals an accessed agenda": 109,
-    "tests/timing/choice-timing.test.ts > paid-ability choices stay on the step that allowed them > refuses a paid ability with no window open, and keeps a choice on that step": 323,
-    "tests/printed/printed-board.test.ts > printed one-instruction subroutines > changes the board by the number printed on the subroutine": 60,
-    "tests/playout/timing-walk.test.ts > timing walk in the seeded playouts (CR audit tool 1.15) > every turn, run, breach and access in the seeded playouts follows the chapter 11 charts (CR 5.6, 5.7, 6.9, 7.2, 7.3.4, 9.2.7)": 72
+    "tests/timing/choice-timing.test.ts > paid-ability choices stay on the step that allowed them > refuses a paid ability with no window open, and keeps a choice on that step": 323
   },
   "handBuiltTests": {
     "15-minutes#2": 1,
     "24-7-news-cycle#1": 8,
-    "a-teia-ip-recovery#1": 1,
+    "a-teia-ip-recovery#1": 2,
     "abagnale#1": 1,
     "abagnale#2": 2,
     "ablative-barrier#0": 1,
@@ -367,6 +367,7 @@
     "ballista#0": 2,
     "bamboo-dome#1": 1,
     "bandwidth#0": 3,
+    "bangun-when-disaster-strikes#1": 1,
     "bank-job#1": 1,
     "bankroll#1": 1,
     "barry-baz-wong-tri-maf-veteran#1": 5,
@@ -576,7 +577,7 @@
     "emergency-shutdown#1": 1,
     "emergent-creativity#1": 1,
     "emp-device#0": 2,
-    "en-passant#1": 1,
+    "en-passant#1": 2,
     "encore#2": 1,
     "encrypted-portals#1": 1,
     "endless-hunger#1": 2,
@@ -636,7 +637,7 @@
     "flip-switch#1": 1,
     "flyswatter#0": 1,
     "flyswatter#1": 1,
-    "forged-activation-orders#0": 2,
+    "forged-activation-orders#0": 4,
     "frame-job#1": 1,
     "frantic-coding#0": 1,
     "friday-chip#1": 1,
@@ -728,6 +729,7 @@
     "inazuma#1": 1,
     "independent-thinking#0": 3,
     "indexing#1": 1,
+    "infiltration#0": 3,
     "info-bounty#1": 1,
     "information-overload#0": 1,
     "information-overload#1": 1,
@@ -1249,7 +1251,7 @@
     "thule-subsea-safety-below#0": 5,
     "thunder-art-gallery#1": 3,
     "tiered-subscription#0": 1,
-    "tinkering#0": 5,
+    "tinkering#0": 7,
     "titan-transnational-investing-in-your-future#0": 1,
     "tithe#0": 12,
     "tithe#1": 13,
@@ -1302,6 +1304,7 @@
     "vera-ivanovna-shuyskaya#1": 3,
     "vigil#3": 2,
     "vikram-1-0#1": 2,
+    "viktor-1-0#0": 2,
     "viral-weaponization#0": 3,
     "virgo#0": 2,
     "virtual-service-agent#0": 2,
@@ -1381,6 +1384,7 @@
     "aimor#0": 3,
     "airbladex-jsrf-ed#3": 3,
     "airbladex-jsrf-ed#4": 2,
+    "aircheck#1": 1,
     "akhet#3": 3,
     "akhet#4": 2,
     "akiko-nisei-head-case#1": 2,
@@ -1394,6 +1398,7 @@
     "all-nighter#0": 5,
     "allele-repression#1": 5,
     "always-be-running#2": 2,
+    "always-have-a-backup-plan#1": 1,
     "amanuensis#2": 1,
     "amanuensis#3": 1,
     "amelia-earhart#2": 1,
@@ -1505,7 +1510,7 @@
     "bellona#1": 1,
     "best-defense#0": 2,
     "beta-build#0": 3,
-    "beta-build#2": 1,
+    "beta-build#2": 2,
     "beth-kilrain-chang#1": 1,
     "biased-reporting#0": 2,
     "biawak#1": 3,
@@ -1565,6 +1570,7 @@
     "bran-1-0#0": 3,
     "bran-1-0#1": 2,
     "bran-1-0#2": 2,
+    "bravado#1": 1,
     "breached-dome#1": 1,
     "breaking-news#0": 1,
     "bring-them-home#2": 2,
@@ -1631,6 +1637,7 @@
     "charlatan#0": 5,
     "charlotte-cacador#2": 1,
     "charlotte-cacador#3": 5,
+    "charm-offensive#1": 1,
     "chatterjee-university#1": 5,
     "chatterjee-university#2": 5,
     "checkpoint#1": 3,
@@ -1669,12 +1676,15 @@
     "cobra#0": 3,
     "cobra#1": 3,
     "cohort-guidance-program#0": 1,
+    "cold-read#1": 1,
     "cold-site-server#0": 5,
     "cold-site-server#2": 1,
     "colossus#2": 3,
     "colossus#3": 2,
     "commercial-bankers-group#0": 1,
     "commercialization#0": 2,
+    "compile#1": 1,
+    "compile#2": 1,
     "complete-image#3": 2,
     "concerto#0": 2,
     "conduit#0": 2,
@@ -1741,6 +1751,7 @@
     "daily-quest#2": 2,
     "daruma#0": 1,
     "darwin#2": 1,
+    "data-breach#1": 1,
     "data-dealer#0": 2,
     "data-folding#0": 1,
     "data-hound#0": 3,
@@ -1788,6 +1799,7 @@
     "dewi-subrotoputri-pedagogical-dhalang#2": 2,
     "diesel#0": 2,
     "digital-rights-management#1": 2,
+    "direct-access#2": 1,
     "director-haas-pet-project#2": 1,
     "disposable-hq#1": 1,
     "disrupter#0": 3,
@@ -2120,6 +2132,7 @@
     "high-profile-target#1": 2,
     "high-risk-investment#0": 1,
     "high-risk-investment#1": 2,
+    "high-stakes-job#1": 1,
     "hijacked-router#2": 1,
     "himitsu-bako#0": 5,
     "himitsu-bako#1": 3,
@@ -2269,6 +2282,7 @@
     "knowledge-seeker#2": 2,
     "knowledge-seeker#3": 1,
     "komainu#0": 1,
+    "kompromat#1": 1,
     "kongamato#0": 5,
     "konjin#1": 1,
     "kraken#1": 2,
@@ -2293,6 +2307,7 @@
     "launch-campaign#0": 2,
     "launch-campaign#1": 1,
     "lawyer-up#1": 2,
+    "leave-no-trace#1": 1,
     "leech#0": 6,
     "leech#1": 2,
     "lemuria-codecracker#0": 2,
@@ -2371,6 +2386,7 @@
     "macrophage#1": 2,
     "macrophage#2": 2,
     "macrophage#3": 2,
+    "mad-dash#1": 1,
     "madani#1": 5,
     "madani#2": 6,
     "magdalene-keino-chemutai-cryptarchitect#1": 1,
@@ -2389,6 +2405,7 @@
     "mammon#3": 2,
     "mammon#4": 5,
     "mandatory-seed-replacement#0": 1,
+    "marathon#1": 1,
     "marcus-batty#1": 2,
     "marilyn-campaign#0": 2,
     "marilyn-campaign#1": 1,
@@ -2464,6 +2481,7 @@
     "mlinzi#0": 3,
     "mlinzi#1": 3,
     "mlinzi#2": 3,
+    "mobius#1": 1,
     "modded#0": 2,
     "monolith#3": 3,
     "moon-pool#0": 5,
@@ -2737,6 +2755,7 @@
     "quicksand#1": 1,
     "quicksand#2": 3,
     "rainbow#0": 3,
+    "raindrops-cut-stone#1": 1,
     "ramujan-reliant-550-bmi#1": 3,
     "rashida-jaheem#1": 1,
     "ravana-1-0#0": 3,
@@ -2812,6 +2831,7 @@
     "rover-algorithm#0": 2,
     "rsvp#0": 3,
     "rubicon-switch#1": 5,
+    "run-amok#1": 1,
     "running-hot#0": 2,
     "ryo-phoenix-ono-out-of-the-ashes#1": 1,
     "ryon-knight#1": 2,
@@ -2976,6 +2996,7 @@
     "stavka#2": 3,
     "steelskin-scarring#0": 2,
     "stim-dealer#0": 1,
+    "stimhack#1": 1,
     "sting#0": 1,
     "sting#1": 1,
     "stock-buy-back#1": 2,
@@ -3022,6 +3043,7 @@
     "sync-bre#0": 3,
     "sync-bre#1": 2,
     "sync-everything-everywhere#1": 5,
+    "take-a-dive#2": 1,
     "takobi#2": 5,
     "tallie-perrault#2": 5,
     "tapestry#0": 3,
@@ -3121,6 +3143,7 @@
     "tributary#2": 3,
     "tributary#3": 3,
     "trick-of-light#0": 2,
+    "trick-shot#2": 1,
     "trickster-taka#1": 1,
     "trickster-taka#2": 1,
     "trickster-taka#4": 1,
@@ -3306,7 +3329,7 @@
         "ability": "a-teia-ip-recovery#1",
         "class": "conditional",
         "area": "area 5",
-        "tests": 1,
+        "tests": 2,
         "sweeps": 0
       }
     ],
@@ -3712,7 +3735,7 @@
         "class": "conditional",
         "area": "area 14",
         "tests": 1,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "akhet": [
@@ -3833,7 +3856,7 @@
         "class": "conditional",
         "area": "area 14",
         "tests": 2,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "amani-senai": [
@@ -4778,7 +4801,7 @@
         "ability": "bangun-when-disaster-strikes#1",
         "class": "conditional",
         "area": "area 9",
-        "tests": 0,
+        "tests": 1,
         "sweeps": 0
       }
     ],
@@ -5521,7 +5544,7 @@
         "class": "conditional",
         "area": "area 15",
         "tests": 1,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "breached-dome": [
@@ -6271,7 +6294,7 @@
         "class": "conditional",
         "area": "area 1",
         "tests": 0,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "chastushka": [
@@ -6711,7 +6734,7 @@
         "class": "conditional",
         "area": "area 1",
         "tests": 1,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "cold-site-server": [
@@ -6773,14 +6796,14 @@
         "class": "conditional",
         "area": "area 6",
         "tests": 5,
-        "sweeps": 0
+        "sweeps": 1
       },
       {
         "ability": "compile#2",
         "class": "conditional",
         "area": "area 14",
         "tests": 3,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "complete-image": [
@@ -7398,7 +7421,7 @@
         "class": "conditional",
         "area": "area 14",
         "tests": 0,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "data-dealer": [
@@ -7859,7 +7882,7 @@
         "class": "conditional",
         "area": "area 13",
         "tests": 2,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "director-haas": [
@@ -8629,7 +8652,7 @@
         "ability": "en-passant#1",
         "class": "play",
         "area": "area 1",
-        "tests": 1,
+        "tests": 2,
         "sweeps": 2
       }
     ],
@@ -9899,7 +9922,7 @@
         "ability": "forged-activation-orders#0",
         "class": "play",
         "area": "area 11",
-        "tests": 2,
+        "tests": 4,
         "sweeps": 2
       }
     ],
@@ -11227,7 +11250,7 @@
         "class": "conditional",
         "area": "area 15",
         "tests": 1,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "hijacked-router": [
@@ -11925,7 +11948,7 @@
         "ability": "infiltration#0",
         "class": "play",
         "area": "area 15",
-        "tests": 0,
+        "tests": 3,
         "sweeps": 2
       }
     ],
@@ -12779,7 +12802,7 @@
         "class": "conditional",
         "area": "area 7",
         "tests": 0,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "kongamato": [
@@ -13044,7 +13067,7 @@
         "class": "conditional",
         "area": "area 7",
         "tests": 1,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "leela-patel-trained-pragmatist": [
@@ -13792,7 +13815,7 @@
         "class": "conditional",
         "area": "area 14",
         "tests": 1,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "madani": [
@@ -13985,7 +14008,7 @@
         "class": "conditional",
         "area": "area 14",
         "tests": 1,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "marcus-batty": [
@@ -14708,7 +14731,7 @@
         "class": "conditional",
         "area": "area 14",
         "tests": 1,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "modded": [
@@ -17392,7 +17415,7 @@
         "class": "conditional",
         "area": "area 13",
         "tests": 2,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "ramujan-reliant-550-bmi": [
@@ -18145,7 +18168,7 @@
         "class": "conditional",
         "area": "area 1",
         "tests": 1,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "running-hot": [
@@ -19746,7 +19769,7 @@
         "class": "conditional",
         "area": "area 9",
         "tests": 4,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "sting": [
@@ -20205,7 +20228,7 @@
         "class": "conditional",
         "area": "area 2",
         "tests": 0,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "takobi": [
@@ -20892,7 +20915,7 @@
         "ability": "tinkering#0",
         "class": "play",
         "area": "area 11",
-        "tests": 5,
+        "tests": 7,
         "sweeps": 2
       }
     ],
@@ -21311,7 +21334,7 @@
         "class": "conditional",
         "area": "area 14",
         "tests": 0,
-        "sweeps": 0
+        "sweeps": 1
       }
     ],
     "trickster-taka": [
@@ -22087,7 +22110,7 @@
         "class": "subroutine",
         "name": "viktor-1-0-core",
         "area": "area 9",
-        "tests": 0,
+        "tests": 2,
         "sweeps": 4
       },
       {
