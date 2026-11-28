@@ -16,6 +16,7 @@ import { installBlockReason } from "../../src/state/cardFlags/staticFlags.js";
 import { scoreAgendaAction } from "../../src/actions/score.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
 import type { ApplyResult } from "../../src/state/types/actions.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -31,7 +32,7 @@ describe("blanked steal/score/install locks (CR 9.12.1d)", () => {
     const apex = instantiateCard(
       "apex-invasive-predator",
       "apex-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     s.cards["apex-1"] = apex;
     s.runner.identityId = "apex-1";

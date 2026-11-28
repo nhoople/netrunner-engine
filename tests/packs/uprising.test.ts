@@ -32,6 +32,7 @@ import { dealDamage } from "../../src/state/damageAndPrevention/damage.js";
 import { agendaPointsFor } from "../../src/state/turnAndActions/scoring.js";
 import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../../src/state/setupAndEnd/identityFlipHooks.js";
 import { additionalRunInitiateCredits } from "../../src/state/run/runInitiateTax.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 describe("uprising", () => {
   describe("ur-v135-kickoff", () => {
@@ -1072,7 +1073,7 @@ describe("uprising", () => {
         const id = instantiateCard(
           "hoshiko-shiro-untold-protagonist",
           "hoshiko-1",
-          "runner:identity",
+          identityZone(s, "runner"),
         );
         s.cards["hoshiko-1"] = id;
         s.runner.identityId = "hoshiko-1";
@@ -1094,7 +1095,7 @@ describe("uprising", () => {
         const id = instantiateCard(
           "hoshiko-shiro-untold-protagonist",
           "hoshiko-1",
-          "runner:identity",
+          identityZone(s, "runner"),
         );
         // Faces come from the pinned cards data (identityFaces, front first).
         expect(id.identityFaces?.[1]).toEqual({
@@ -1514,7 +1515,7 @@ describe("uprising", () => {
         const id = instantiateCard(
           "earth-station-sea-headquarters",
           "es-1",
-          "corp:identity",
+          identityZone(s, "corp"),
         );
         s.cards["es-1"] = id;
         s.corp.identityId = "es-1";
@@ -1624,7 +1625,7 @@ describe("uprising", () => {
         const gn = instantiateCard(
           "gamenet-where-dreams-are-real",
           "gn-2",
-          "corp:identity",
+          identityZone(s, "corp"),
         );
         s.cards["gn-2"] = gn;
         s.corp.identityId = "gn-2";

@@ -34,6 +34,7 @@ import { hostCard } from "../../../src/state/hostingAndTrash/host.js";
 import { fireIceRezDuringRunHooks } from "../../../src/effects/rez/rezDuringRunHooks.js";
 import { evalEffect, fx } from "../../../src/index.js";
 import { expectStateDelta, snapshot } from "../../effects/kind-coverage.js";
+import { identityZone } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -320,7 +321,7 @@ describe("Null: Whistleblower's −2 strength lasts for the remainder of the run
   it("stays on the ice after its encounter ends, while the run goes on", () => {
     let s = runnerTurn();
     const oldId = s.runner.identityId;
-    put(s, "null-whistleblower", "null-1", "runner:identity");
+    put(s, "null-whistleblower", "null-1", identityZone(s, "runner"));
     delete s.cards[oldId];
     s.runner.identityId = "null-1";
     put(s, "sure-gamble", "grip-1", "runner:grip");
@@ -372,7 +373,7 @@ describe("Hush: host ice cannot gain abilities (CR 1.2.1)", () => {
       s,
       "thunderbolt-armaments-peace-through-power",
       "tb-id",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     delete s.cards[oldId];
     s.corp.identityId = "tb-id";

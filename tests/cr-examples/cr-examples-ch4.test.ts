@@ -15,6 +15,7 @@ import {
   instantiateCard,
 } from "../../src/index.js";
 import type { GameState } from "../../src/state/types/game.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -179,7 +180,7 @@ describe("CR examples, chapter 4", () => {
     const exile = instantiateCard(
       "exile-streethawk",
       "exile-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     s.cards["exile-1"] = exile;
     s.runner.identityId = "exile-1";

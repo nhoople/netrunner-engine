@@ -22,6 +22,7 @@ import {
 import { primitiveNameFollowsStandard } from "../../../src/effects/primitiveNames.js";
 import type { Action } from "../../../src/state/types/actions.js";
 import type { GameState } from "../../../src/state/types/game.js";
+import { identityZone } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -36,7 +37,7 @@ function mirrormorph(clicks: number): GameState {
   s.cards[id] = instantiateCard(
     "mirrormorph-endless-iteration",
     id,
-    "corp:identity",
+    identityZone(s, "corp"),
   );
   s.cards["runner-program-1"]!.rezzed = false;
   const rml = instantiateCard(

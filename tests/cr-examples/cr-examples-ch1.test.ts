@@ -28,6 +28,7 @@ import type { Action } from "../../src/state/types/actions.js";
 import type { GameState } from "../../src/state/types/game.js";
 import { passIdle } from "../../src/demo/passIdle.js";
 import { trashCard } from "../../src/state/hostingAndTrash/trash.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -313,7 +314,7 @@ describe("CR examples, chapter 1", () => {
     const foundry = instantiateCard(
       "the-foundry-refining-the-process",
       "foundry-id",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards[s.corp.identityId]!.onFirstIceRezEachTurn =
       foundry.onFirstIceRezEachTurn;
@@ -1253,7 +1254,7 @@ describe("CR examples, chapter 1", () => {
     const khumalo = instantiateCard(
       "freedom-khumalo-crypto-anarchist",
       s.runner.identityId,
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     s.cards[s.runner.identityId] = khumalo;
     const bean = instantiateCard("beanstalk-royalties", "bean-1", "corp:rd");
@@ -1299,7 +1300,7 @@ describe("CR examples, chapter 1", () => {
     const gn = instantiateCard(
       "gamenet-where-dreams-are-real",
       "gn-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards["gn-1"] = gn;
     s.corp.identityId = "gn-1";
@@ -1609,7 +1610,7 @@ describe("CR examples, chapter 1", () => {
     const identity = instantiateCard(
       "ob-superheavy-logistics-extract-export-excel",
       s.corp.identityId,
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards[s.corp.identityId] = identity;
     const agenda = instantiateCard(

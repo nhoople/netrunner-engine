@@ -19,6 +19,7 @@ import { creditsAvailableForInstall } from "../../src/state/keywordsAndCredits/r
 import { firstClickMustIsActive } from "../../src/state/turnAndActions/firstClickMust.js";
 import { corpCreditsForTrace } from "../../src/state/turnAndActions/trace.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -106,7 +107,11 @@ describe("blanked recurring spend / first-* (CR 9.12.1d)", () => {
   it("drops Making News trace recurring while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const id = instantiateCard("nbn-making-news", "nbn-id", "corp:identity");
+    const id = instantiateCard(
+      "nbn-making-news",
+      "nbn-id",
+      identityZone(s, "corp"),
+    );
     id.recurringCredits = 2;
     s.cards["nbn-id"] = id;
     s.corp.identityId = "nbn-id";

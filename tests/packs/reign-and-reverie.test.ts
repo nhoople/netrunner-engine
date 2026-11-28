@@ -23,6 +23,7 @@ import {
   playEffectFromCard,
 } from "../../src/index.js";
 import type { GameState } from "../../src/state/types/game.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 describe("reign-and-reverie", () => {
   describe("rar-v175-kickoff", () => {
@@ -139,10 +140,10 @@ describe("reign-and-reverie", () => {
         const id = instantiateCard(
           "nathaniel-gnat-hall-one-of-a-kind",
           "gnat",
-          "runner:identity",
+          identityZone(s, "runner"),
         );
         s.cards["gnat"] = id;
-        s.runner.identityCardId = "gnat";
+        s.runner.identityId = "gnat";
         s.runner.hand = [];
         const before = s.runner.credits;
         const r = evalEffect({ state: s, sourceId: "gnat" }, def.onTurnBegin!);

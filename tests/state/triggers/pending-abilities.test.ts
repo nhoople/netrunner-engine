@@ -2,7 +2,7 @@
  * Pending ability instances, checkpoint diffs, reaction windows, lingering
  * registry, and damage expected-effects (CR 9.6 / 9.9.2 / 9.10 / 10.3).
  */
-import { openAsChoice } from "../../rulings/rulings-helpers.js";
+import { openAsChoice, identityZone } from "../../rulings/rulings-helpers.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   CR,
@@ -370,7 +370,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const hayley = instantiateCard(
       "hayley-kaplan-universal-scholar",
       "hk-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     s.cards["hk-1"] = hayley;
     s.runner.identityId = "hk-1";
@@ -950,7 +950,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const id = instantiateCard(
       "weyland-consortium-builder-of-nations",
       "bm-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards["bm-1"] = id;
     s.corp.identityId = "bm-1";
@@ -1203,7 +1203,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const pe = instantiateCard(
       "jinteki-personal-evolution",
       "pe-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
     s.cards["pe-1"] = pe;
@@ -1415,7 +1415,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const seidr = instantiateCard(
       "seidr-laboratories-destiny-defined",
       "seidr-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     seidr.onBeforeFirstTurn = {
       op: "do",
@@ -1583,7 +1583,11 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const { noteCorpActionPhaseEnd } =
       await import("../../../src/state/turnAndActions/phaseEndHooks.js");
     const s = createInitialState();
-    const mercia = instantiateCard("mercia-b4ll4rd", "mer-1", "corp:identity");
+    const mercia = instantiateCard(
+      "mercia-b4ll4rd",
+      "mer-1",
+      identityZone(s, "corp"),
+    );
     s.cards["mer-1"] = mercia;
     s.corp.identityId = "mer-1";
     noteCorpActionPhaseEnd(s);
@@ -1815,7 +1819,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const id = instantiateCard(
       "tennin-institute-the-secrets-within",
       "tennin-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards["tennin-1"] = id;
     s.corp.identityId = "tennin-1";
@@ -2078,7 +2082,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const khan = instantiateCard(
       "khan-savvy-skiptracer",
       "khan-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     s.cards["khan-1"] = khan;
     s.runner.identityId = "khan-1";
@@ -2190,7 +2194,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const id = instantiateCard(
       "hyoubu-institute-absolute-clarity",
       "hy-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards["hy-1"] = id;
     s.corp.identityId = "hy-1";
@@ -2222,7 +2226,11 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const { noteFirstTagThisTurn } =
       await import("../../../src/state/triggers/miscConditionalHooks.js");
     const s = createInitialState();
-    const id = instantiateCard("nbn-reality-plus", "nbn-1", "corp:identity");
+    const id = instantiateCard(
+      "nbn-reality-plus",
+      "nbn-1",
+      identityZone(s, "corp"),
+    );
     s.cards["nbn-1"] = id;
     s.corp.identityId = "nbn-1";
     s.corp.credits = 0;
@@ -2585,7 +2593,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const teia = instantiateCard(
       "a-teia-ip-recovery",
       "teia-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     teia.onFirstRemoteInstallThisTurn = fx.do({
       kind: "gain_credits",
@@ -2626,7 +2634,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const teia = instantiateCard(
       "a-teia-ip-recovery",
       "teia-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards["teia-1"] = teia;
     s.corp.identityId = "teia-1";
@@ -3643,7 +3651,7 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
     const asa = instantiateCard(
       "asa-group-security-through-vigilance",
       "asa-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     asa.onFirstCorpCardInstallEachTurn = fx.do({
       kind: "gain_credits",
@@ -3704,7 +3712,7 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
     const morph = instantiateCard(
       "mirrormorph-endless-iteration",
       "mm-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards["mm-1"] = morph;
     s.corp.identityId = "mm-1";
@@ -3974,7 +3982,7 @@ describe("Geist chain reaction pending (CR 9.1.2a)", () => {
     const geist = instantiateCard(
       "armand-geist-walker-tech-lord",
       "geist-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     const decoy = instantiateCard("decoy", "decoy-1", "runner:installed");
     const top = instantiateCard("sure-gamble", "stack-1", "runner:stack");
@@ -4274,7 +4282,7 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     const bon = instantiateCard(
       "weyland-consortium-builder-of-nations",
       "bon-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     bon.firstAdvancedIceEncounterEndMeatDamageEachTurn = true;
     const caissa = instantiateCard("imp", "imp-1", "runner:installed");
@@ -4428,7 +4436,7 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     const nero = instantiateCard(
       "nero-severn-information-broker",
       "nero-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     nero.mayJackOutOnEncounterSentryOncePerTurn = true;
     const aeneas = instantiateCard(
@@ -4646,7 +4654,7 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     const pe = instantiateCard(
       "jinteki-personal-evolution",
       "pe-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     pe.netDamageOnAgendaScoredOrStolen = 1;
     const panto = instantiateCard("pantograph", "pan-1", "runner:installed");
@@ -4710,7 +4718,7 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     const seidr = instantiateCard(
       "seidr-laboratories-destiny-defined",
       "seidr-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     seidr.onFirstRunnerClickSpendOrLoseDuringRun = fx.do({
       kind: "gain_credits",
@@ -4821,7 +4829,7 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     const editorial = instantiateCard(
       "editorial-division-ad-nihilum",
       "ed-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     editorial.onFirstBadPublicityTakeEachTurn = fx.do({
       kind: "gain_credits",
@@ -4960,7 +4968,7 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     const foundry = instantiateCard(
       "haas-bioroid-stronger-together",
       "id-corp",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     foundry.onFirstIceRezEachTurn = fx.do({
       kind: "gain_credits",

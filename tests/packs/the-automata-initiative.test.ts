@@ -44,6 +44,7 @@ import {
 } from "../../src/state/hostingAndTrash/trashHooks.js";
 import { noteCorpActionType } from "../../src/state/turnAndActions/corpActionHooks.js";
 import type { ApplyResult } from "../../src/state/types/actions.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 describe("the-automata-initiative", () => {
   describe("tai-b1001-umbrella-pichacao-cybersand-urban", () => {
@@ -2314,7 +2315,7 @@ describe("the-automata-initiative", () => {
         const id = instantiateCard(
           "a-teia-ip-recovery",
           "corp-id",
-          "corp:identity",
+          identityZone(s, "corp"),
         );
         id.maxRemoteServers = 2;
         s.corp.identityId = "corp-id";

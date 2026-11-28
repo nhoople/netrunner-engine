@@ -43,6 +43,7 @@ import { fireHostedCreditsOnAnyIceRez } from "../../src/state/counters/powerCoun
 import { modifiersFromStartsRun } from "../../src/state/run/runStart.js";
 import type { GameState } from "../../src/state/types/game.js";
 import { noteRunnerClickSpend } from "../../src/state/turnAndActions/clickHooks.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 describe("system-core-2019", () => {
   describe("sc19-v159-kickoff", () => {
@@ -292,7 +293,7 @@ describe("system-core-2019", () => {
         const id = instantiateCard(
           "chaos-theory-wunderkind",
           "ct-id",
-          "runner:identity",
+          identityZone(state, "runner"),
         );
         state.cards[id.id] = id;
         state.runner.identityId = id.id;
@@ -1580,7 +1581,7 @@ describe("system-core-2019", () => {
         const id = instantiateCard(
           "jinteki-replicating-perfection",
           "corp-id",
-          "corp:identity",
+          identityZone(s, "corp"),
         );
         s.cards["corp-id"] = id;
         s.corp.identityId = "corp-id";
@@ -1672,7 +1673,7 @@ describe("system-core-2019", () => {
         const id = instantiateCard(
           "seidr-laboratories-destiny-defined",
           "seidr",
-          "corp:identity",
+          identityZone(s, "corp"),
         );
         s.cards["seidr"] = id;
         s.corp.identityId = "seidr";

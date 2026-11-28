@@ -17,6 +17,7 @@ import type { Action } from "../../src/state/types/actions.js";
 import type { GameState } from "../../src/state/types/game.js";
 import { noteCorpActionType } from "../../src/state/turnAndActions/corpActionHooks.js";
 import { passIdle } from "../../src/demo/passIdle.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -137,7 +138,7 @@ describe("CR examples, chapter 5", () => {
     const morph = instantiateCard(
       "mirrormorph-endless-iteration",
       "mm-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards["mm-1"] = morph;
     s.corp.identityId = "mm-1";

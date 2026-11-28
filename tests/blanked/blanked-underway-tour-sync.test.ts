@@ -17,6 +17,7 @@ import { exposeLegalTargets } from "../../src/state/visibility/expose.js";
 import type { GameState, ServerId } from "../../src/index.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
 import { syncAllTourGuideSubs } from "../../src/effects/rez/rezKinds.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -127,7 +128,7 @@ describe("blanked Underway / Tour Guide / SYNC (CR 9.12.1d)", () => {
     const sync = instantiateCard(
       "sync-everything-everywhere",
       "sync-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards["sync-1"] = sync;
     s.corp.identityId = "sync-1";

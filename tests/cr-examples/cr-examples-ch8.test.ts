@@ -28,6 +28,7 @@ import {
 } from "../../src/state/hostingAndTrash/trashPrevent.js";
 import { passIdle } from "../../src/demo/passIdle.js";
 import { trashCard } from "../../src/state/hostingAndTrash/trash.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -427,7 +428,7 @@ describe("CR examples, chapter 8", () => {
     const identity = instantiateCard(
       "ob-superheavy-logistics-extract-export-excel",
       "ob-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     const archer = instantiateCard("archer", "archer-1", "corp:rd");
     archer.faceup = false;
@@ -805,7 +806,7 @@ describe("CR examples, chapter 8", () => {
     const identity = instantiateCard(
       "near-earth-hub-broadcast-center",
       s.corp.identityId,
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     const startup = instantiateCard(
       "tech-startup",
@@ -965,7 +966,7 @@ describe("CR examples, chapter 8", () => {
     const teia = instantiateCard(
       "a-teia-ip-recovery",
       "teia-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards["teia-1"] = teia;
     s.corp.identityId = "teia-1";

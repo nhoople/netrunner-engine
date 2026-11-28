@@ -42,6 +42,7 @@ import {
   currentMark,
 } from "../../src/state/keywordsAndCredits/keywords.js";
 import { passIdle } from "../../src/demo/passIdle.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -493,7 +494,7 @@ describe("CR examples, chapter 10", () => {
     const jes = instantiateCard(
       "jesminder-sareen-girl-behind-the-curtain",
       "jes-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     const amaze = instantiateCard(
       "amaze-amusements",
@@ -539,7 +540,7 @@ describe("CR examples, chapter 10", () => {
     const argus = instantiateCard(
       "argus-security-protection-guaranteed",
       "argus-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     const cleaners = instantiateCard("the-cleaners", "cl-1", "corp:score");
     const punitive = instantiateCard(
@@ -858,7 +859,7 @@ describe("CR examples, chapter 10", () => {
     const esa = instantiateCard(
       "esa-afontov-eco-insurrectionist",
       "esa-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     s.cards["esa-1"] = esa;
     s.runner.identityId = "esa-1";
