@@ -130,7 +130,7 @@ describe("fail-closed — supported pool cannot hide unsupported clauses", () =>
     }
     // Supported corpus waves stay fully supported;
     // in-progress Core-forward wave may remain partial.
-    for (const wave of pool.corpusOrder) {
+    for (const wave of pool.corpusOrder!) {
       const status = pool.waves[wave].status;
       expect(["supported", "in-progress"], wave).toContain(status);
       if (wave !== "core") {

@@ -9,6 +9,7 @@ import {
   instantiateCard,
 } from "../../../src/index.js";
 import type { GameState } from "../../../src/state/types/game.js";
+import type { ApplyResult } from "../../../src/state/types/actions.js";
 
 function must(
   state: GameState,
@@ -16,7 +17,7 @@ function must(
 ): GameState {
   const r = applyAction(state, action);
   expect(r.ok, r.ok ? undefined : r.error).toBe(true);
-  return r.state!;
+  return (r as Extract<ApplyResult, { ok: true }>).state;
 }
 
 describe("Dividends (CR 10.13)", () => {

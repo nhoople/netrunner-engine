@@ -83,7 +83,7 @@ function ensureServer(s: GameState, serverId: ServerId): void {
     kind: "remote",
     ice: [],
     root: [],
-  } as GameState["servers"][string];
+  };
   const n = Number(serverId.replace("remote-", ""));
   s.nextRemoteNumber = Math.max(s.nextRemoteNumber ?? 1, n + 1);
 }

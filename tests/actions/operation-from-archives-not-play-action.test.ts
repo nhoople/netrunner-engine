@@ -113,7 +113,7 @@ describe("operations played from Archives by a card ability", () => {
       kind: "remote",
       ice: [],
       root: ["pl-1"],
-    } as GameState["servers"][string];
+    };
     s.nextRemoteNumber = 2;
     s.cards["pc-1"] = instantiateCard("petty-cash", "pc-1", "corp:archives");
     s.corp.discardPile = ["pc-1"];

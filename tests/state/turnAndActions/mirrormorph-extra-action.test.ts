@@ -53,7 +53,7 @@ function mirrormorph(clicks: number): GameState {
     kind: "remote",
     ice: [],
     root: ["rml-1"],
-  } as GameState["servers"][string];
+  };
   s.nextRemoteNumber = 2;
   s.cards["hf-1"] = instantiateCard("hedge-fund", "hf-1", "corp:hq");
   s.corp.hand.push("hf-1");

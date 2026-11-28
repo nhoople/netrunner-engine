@@ -14,6 +14,7 @@ import {
   instantiateCard,
 } from "../../../src/index.js";
 import type { GameState } from "../../../src/state/types/game.js";
+import type { Primitive } from "../../../src/effects/ir/primitive.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -43,13 +44,18 @@ function put(s: GameState, defId: string, id: string, zone: string): void {
   s.cards[id] = instantiateCard(defId, id, zone);
 }
 
-function run(
+function run<K extends Primitive["kind"]>(
   s: GameState,
   sourceId: string,
-  kind: string,
-  extra: object,
+  kind: K,
+  extra: Partial<Omit<Extract<Primitive, { kind: K }>, "kind">>,
 ): void {
-  const r = evalEffect({ state: s, sourceId }, fx.do({ kind, ...extra }));
+  const r = evalEffect(
+    { state: s, sourceId },
+    // The signature checks the kind and its fields; the spread of a generic
+    // kind is too complex for tsc to match against the Primitive union.
+    fx.do({ kind, ...extra } as unknown as Primitive),
+  );
   if (!r.ok) throw new Error(`${kind}: ${r.error ?? "failed"}`);
 }
 

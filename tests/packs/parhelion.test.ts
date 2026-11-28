@@ -35,6 +35,7 @@ import {
 } from "../../src/state/keywordsAndCredits/keywords.js";
 import { passIdle } from "../../src/demo/passIdle.js";
 import { trashCard } from "../../src/state/hostingAndTrash/trash.js";
+import type { ApplyResult } from "../../src/state/types/actions.js";
 
 describe("parhelion", () => {
   describe("parhelion-adv-req-reduction", () => {
@@ -1111,7 +1112,7 @@ describe("parhelion", () => {
 
         rez = applyAction(s, { type: "rez_ice", cardId: "bloop-1" });
         expect(rez.ok).toBe(true);
-        s = rez.state;
+        s = (rez as Extract<ApplyResult, { ok: true }>).state;
         expect(s.cards["bloop-1"].rezzed).toBe(true);
         expect(s.cards["wave-1"].rezzed).toBe(false);
       });
@@ -1216,7 +1217,7 @@ describe("parhelion", () => {
         s.runner.tags = 2;
         r = applyAction(s, { type: "play_operation", cardId: "ship-1" });
         expect(r.ok).toBe(true);
-        s = r.state;
+        s = (r as Extract<ApplyResult, { ok: true }>).state;
         // place_advancements may open a choice when multiple targets — sole agenda auto
         expect(
           (s.cards["ag-1"].advancementCounters ?? 0) === 4 ||
@@ -1767,7 +1768,7 @@ describe("parhelion", () => {
           endedTheRun: false,
           cannotJackOut: false,
         };
-        s.run.accessingCardId = null;
+        s.run!.accessingCardId = null;
         addBreakerStrengthBoostThisRun(s, {
           createdBy: "orca-1",
           breakerId: "orca-1",
@@ -3138,7 +3139,7 @@ describe("parhelion", () => {
           abilityId: "poison-vial-break",
         });
         expect(r.ok).toBe(true);
-        s = r.state;
+        s = (r as Extract<ApplyResult, { ok: true }>).state;
         expect(s.cards["vial-1"].powerCounters).toBe(2);
         // Broke up to 2 remaining → indices 1 and 2
         expect(s.run!.encounter!.broken).toEqual([true, true, true]);

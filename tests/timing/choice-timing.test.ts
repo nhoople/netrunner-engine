@@ -738,7 +738,7 @@ describe("conditional abilities resolve on their turn step", () => {
     ];
     for (const def of loadCardCatalog(true).values()) {
       for (const spec of specs) {
-        const hook = (def as Record<string, unknown>)[spec.field];
+        const hook = (def as unknown as Record<string, unknown>)[spec.field];
         if (!hook || typeof hook !== "object" || !("op" in hook)) continue;
         if (
           spec.field === "onTurnBegin" &&
@@ -1076,7 +1076,7 @@ describe("later turn steps", () => {
     const failures: string[] = [];
     let resolved = 0;
     const hook = (def: CardDef, field: string): boolean => {
-      const value = (def as Record<string, unknown>)[field];
+      const value = (def as unknown as Record<string, unknown>)[field];
       return Boolean(value && typeof value === "object" && "op" in value);
     };
     for (const def of loadCardCatalog(true).values()) {
@@ -1261,7 +1261,10 @@ describe("later turn steps", () => {
             });
           }
         }
-        markStepHook(card, spec.field);
+        markStepHook(
+          card as unknown as { side: string } & Record<string, unknown>,
+          spec.field,
+        );
         const beforeHook = zeroGainCount(state.log);
         resolveStep(state, spec.step, failures, `${def.id} ${spec.field}`);
         if (zeroGainCount(state.log) === beforeHook) {

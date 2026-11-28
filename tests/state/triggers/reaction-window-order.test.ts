@@ -17,6 +17,7 @@ import {
 import type { Action, GameState } from "../../../src/index.js";
 import { createPendingAbilityInstance } from "../../../src/state/triggers/pendingAbilities.js";
 import { resolveStoredConditionalPendings } from "../../../src/state/triggers/storedTriggers.js";
+import type { Side } from "../../../src/state/types/shared.js";
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
@@ -100,7 +101,7 @@ describe("reaction window order (CR 9.2.8b, 9.2.8d)", () => {
       s.corp.credits = 0;
       s.runner.credits = 0;
       const inactive = active === "runner" ? "corp" : "runner";
-      const ids = [inactive, active].map(
+      const ids = ([inactive, active] as Side[]).map(
         (side) =>
           createPendingAbilityInstance(s, {
             abilityKey: `test-${side}`,

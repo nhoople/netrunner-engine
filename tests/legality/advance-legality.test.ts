@@ -125,7 +125,10 @@ describe("basic advance targets (CR 1.18.3)", () => {
 
     const targets = queryLegality(state)
       .legal.filter((entry) => entry.action.type === "advance")
-      .map((entry) => entry.action.cardId)
+      .map(
+        (entry) =>
+          (entry.action as Extract<Action, { type: "advance" }>).cardId,
+      )
       .sort();
     expect(targets).toEqual([
       "advanceable-asset",

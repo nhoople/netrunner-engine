@@ -10,6 +10,7 @@ import {
   getCardDef,
   loadCardCatalog,
 } from "../../src/index.js";
+import type { ContinuousGainedSubDecl } from "../../src/state/types/abilities.js";
 
 describe("intervention", () => {
   describe("in-v125-set-complete", () => {
@@ -59,8 +60,14 @@ describe("intervention", () => {
         expect(
           getCardDef("wetwork-refit").continuousGainedSubDecls?.[0]?.kind ===
             "wetwork_hosted_before" &&
-            getCardDef("wetwork-refit").continuousGainedSubDecls?.[0]
-              ?.subroutines?.[0]?.text,
+            (
+              getCardDef("wetwork-refit").continuousGainedSubDecls?.[0] as
+                | Extract<
+                    ContinuousGainedSubDecl,
+                    { kind: "wetwork_hosted_before" }
+                  >
+                | undefined
+            )?.subroutines?.[0]?.text,
         ).toMatch(/core damage/i);
         expect(
           getCardDef("drone-screen").onRunDeclaredOnThisServerIfTagged,

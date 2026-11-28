@@ -42,6 +42,7 @@ import {
   settle,
   toAction,
 } from "./jnet-boards.js";
+import type { Action } from "../../src/state/types/actions.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -690,11 +691,11 @@ describe("abilities of a derezzed card (CR 9.1.7)", () => {
         s,
         saker,
         legalActions(s).find(
-          (a) =>
+          (a): a is Extract<Action, { type: "use_paid_ability" }> =>
             a.type === "use_paid_ability" &&
             a.cardId === saker &&
             a.abilityId !== "saker-derez",
-        )!.abilityId as string,
+        )!.abilityId,
       );
     }
     s = paid(s, saker, "saker-derez");
