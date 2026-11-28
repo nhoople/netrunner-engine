@@ -29,7 +29,7 @@ import type { StepRecord } from "../../src/debug/stepHook.js";
 import { ROOT } from "../cr-citations/cr-citations.js";
 import { ownerRank } from "../cr-citations/cr-owners.js";
 import { FORMATS } from "./harness.js";
-import { playoutSeedList } from "./suite.js";
+import { playoutSeedList } from "./harness.js";
 import {
   drive,
   fresh,

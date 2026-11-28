@@ -93,6 +93,98 @@ export function readSeeds(): SeedsFile {
   return JSON.parse(readFileSync(SEEDS_PATH, "utf8")) as SeedsFile;
 }
 
+/** Per-format CI seed counts. `npm run playouts` plays more. */
+const CI_SEEDS: Record<Format, number> = {
+  learn_to_play_starter: 4,
+  learn_to_play_expanded: 4,
+  startup: 4,
+  core: 2,
+  standard: 2,
+  eternal: 2,
+};
+
+/**
+ * The seeds CI plays for `format`: 1..`CI_SEEDS`, then every other seed
+ * `tests/fixtures/playout-seeds.json` records for it, in order.
+ */
+export function playoutSeedList(format: Format, seeds = readSeeds()): number[] {
+  const pinned = seeds.entries
+    .filter((e) => e.format === format)
+    .map((e) => e.deckSeed);
+  const list = [
+    ...new Set([
+      ...Array.from({ length: CI_SEEDS[format] }, (_, i) => i + 1),
+      ...pinned,
+    ]),
+  ];
+  return list.sort((a, b) => a - b);
+}
+
+// ---------------------------------------------------------------- weekly
+
+/**
+ * Failures the weekly 200-seed run (`npm run playouts:nightly`) already knows
+ * about, for seeds CI does not play. CI never reads this file; the CR audit
+ * owns these failures by area. `--write-weekly` rewrites it.
+ */
+export const WEEKLY_SEEDS_PATH = join(
+  ROOT,
+  "tests/fixtures/playout-seeds-weekly.json",
+);
+
+export function readWeeklySeeds(): SeedsFile {
+  return JSON.parse(readFileSync(WEEKLY_SEEDS_PATH, "utf8")) as SeedsFile;
+}
+
+/** The weekly run matches on format, seed and code: a step can move. */
+function weeklyKey(format: Format, seed: number, code: string): string {
+  return `${format}#${seed}#${code}`;
+}
+
+/**
+ * What the weekly run reports. `unlisted`: a (format, seed, code) that
+ * neither the CI fixture nor the weekly list holds. `gone`: a weekly entry
+ * whose seed this run played at full length without hitting its code, so it
+ * must leave the list (it only shrinks).
+ */
+export function weeklyCheck(
+  results: readonly PlayoutResult[],
+  ciEntries: readonly SeedEntry[],
+  weeklyEntries: readonly SeedEntry[],
+  steps: number,
+): { unlisted: string[]; gone: string[] } {
+  const known = new Set(
+    [...ciEntries, ...weeklyEntries].map((e) =>
+      weeklyKey(e.format, e.deckSeed, e.code),
+    ),
+  );
+  const found = new Set<string>();
+  const unlisted: string[] = [];
+  for (const r of results) {
+    for (const f of r.failures) {
+      const key = weeklyKey(r.format, r.seed, f.code);
+      if (found.has(key)) continue;
+      found.add(key);
+      if (!known.has(key))
+        unlisted.push(
+          `${r.format} seed ${r.seed}: ${failureKey(f)} ${f.detail}`,
+        );
+    }
+  }
+  const played = new Set(results.map((r) => `${r.format}#${r.seed}`));
+  const gone =
+    steps === PLAYOUT_STEPS
+      ? weeklyEntries
+          .filter(
+            (e) =>
+              played.has(`${e.format}#${e.deckSeed}`) &&
+              !found.has(weeklyKey(e.format, e.deckSeed, e.code)),
+          )
+          .map((e) => `${e.format} seed ${e.deckSeed}: ${e.code}`)
+      : [];
+  return { unlisted, gone };
+}
+
 /** Key a failure compares on. The detail is for people, not for matching. */
 export function failureKey(f: { code: string; step: number }): string {
   return `${f.code}@${f.step}`;
@@ -780,28 +872,6 @@ export function replayTo(
 }
 
 /**
- * The failures of a playout that no entry of the seeds file lists for its
- * format and seed. `npm run playouts` exits 1 when there are any.
- */
-export function newFailures(
-  result: PlayoutResult,
-  entries: readonly SeedEntry[],
-): Failure[] {
-  const listed = new Set(
-    entries
-      .filter((e) => e.format === result.format && e.deckSeed === result.seed)
-      .map(failureKey),
-  );
-  const seen = new Set<string>();
-  return result.failures.filter((f) => {
-    const key = failureKey(f);
-    if (listed.has(key) || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-/**
  * The differences between a playout and its recorded entries. A failure no
  * entry lists is new; an entry that no longer happens must leave the fixture
  * (the fixture only shrinks).
@@ -814,10 +884,12 @@ export function compareWithSeeds(
     (e) => e.format === result.format && e.deckSeed === result.seed,
   );
   const found = new Map(result.failures.map((f) => [failureKey(f), f]));
-  const errors = newFailures(result, entries).map(
-    (failure) =>
-      `new playout failure ${failureKey(failure)}: ${failure.detail}`,
-  );
+  const listed = new Set(recorded.map(failureKey));
+  const errors: string[] = [];
+  for (const [key, failure] of found) {
+    if (!listed.has(key))
+      errors.push(`new playout failure ${key}: ${failure.detail}`);
+  }
   for (const entry of recorded) {
     if (!found.has(failureKey(entry))) {
       errors.push(

@@ -1,10 +1,12 @@
 name: Playouts
 
 # The 200-seed playouts (`npm run playouts:nightly`: seeds 1–200 × 200 steps
-# in every format), weekly and by hand. CI's `npm test` replays only the
-# entries in tests/fixtures/playout-seeds.json. The script exits 1 on a
-# failure that file does not list. On a failure, the `report` job opens an
-# issue, or comments on the one already open.
+# in every format), weekly and by hand. CI's `npm test` plays only a few seeds
+# per format and the ones tests/fixtures/playout-seeds.json pins. The script
+# exits 1 on a (format, seed, code) that neither that file nor
+# tests/fixtures/playout-seeds-weekly.json lists, and on a weekly entry that
+# no longer happens. On a failure, the `report` job opens an issue, or
+# comments on the one already open.
 
 on:
   schedule:
@@ -47,7 +49,7 @@ jobs:
           BODY: |
             The 200-seed playouts (`npm run playouts:nightly`) failed on `${{ github.ref_name }}` (${{ github.event_name }}): ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            The end of the run log lists each failure not in `tests/fixtures/playout-seeds.json` by format, seed, code and step. Replay one with `npm run playouts -- --formats <format> --from <seed> --seeds 1`. Close this issue once the workflow passes again; a later failure while it is open adds a comment here.
+            The end of the run log lists each new failure (not in `tests/fixtures/playout-seeds.json` or `playout-seeds-weekly.json`) by format, seed, code and step, and each weekly entry that no longer happens. Replay one with `npm run playouts -- --formats <format> --from <seed> --seeds 1`. Remove fixed weekly entries with `npm run playouts:nightly -- --write-weekly`. Close this issue once the workflow passes again; a later failure while it is open adds a comment here.
         run: |
           number=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
             --jq "map(select(.title == env.TITLE)) | first | .number // empty")
