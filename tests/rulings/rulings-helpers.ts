@@ -10,7 +10,6 @@ import {
   legalActions,
 } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
-import type { ZoneId } from "../../src/state/types/shared.js";
 import type { Action } from "../../src/state/types/actions.js";
 import type { ServerId } from "../../src/state/types/servers.js";
 import { passIdle } from "../../src/demo/passIdle.js";
