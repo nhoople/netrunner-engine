@@ -5,7 +5,7 @@
  *
  * Not a test file: vitest only runs `*.test.ts`.
  */
-import { toCorpTurn } from "../rulings-helpers.js";
+import { toCorpTurn } from "../rulings/rulings-helpers.js";
 import { Board, take } from "./harness.js";
 import { atAction, through, toAction } from "./driving.js";
 import type { Driver } from "./driving.js";

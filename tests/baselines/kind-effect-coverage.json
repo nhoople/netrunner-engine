@@ -1,5 +1,5 @@
 {
-  "_comment": "Shrink-only baseline for tests/kind-effect-coverage.test.ts (CR audit Phase 2, guard 2). Recorded 2026-11-14 at engine v1.147.257, cards v1.147.24. uncovered: kinds in KNOWN_PRIMITIVE_KINDS with no it() that calls coversKind(kind) and expectStateDelta(...).",
+  "_comment": "Shrink-only baseline for tests/effects/kind-effect-coverage.test.ts (CR audit Phase 2, guard 2). Recorded 2026-11-14 at engine v1.147.257, cards v1.147.24. uncovered: kinds in KNOWN_PRIMITIVE_KINDS with no it() that calls coversKind(kind) and expectStateDelta(...).",
   "uncovered": [
     "accelerated_beta_test",
     "accelerated_beta_test_continue",

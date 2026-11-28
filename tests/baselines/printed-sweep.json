@@ -7785,7 +7785,7 @@
       "abilities": [
         "When you rez this asset, choose 1 installed non-virtual resource. The chosen resource loses its printed abilities."
       ],
-      "note": "tdatdMaliaBlankTargetId is keyed by card id and never cleared, so a chosen resource that leaves play and is reinstalled is still blank (1.12.1). RA-2 recorded it (it.todo in tests/continuous-effects-reaudit.test.ts). The choice and the blank while Malia is rezzed match.",
+      "note": "tdatdMaliaBlankTargetId is keyed by card id and never cleared, so a chosen resource that leaves play and is reinstalled is still blank (1.12.1). RA-2 recorded it (it.todo in tests/state/continuous/continuous-effects-reaudit.test.ts). The choice and the blank while Malia is rezzed match.",
       "cr": [
         "1.12.1"
       ]

@@ -1,5 +1,5 @@
 {
-  "_comment": "Shrink-only baseline for tests/cr-subrule-coverage.test.ts (CR audit tool 1.17). Recorded 2026-11-19 at CR v26.03: rules below section level (not examples) that no it() title names, directly or through one of their examples, grouped by their owner from tests/cr-section-owners.json (tool 1.13). Each area evidence step reads its own list. A subrule leaves the list when a test title names it; regenerating moves a subrule whose owner changed but never adds one.",
+  "_comment": "Shrink-only baseline for tests/cr-citations/cr-subrule-coverage.test.ts (CR audit tool 1.17). Recorded 2026-11-19 at CR v26.03: rules below section level (not examples) that no it() title names, directly or through one of their examples, grouped by their owner from tests/cr-citations/cr-section-owners.json (tool 1.13). Each area evidence step reads its own list. A subrule leaves the list when a test title names it; regenerating moves a subrule whose owner changed but never adds one.",
   "crTag": "v26.03",
   "uncited": {
     "area 1": [

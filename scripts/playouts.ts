@@ -8,7 +8,7 @@
  * `tests/fixtures/playout-seeds.json`: for each (format, seed) it played, it
  * replaces that seed's entries with what it found, keeping the date an entry
  * was first recorded. Entries for seeds it did not play are left alone.
- * `npm test` replays every entry (tests/playout-seeds.test.ts).
+ * `npm test` replays every entry (tests/playout/playouts-*.test.ts).
  */
 import { writeFileSync } from "node:fs";
 import { setApplyHook } from "../src/debug/applyHook.js";

@@ -9,7 +9,7 @@
  * its index in the card's `abilities`.
  *
  * Its area is the owner, in the CR section owner table (tool 1.13,
- * tests/cr-section-owners.json), of a CR rule chosen from what the ability
+ * tests/cr-citations/cr-section-owners.json), of a CR rule chosen from what the ability
  * does: the first effect kind in its instructions whose name has a word in
  * `WORD_RULES` (kind names are verb first, so the verb usually decides),
  * else its trigger, else its class (9.5 paid, 9.6 conditional, 9.7 play,
@@ -18,7 +18,7 @@
  */
 import { getCardDef, supportedCardIds } from "../../src/index.js";
 import type { Effect } from "../../src/effects/ir/effect.js";
-import { loadOwnerTable, ownerOf } from "../cr-owners.js";
+import { loadOwnerTable, ownerOf } from "../cr-citations/cr-owners.js";
 
 type AbilityClass = "paid" | "conditional" | "play" | "subroutine";
 
@@ -33,7 +33,7 @@ export interface Ability {
   trigger?: string;
   /** The CR rule the area comes from. */
   rule: string;
-  /** Owner of `rule` in tests/cr-section-owners.json. */
+  /** Owner of `rule` in tests/cr-citations/cr-section-owners.json. */
   area: string;
   instructions: Effect;
   condition?: unknown;

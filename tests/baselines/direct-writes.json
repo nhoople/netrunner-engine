@@ -1,5 +1,5 @@
 {
-  "_comment": "Shrink-only baseline for tests/procedure-write-guard.test.ts (CR audit Phase 2, guard 1). Recorded 2026-11-14 at engine v1.147.257, cards v1.147.24. counts: direct writes to procedure-owned state outside the helper modules, by file and property (see tests/direct-writes.ts). raised: hand edits that raised a count, each with a date and reason.",
+  "_comment": "Shrink-only baseline for tests/state/procedure-write-guard.test.ts (CR audit Phase 2, guard 1). Recorded 2026-11-14 at engine v1.147.257, cards v1.147.24. counts: direct writes to procedure-owned state outside the helper modules, by file and property (see tests/state/direct-writes.ts). raised: hand edits that raised a count, each with a date and reason.",
   "raised": [
     {
       "date": "2026-11-22",

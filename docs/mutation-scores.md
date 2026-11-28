@@ -16,7 +16,7 @@ There is one script per area: `mutate:hosting-trash`, `mutate:uninstall`, `mutat
 - `stryker/<area>.config.mjs` builds the Stryker config. Stryker uses the vitest runner with `stryker/vitest.config.mjs`, which narrows the suite to that area's tests and keeps the invariant hook.
 - Tests that scan source text (kind liveness, the flag inventory, effect IR names, and similar sweeps) are left out of every area. Stryker rewrites the files it mutates, so those tests fail its first clean run, and they can't kill a behavioral mutant anyway.
 - Reports go to `reports/mutation/<area>.html` and `.json` (gitignored). Read the HTML report for the full list of survivors.
-- When an area moves its procedure into its area folder (`src/state/<area>/`), add that module to the area's `mutate` list. `tests/mutation-areas.test.ts` fails if a listed file goes missing.
+- When an area moves its procedure into its area folder (`src/state/<area>/`), add that module to the area's `mutate` list. `tests/repo/mutation-areas.test.ts` fails if a listed file goes missing.
 
 A score is killed ÷ (killed + survived + no coverage). "Covered" leaves out the mutants that no selected test reaches.
 
@@ -35,7 +35,7 @@ A score is killed ÷ (killed + survived + no coverage). "Covered" leaves out the
 
 ## 1. Hosting and trash (2026-11-19)
 
-Files mutated: `src/state/hostingAndTrash/host.ts` (`hostCard`, `unhostCard`, `unhostAllFrom`) and `src/state/hostingAndTrash/trash.ts` (`trashCard`, `discardCard`, the checkpoint trash and Skorpios). The area had no shared helper before, so the start score is the first draft of the new modules against the area's tests. Adding the branch tests in `tests/hosting-and-trash.test.ts` raised it from 57.37% to 88.96%.
+Files mutated: `src/state/hostingAndTrash/host.ts` (`hostCard`, `unhostCard`, `unhostAllFrom`) and `src/state/hostingAndTrash/trash.ts` (`trashCard`, `discardCard`, the checkpoint trash and Skorpios). The area had no shared helper before, so the start score is the first draft of the new modules against the area's tests. Adding the branch tests in `tests/state/hostingAndTrash/hosting-and-trash.test.ts` raised it from 57.37% to 88.96%.
 
 | File | Score | Covered | Killed | Survived | No coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -54,7 +54,7 @@ No survivor changes the zone, face, host link, prevention window, or trash trigg
 
 ## 2. Uninstall and run position (2026-11-20)
 
-Files mutated: `src/state/uninstallAndPosition/uninstall.ts` (`uninstallCard`, `removeCardFromGame`, `ceaseVacantPositions`), `src/state/uninstallAndPosition/rearrange.ts` (`rearrangeIce`, `moveIce`) and `src/state/uninstallAndPosition/runPosition.ts`. Before area 2 the scope was `runPosition.ts` and `moveKinds.ts`, with no uninstall helper. The start score is the first draft against the area's tests; the branch tests in `tests/uninstall-and-run-position.test.ts` raised it to 93.43%.
+Files mutated: `src/state/uninstallAndPosition/uninstall.ts` (`uninstallCard`, `removeCardFromGame`, `ceaseVacantPositions`), `src/state/uninstallAndPosition/rearrange.ts` (`rearrangeIce`, `moveIce`) and `src/state/uninstallAndPosition/runPosition.ts`. Before area 2 the scope was `runPosition.ts` and `moveKinds.ts`, with no uninstall helper. The start score is the first draft against the area's tests; the branch tests in `tests/state/uninstallAndPosition/uninstall-and-run-position.test.ts` raised it to 93.43%.
 
 | File | Score | Covered | Killed | Survived | No coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -73,7 +73,7 @@ No survivor changes a zone, a face, a host link, the Runner's position, the atta
 
 ## RA-2 Continuous effects (2026-11-19)
 
-Files mutated: `src/state/continuous/continuousEffects.ts` (the 9.12 blanking solver and subtype layer), `src/state/continuous/lingeringEffects.ts` (the 9.10 registry and its 10.3.1b expiry), `src/state/continuous/abilities.ts` and `src/state/triggers/pendingChoice.ts` (the S4 choice helper). Killed counts include timeouts. The re-audit writes tests only (`tests/continuous-effects-reaudit.test.ts`); RF fixes the paths it found wrong.
+Files mutated: `src/state/continuous/continuousEffects.ts` (the 9.12 blanking solver and subtype layer), `src/state/continuous/lingeringEffects.ts` (the 9.10 registry and its 10.3.1b expiry), `src/state/continuous/abilities.ts` and `src/state/triggers/pendingChoice.ts` (the S4 choice helper). Killed counts include timeouts. The re-audit writes tests only (`tests/state/continuous/continuous-effects-reaudit.test.ts`); RF fixes the paths it found wrong.
 
 | File | Start | With RA-2 tests | Covered | Survived | No coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |

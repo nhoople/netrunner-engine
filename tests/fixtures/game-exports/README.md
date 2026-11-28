@@ -3,7 +3,7 @@
 Matches exported from the netrunner-game debug page ("Export as an engine test"). Each
 `*.json` holds the opening state, every engine action the host applied (including
 priority windows it passed without a log line), the invariant failures by step, and
-the final state's hash. `tests/game-exports.test.ts` replays each one with
+the final state's hash. `tests/game-export/game-exports.test.ts` replays each one with
 `applyAction` then `autoWalk` per step and expects the same failures and final state.
 The loader is `tests/game-export/loader.ts`.
 

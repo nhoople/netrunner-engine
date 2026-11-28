@@ -40,7 +40,7 @@ import {
   setIdentity,
   stackRd,
   toHand,
-} from "../rulings-helpers.js";
+} from "../rulings/rulings-helpers.js";
 import type { ServerId } from "../../src/state/types/servers.js";
 
 type Expectation = {
@@ -87,7 +87,7 @@ export type Difference = {
   verdict: Verdict;
   /** The CR rule that decides it. */
   rule: string;
-  /** For engine-wrong: the area that owns the rule (tests/cr-section-owners.json). */
+  /** For engine-wrong: the area that owns the rule (tests/cr-citations/cr-section-owners.json). */
   area?: string;
   /** In plain words: what the rule says and what the engine does. */
   note: string;

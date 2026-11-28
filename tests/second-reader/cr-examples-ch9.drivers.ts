@@ -7,7 +7,7 @@
  */
 import { cloneState, getPublicView, legalActions } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
-import { must, optionIds, pick } from "../rulings-helpers.js";
+import { must, optionIds, pick } from "../rulings/rulings-helpers.js";
 import { accepts, Board, hasOption, offered, take } from "./harness.js";
 import type { Report } from "./harness.js";
 import {

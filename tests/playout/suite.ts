@@ -11,7 +11,7 @@
  * Each format also records which card abilities fired (CR audit tool 1.18,
  * tests/ability-fire/recorder.ts) and checks them against
  * `tests/generated/ability-fire-coverage.json`, so the never-fired list in
- * tests/ability-fire-coverage.test.ts is what these playouts really do.
+ * tests/ability-fire/ability-fire-coverage.test.ts is what these playouts really do.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {

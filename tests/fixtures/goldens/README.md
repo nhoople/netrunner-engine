@@ -8,7 +8,7 @@ game state fields plus window/cite numbers seen in the log.
 After an intentional engine behavior change that alters a golden:
 
 ```bash
-REFRESH_GOLDENS=1 npx vitest run tests/confidence-regression-goldens.test.ts
+REFRESH_GOLDENS=1 npx vitest run tests/confidence/confidence-regression-goldens.test.ts
 ```
 
 Review the diff under this directory, then commit. Do **not** refresh to silence

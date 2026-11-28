@@ -51,8 +51,8 @@ Run for each card (or tightly related group) in the slice. Record outcomes in th
 - [ ] Keywords the card uses (charge, mark, sabotage, ambush, trojan, …) go through the shared engine procedures cited in `src/timing/labels.ts` (e.g. **10.10**, **10.11**, **10.12**), not one-off approximations.
 - [ ] Damage / tags / traces / install / rez / advance / trash / score / steal use the shared modules and CR cites, not card-local forks.
 - [ ] “Cannot”, “prevent”, “avoid”, “ignore”, “instead” are checked against **1.2.2** (cannot precedence) and **9.9.5** (prevent/avoid).
-- [ ] New identifiers and player-facing labels follow [`cr-glossary.md`](cr-glossary.md) / [`data/cr-term-map.json`](../data/cr-term-map.json); do not reintroduce denylisted synonyms (`tests/cr-term-denylist.test.ts`).
-- [ ] New identifiers and player-facing labels follow [`cr-glossary.md`](cr-glossary.md) / [`data/cr-term-map.json`](../data/cr-term-map.json); do not reintroduce denylisted synonyms (`tests/cr-term-denylist.test.ts`).
+- [ ] New identifiers and player-facing labels follow [`cr-glossary.md`](cr-glossary.md) / [`data/cr-term-map.json`](../data/cr-term-map.json); do not reintroduce denylisted synonyms (`tests/repo/term-denylist.test.ts`).
+- [ ] New identifiers and player-facing labels follow [`cr-glossary.md`](cr-glossary.md) / [`data/cr-term-map.json`](../data/cr-term-map.json); do not reintroduce denylisted synonyms (`tests/repo/term-denylist.test.ts`).
 
 ### 4. Costs, install, rez
 
@@ -81,14 +81,14 @@ Run for each card (or tightly related group) in the slice. Record outcomes in th
 | Card text contradicts general CR | Prefer card text (**1.2.1**); cite both the card and **1.2.1** in notes/tests |
 | Only a subset of printed text is mapped | Explicit `unsupported` entries for the rest — never empty-IR + host hardcode without a tracked follow-up |
 
-Fail-closed means: **wrong play is worse than “not yet playable.”** Pool `supported` / clear status requires the gate, not only green unit tests. Waves marked `supported` must keep every card’s `unsupported` empty unless the card is listed with a reason in cards-data `data/supported-unsupported-allowlist.json` (CI: cards `scripts/validate_cards.py`, engine `tests/pool-supported-invariant.test.ts`).
+Fail-closed means: **wrong play is worse than “not yet playable.”** Pool `supported` / clear status requires the gate, not only green unit tests. Waves marked `supported` must keep every card’s `unsupported` empty unless the card is listed with a reason in cards-data `data/supported-unsupported-allowlist.json` (CI: cards `scripts/validate_cards.py`, engine `tests/cards/pool-supported-invariant.test.ts`).
 
 ### 8. Slice exit (before bumping semver / clearing cards)
 
 - [ ] IR validates; unknown nodes still fail closed.
 - [ ] Engine tests cover the new behaviors (happy path + at least one cannot/prevent/cost-fail path when relevant).
 - [ ] This CR checklist completed for each cleared card; residual debt listed as `unsupported` or follow-up backlog items with CR cites.
-- [ ] No new stale cite ids — default engine CI `npm test` includes `tests/cr-cite-map.test.ts` (bidirectional `CR.*` ↔ pin) and the timing `stepId` check in `tests/engine.test.ts`.
+- [ ] No new stale cite ids — default engine CI `npm test` includes `tests/cr-citations/rule-cite-map.test.ts` (bidirectional `CR.*` ↔ pin) and the timing `stepId` check in `tests/cr/engine.test.ts`.
 - [ ] PR includes the **Recording template** below (engine and cards-data `.github/PULL_REQUEST_TEMPLATE.md` require it for IR/clear slices).
 
 ---

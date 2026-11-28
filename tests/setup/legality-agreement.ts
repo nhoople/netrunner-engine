@@ -5,7 +5,7 @@
  * file finds there. `node scripts/legality-agreement.mjs` runs it over the
  * rulings and sweep tests and prints a summary. Off by default: each check
  * tries every plausible move, so it is too slow for every CI run. The
- * seeded playouts run the same check in CI (tests/legality-agreement-*).
+ * seeded playouts run the same check in CI (tests/playout/legality-agreement-*).
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";

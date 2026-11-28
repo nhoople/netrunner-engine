@@ -33,7 +33,7 @@
     "localFile": "tests/jnet/cards-basic.test.ts",
     "title": "Corp installs Breaker Bay Grid in a new remote",
     "status": "promoted",
-    "nativeFile": "tests/basic-action-legality.test.ts",
+    "nativeFile": "tests/legality/basic-action-legality.test.ts",
     "nativeTitle": "installing an upgrade in a new remote creates that server (CR 4.6.8b)",
     "reason": "The port exposed that an upgrade install could not create a remote server. CR 4.6.8b creates a remote by declaring it the destination for a card about to be installed, and CR 4.6.5a installs upgrades in the root of any server. The engine fix carries the native regression test named here; this port keeps the Breaker Bay Grid board."
   },
@@ -280,9 +280,9 @@
       "Scrubbed is trashed when the Corp plays Cerebral Static"
     ],
     "status": "promoted",
-    "nativeFile": "tests/currents.test.ts",
+    "nativeFile": "tests/state/continuous/currents.test.ts",
     "nativeTitle": "playing a Runner current trashes the Corp current (CR 3.5.1b)",
-    "reason": "Playing a current only trashed the playing side's currents. CR 3.5.1b and CR 3.7.1b end a current when another current operation or event is played, whichever side plays it. The engine fix carries native tests in tests/currents.test.ts for both directions; these ports keep the full score/steal/replacement boards."
+    "reason": "Playing a current only trashed the playing side's currents. CR 3.5.1b and CR 3.7.1b end a current when another current operation or event is played, whichever side plays it. The engine fix carries native tests in tests/state/continuous/currents.test.ts for both directions; these ports keep the full score/steal/replacement boards."
   },
   "game.core.engine-test/install-second-console-trashes-first": {
     "upstreamFile": "test/clj/game/core/engine_test.clj",
@@ -329,7 +329,7 @@
     "crCite": "10.3.1e",
     "classificationBasis": "probe",
     "classificationNote": "Over the memory limit after Akamatsu Mem Chip is trashed, the Runner chooses which program to trash.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.engine-test/trash-existing-programs-not-enough-test": {
     "upstreamFile": "test/clj/game/core/engine_test.clj",
@@ -342,7 +342,7 @@
     "crCite": "10.3.1e",
     "classificationBasis": "probe",
     "classificationNote": "The engine offers CR 10.3.1e's appropriate sets ({Corroder, Dagger} or {Endless Hunger}) as one choice; jnet asks program by program. Same result.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.engine-test/trash-previous-consoles-test": {
     "upstreamFile": "test/clj/game/core/engine_test.clj",
@@ -355,7 +355,7 @@
     "crCite": "8.1.4a, 10.3.1d",
     "classificationBasis": "probe",
     "classificationNote": "Hunting Grounds installs three Box-E facedown, and the 10.3.1d checkpoint reads their console subtype, trashing two of them and Mirror at once. Facedown installed Runner cards have no characteristics (CR 8.1.4a).",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts",
     "engineBugArea": "RA-1 timing re-audit"
   },
   "game.core.costs-test/merge-costs": {
@@ -385,7 +385,7 @@
       "Houdini pumps to 10 on 2 stealth credits from 2 Mantles and breaks Little Engine"
     ],
     "status": "adapted",
-    "nativeFile": "tests/stealth-costs.test.ts",
+    "nativeFile": "tests/state/keywordsAndCredits/stealth-costs.test.ts",
     "nativeTitle": "Houdini pumps twice on Mantle's recurring credits and reaches 10 strength (CR 1.10.5a)",
     "reason": "The inability-to-pay and stealth blocks are ported. The engine spends stealth credits automatically when a cost is paid, so the stealth block pumps twice without upstream's source-choice prompt; that block exposed that recurring credits on stealth cards did not count as credits from a stealth card, fixed in the engine with the promoted native test named here. The three Hive full-break blocks wait on the pinned cards catalog, which lists 4 of Hive's 5 printed End the run subroutines; those blocks assert a 5-subroutine board the pin cannot produce.",
     "blockedBy": "cards-data",
@@ -411,7 +411,7 @@
     "crCite": "1.16, 1.21.3",
     "classificationBasis": "probe",
     "classificationNote": "Slash and Burn Agriculture's 'reveal and trash this agenda from HQ' cost trashes without revealing, so Hyoubu Institute's first-reveal gain never happens. Waits on the cards data (blockedBy).",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts",
     "engineBugArea": "4. Visibility"
   },
   "game.core.actions-test/clearing-run-prompt-doesnt-brick-actions-later": {
@@ -738,7 +738,7 @@
     "localFile": "tests/jnet/core-installing.test.ts",
     "title": "Endless Hunger is trashed so Corroder can install when MU is full",
     "status": "promoted",
-    "nativeFile": "tests/program-install-memory.test.ts",
+    "nativeFile": "tests/state/install/program-install-memory.test.ts",
     "nativeTitle": "trashes Endless Hunger so Corroder can install when MU is full (CR 8.5.6c)",
     "reason": "The port exposed that a program install that would exceed the memory limit was refused instead of offering to trash installed programs first. CR 3.9.3b / 8.5.6c require that trash-before-install path; the engine fix carries the native regression test named here; this port keeps the Endless Hunger / Corroder board."
   },
@@ -1055,7 +1055,7 @@
     "crCite": "10.3.1d",
     "classificationBasis": "probe",
     "classificationNote": "In all three placements the Kati Jones that became active first is trashed, with the credits on it.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.rules-test/installing-second-hivemind-trashes-hosted-hivemind-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1067,7 +1067,7 @@
     "crCite": "10.3.1d",
     "classificationBasis": "probe",
     "classificationNote": "The Hivemind hosted on Scheherazade is trashed when a second Hivemind is installed in the rig.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.rules-test/deactivate-program": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1079,7 +1079,7 @@
     "crCite": "10.3.1e",
     "classificationBasis": "probe",
     "classificationNote": "Trashing Gordian Blade frees its memory.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.rules-test/agenda-forfeit-runner": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1091,7 +1091,7 @@
     "crCite": "3.2.3, 8.2.5",
     "classificationBasis": "probe",
     "classificationNote": "A stolen Mandatory Upgrades is inactive in the Runner's score area; forfeiting it with Data Dealer changes nobody's clicks.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.rules-test/agenda-forfeit-corp": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1103,7 +1103,7 @@
     "crCite": "8.2.5",
     "classificationBasis": "probe",
     "classificationNote": "Forfeiting the scored Mandatory Upgrades to rez Corporate Town takes the Corp back to 3 clicks.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.rules-test/refresh-recurring-credits-hosted": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1115,7 +1115,7 @@
     "crCite": "1.10.5c",
     "classificationBasis": "probe",
     "classificationNote": "Compromised Employee hosted on Off-Campus Apartment gains 1 on an ice rez and refills its recurring credit when the Runner's turn begins. jnet takes the trace-only credit outside a trace; the port marks it spent instead.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.rules-test/card-str-test-simple": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1135,7 +1135,7 @@
     "crCite": "1.17.3a",
     "classificationBasis": "probe",
     "classificationNote": "Ancestral Imager below its advancement requirement cannot be scored.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.rules-test/trash-corp-hosted": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1147,7 +1147,7 @@
     "crCite": "1.13.6a, 8.5.16b",
     "classificationBasis": "probe",
     "classificationNote": "Full Immersion RecStudio 'can host up to 2 assets and/or agendas' with no hosting ability, so CR 1.13.6a makes it an install destination for them. The engine offers no Corp install onto a host card ('Corp cannot install to runner'), so the board cannot be built.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts",
     "engineBugArea": "5. Corp install"
   },
   "game.core.rules-test/trash-remove-per-turn-restriction": {
@@ -1182,7 +1182,7 @@
     "crCite": "1.12.2, 1.21.1",
     "classificationBasis": "probe",
     "classificationNote": "A PAD Campaign the Runner trashed and Interns installs again from Archives is a new facedown, unrezzed object that the Runner's view does not name.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.rules-test/all-installed-runner-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1210,7 +1210,7 @@
     "crCite": "10.6.2, 10.6.3a",
     "classificationBasis": "probe",
     "classificationNote": "The fund holds the credit, but trash_accessed pays the trash cost from the credit pool only; spendRunnerCredits draws from the fund, the access trash path does not. CR 10.6.2 lets the Runner spend the fund during runs. Same family as run-psi-bad-publicity-credits.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts",
     "engineBugArea": "15. Keywords and credits"
   },
   "game.core.rules-test/run-psi-bad-publicity-credits": {
@@ -1235,7 +1235,7 @@
     "crCite": "1.13.5, 10.1.2",
     "classificationBasis": "probe",
     "classificationNote": "Purging Imp hosted on Djinn works (ported, passing). The engine refuses to host Djinn on Leprechaun ('Cannot host a daemon on a daemon'); Leprechaun 'can host up to 2 programs' and neither card text nor the CR forbids a daemon (CR 1.2.1, 1.13.5).",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts",
     "engineBugArea": "6. Runner install"
   },
   "game.core.rules-test/purge-corp": {
@@ -1248,7 +1248,7 @@
     "crCite": "10.1.2",
     "classificationBasis": "probe",
     "classificationNote": "Purging removes virus counters on Corp cards too.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.rules-test/end-the-run-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1260,7 +1260,7 @@
     "crCite": "6.1.4, 6.8.4",
     "classificationBasis": "probe",
     "classificationNote": "Ice Wall's subroutine ends the run and the run is declared unsuccessful.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts"
   },
   "game.core.rules-test/auto-pump-breakers-single-pump": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1332,7 +1332,7 @@
     "crCite": "3.5.1b, 3.7.1b, 8.6.6c",
     "engineBugArea": "1. Hosting and trash",
     "classificationBasis": "probe",
-    "classificationNote": "jnet's outcome holds (no Hostile Infrastructure damage when a current is cleared), but every played current is also pushed to its discard pile while staying in the play area: trashActiveCurrentsBeforePlay trashes the new current itself. Already in tests/baselines/invariants.json as MULTIPLE_ZONES on tests/currents.test.ts."
+    "classificationNote": "jnet's outcome holds (no Hostile Infrastructure damage when a current is cleared), but every played current is also pushed to its discard pile while staying in the play area: trashActiveCurrentsBeforePlay trashes the new current itself. Already in tests/baselines/invariants.json as MULTIPLE_ZONES on tests/state/continuous/currents.test.ts."
   },
   "game.core.rules-test/simultaneous-trash-effects": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1344,7 +1344,7 @@
     "crCite": "9.2.8d, 9.6.9c, 9.9.4",
     "classificationBasis": "probe",
     "classificationNote": "When Apocalypse trashes the Corp's cards, Marilyn Campaign's optional 'you may shuffle it into R&D' interrupt is applied without asking the Corp, and Hostile Infrastructure resolves before Calvin B4L3Y with no choice of order (CR 9.2.8d). Not checked: the log shows Hostile Infrastructure doing 1 net damage for the 3 Corp cards trashed; whether it should trigger once per card was not settled here.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts",
     "engineBugArea": "RA-1 timing re-audit"
   },
   "game.core.rules-test/events-after-derez": {
@@ -1357,7 +1357,7 @@
     "crCite": "4.1.2b, 9.1.7",
     "classificationBasis": "probe",
     "classificationNote": "Saker's '2 credits, add this program to your grip' cost leaves Saker listed in the rig as well as the grip (MULTIPLE_ZONES). The Kakugo assertion itself is not reached.",
-    "nativeTestFile": "tests/jnet-interactions-rules.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-rules.test.ts",
     "engineBugArea": "2. Uninstall and run position"
   },
   "game.core.rules-test/start-of-turn-phase-12": {
@@ -1398,7 +1398,7 @@
     "crCite": "6.5.5, 6.6.2, 6.7",
     "classificationBasis": "probe",
     "classificationNote": "Breaking Ice Wall's only subroutine lets the Runner pass it, reach R&D and breach it.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/run-timing-with-ice-with-on-encounter-effect": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1410,7 +1410,7 @@
     "crCite": "6.5.2, 6.5.5",
     "classificationBasis": "probe",
     "classificationNote": "Tollbooth takes 3 credits as the encounter begins; its End the run subroutine then ends the run.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/run-timing-with-paid-ability-before-ice-with-on-encounter-effect": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1422,7 +1422,7 @@
     "crCite": "6.9.2b, 1.2.3",
     "classificationBasis": "probe",
     "classificationNote": "Self-modifying Code spends the Runner's last credits in the approach window; Tollbooth's toll is then unpayable and the run ends.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/run-timing-with-bypass": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1434,7 +1434,7 @@
     "crCite": "6.5.8a",
     "classificationBasis": "probe",
     "classificationNote": "Inside Job bypasses a rezzed Ice Wall: no subroutine resolves and the run reaches the Movement Phase.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/run-timing-with-bypass-vs-cannot-be-bypassed": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1446,7 +1446,7 @@
     "crCite": "1.2.2, 6.5.8a",
     "classificationBasis": "probe",
     "classificationNote": "Guard cannot be bypassed, so Inside Job does nothing and Guard's subroutine ends the run.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/run-timing-with-bypass-vs-ice-with-on-encounter-effect": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1458,7 +1458,7 @@
     "crCite": "6.5.8b",
     "classificationBasis": "probe",
     "classificationNote": "Inside Job's bypass resolves first (the Runner's turn) and ends the encounter before Tollbooth's toll, per Inside Job's 2022-04-23 ruling.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/run-timing-with-paid-ability-that-ends-the-run-during-encounter-border-control": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1470,7 +1470,7 @@
     "crCite": "6.1.4",
     "classificationBasis": "probe",
     "classificationNote": "Border Control's trash ability ends the run in the approach window; the Runner never reaches Tollbooth.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/run-timing-trashing-a-solo-ice-on-an-empty-server-4940": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1482,7 +1482,7 @@
     "crCite": "4.6.8e",
     "classificationBasis": "probe",
     "classificationNote": "When Knifed trashes the only card in a remote, the remote ceases to exist and passing the vacated position reads the deleted server and throws (RUN_SERVER_MISSING). CR 4.6.8e ends the run after the open paid ability window. Already in the CR audit findings under area 2 (the remote-deleted-mid-run crash); this board reproduces it with Knifed.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts",
     "engineBugArea": "2. Uninstall and run position"
   },
   "game.core.runs-test/run-timing-redirection-updates-current-ice-5047": {
@@ -1495,7 +1495,7 @@
     "crCite": "6.2.8b",
     "classificationBasis": "probe",
     "classificationNote": "Adapted with Susanoo-no-Mikoto in place of jnet's redirect helper. redirect_susanoo_to_archives sets only the attacked server, so the Runner passes Archives' outermost ice instead of approaching it and the run succeeds. CR 6.2.8b moves the Runner to that ice's position and the Approach Ice Phase. Same defect as the Proprionegation row already filed under area 2, on another kind.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts",
     "engineBugArea": "2. Uninstall and run position"
   },
   "game.core.runs-test/run-timing-changing-phases-fires-end-of-encounter-events": {
@@ -1508,7 +1508,7 @@
     "crCite": "3.9.5b, 6.2.8b",
     "classificationBasis": "probe",
     "classificationNote": "Adapted with Susanoo-no-Mikoto. Corroder's boost ends with the encounter that moved the Runner. The later encounter on Archives is blocked by the Susanoo bug filed under run-timing-redirection-updates-current-ice-5047.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/run-timing-cr-1-4-6-8-2c-any-other-priority-window-is-closed-normally": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1531,7 +1531,7 @@
     "crCite": "6.7.4c",
     "classificationBasis": "probe",
     "classificationNote": "Account Siphon offers its effect or 'Breach HQ' when the breach would begin; either choice plays out as printed.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/replace-access-must-replacement-effects-only": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1543,7 +1543,7 @@
     "crCite": "9.9.8b",
     "classificationBasis": "probe",
     "classificationNote": "Security Testing's gain replaces the breach with no choice offered.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/replace-access-you-may-and-must-replacement-effects": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1555,7 +1555,7 @@
     "crCite": "9.9.11, 9.9.11a",
     "classificationBasis": "probe",
     "classificationNote": "With Account Siphon and Security Testing both able to replace the breach, the Runner picks which applies (no 'Breach HQ' option, as Security Testing is mandatory) and the other no longer applies.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/buffered-continue-buffered-continue-on-approaching-ice": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1691,7 +1691,7 @@
     "crCite": "6.5.9a, 6.8.4a",
     "classificationBasis": "probe",
     "classificationNote": "Access resumes after Ganked!'s forced encounter, and End the run in it ends the run and the breach (ported, passing). Wrong: the forced encounter runs an Approach Ice step and a pass-ice step and moves the Runner to the ice's position (CR 6.5.9a), and ending the run from it declares an already successful run unsuccessful (CR 6.8.4a). The stacked Konjin block is also blocked by the Konjin bug under forced-encounters-forced-encounters-redirection.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts",
     "engineBugArea": "11. Turn structure, actions, breaking and psi"
   },
   "game.core.runs-test/forced-encounters-ice-breakers-and-broken-subroutines-reset-after-a-forced-encounter-ends": {
@@ -1704,7 +1704,7 @@
     "crCite": "3.9.5b, 6.5.9a",
     "classificationBasis": "probe",
     "classificationNote": "Corroder's boost ends with the forced encounter and the access goes on.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/forced-encounters-forced-encounters-outside-of-run": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1716,7 +1716,7 @@
     "crCite": "6.1.4b, 6.5.9a",
     "classificationBasis": "probe",
     "classificationNote": "With Quest Completed fixed (engine #957), the forced encounter outside a run is reached, and the third Little Engine subroutine does not resolve. Wrong: the out-of-run access is modelled as a run on the remote, so ending the forced encounter declares an unsuccessful run; CR 6.1.4b resolves no other Run Ends step. Open reading for the Flip Switch block: CR 6.1.5 describes jacking out as ending a run; jnet lets Flip Switch's jack out end a forced encounter with no run, which CR 6.1.4b supports only by analogy.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts",
     "engineBugArea": "14. Run flow"
   },
   "game.core.runs-test/forced-encounters-forced-encounters-redirection": {
@@ -1729,7 +1729,7 @@
     "crCite": "6.5.9a, 6.5.9d, 10.14",
     "classificationBasis": "probe",
     "classificationNote": "With matching Konjin bids the Konjin encounter restarts and another psi game starts each time (fix-now: Konjin is marked 'matches' in the printed sweep). Konjin's forced encounters are not marked as forced, so they run approach and pass-ice steps and trip ENCOUNTER_ICE_MISMATCH. The Bullfrog and Cell Portal end states otherwise follow CR 6.5.9d; Cell Portal also hits the move_runner_to_outermost_attacked row already filed under area 2.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts",
     "engineBugArea": "11. Turn structure, actions, breaking and psi"
   },
   "game.core.runs-test/etr-outside-of-runs-does-not-prevent-new-runs": {
@@ -1742,7 +1742,7 @@
     "crCite": "6.1.4c",
     "classificationBasis": "probe",
     "classificationNote": "Adapted: Ice Wall's subroutine effect is resolved directly with no run; it does nothing and a new run starts normally.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/ice-trashed-during-movement-does-not-reapproach-passed-ice": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1765,7 +1765,7 @@
     "crCite": "6.2.7a, 6.6.4, 6.6.6",
     "classificationBasis": "probe",
     "classificationNote": "Trashing the approached ice moves the run to the Movement Phase; the Runner goes inward, never back to passed ice.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.runs-test/ice-trashed-during-encounter-does-not-reapproach-passed-ice": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1777,7 +1777,7 @@
     "crCite": "6.2.7c, 6.6.4, 6.6.6",
     "classificationBasis": "probe",
     "classificationNote": "Trashing the encountered ice ends the encounter; the Runner goes inward, never back to passed ice.",
-    "nativeTestFile": "tests/jnet-interactions-runs.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-runs.test.ts"
   },
   "game.core.scenarios-test/mantle-cupellation-interaction-zero-credits": {
     "upstreamFile": "test/clj/game/core/scenarios_test.clj",
@@ -1789,7 +1789,7 @@
     "crCite": "1.10.5",
     "classificationBasis": "probe",
     "classificationNote": "With an empty credit pool, Cupellation's access ability (access_host_non_agenda_faceup) is not offered, though Mantle lets the Runner 'spend hosted credits to use hardware and programs'. With credits in the pool it is offered.",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts",
     "engineBugArea": "15. Keywords and credits"
   },
   "game.core.scenarios-test/bad-publicity-works-with-shift-key": {
@@ -1810,7 +1810,7 @@
     "crCite": "1.16.2a",
     "classificationBasis": "probe",
     "classificationNote": "Tithe costs 1 + 3 - 2 = 2. Vovô Ozetti is rezzed during the run: rezzing it on the Corp's turn reaches the Vovô turn-end loop (a fix-now finding, test skipped in the same file).",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts"
   },
   "game.core.scenarios-test/hernando-cortez-vovo-combine-not-well": {
     "upstreamFile": "test/clj/game/core/scenarios_test.clj",
@@ -1822,7 +1822,7 @@
     "crCite": "1.16.2a, 1.16.10",
     "classificationBasis": "probe",
     "classificationNote": "The engine adds Hernando Cortez's additional cost to the rez cost before Vovô lowers it ('base 1+2-2'), so the Corp pays 1. CR 1.16.10 keeps an additional cost separate: 0 + 2 = 2.",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts",
     "engineBugArea": "11. Turn structure, actions, breaking and psi"
   },
   "game.core.scenarios-test/masterwork-overinstall-boomerang-complex-case": {
@@ -1835,7 +1835,7 @@
     "crCite": "10.3.1d, 4.1.2b",
     "classificationBasis": "probe",
     "classificationNote": "The second (unique) Boomerang installed by Masterwork trashes the first, as it should, but never asks for its ice (chosenIceId stays unset). Also, The Class Act's 'add 1 to the bottom of your stack' leaves an Easy Mark in runner:stack but out of the stack list (NO_ZONE); filed under area 13.",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts",
     "engineBugArea": "6. Runner install"
   },
   "game.core.scenarios-test/masterwork-overinstall-boomerang-complex-case-full-game": {
@@ -1857,7 +1857,7 @@
     "crCite": "1.2.1, 9.2.8d",
     "classificationBasis": "probe",
     "classificationNote": "The ordering is right (ported, passing: Buffer Drive first, then Aniccam draws the card). Labor Rights, which jnet uses to build the board, is trashed instead of removed from the game, so Aniccam draws off it (fix-now: a supported card wrong in normal use). The defect is against Labor Rights' printed text (CR 1.2.1); CR 9.2.8d is the ordering that agrees.",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts",
     "engineBugArea": "1. Hosting and trash"
   },
   "game.core.scenarios-test/degree-mill-cvs": {
@@ -1870,7 +1870,7 @@
     "crCite": "10.1.2, 1.16.10",
     "classificationBasis": "probe",
     "classificationNote": "Cyberdex Virus Suite's purge on access clears Aumakua, which then gains 1 for a breach with no steal or trash; stealing Degree Mill (shuffling the Clone Chips) leaves it at 0.",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts"
   },
   "game.core.scenarios-test/minigame-prevent-netdmg-resourcetrash": {
     "upstreamFile": "test/clj/game/core/scenarios_test.clj",
@@ -1882,7 +1882,7 @@
     "crCite": "9.9.4d, 9.2.9c",
     "classificationBasis": "probe",
     "classificationNote": "The resolutions are right when applied, and while Neural EMP's net damage is pending legalActions offers Net Shield's prevention beside accept_damage (fixed in FX-legal-moves: an interrupt window gives both players priority).",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts"
   },
   "game.core.scenarios-test/hb-glacier": {
     "upstreamFile": "test/clj/game/core/scenarios_test.clj",
@@ -1894,7 +1894,7 @@
     "crCite": "6.1.4, 10.14",
     "classificationBasis": "probe",
     "classificationNote": "Condensed port of the cross-card points: Breaker Bay Grid, HB, Desperado, Lamprey and Turing match (passing). Caprice Nisei behind an unrezzed Turing: after its psi game ends the run, the run goes on, the pass-ice step runs again and Caprice starts another psi game until a player runs out of credits (fix-now candidate).",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts",
     "engineBugArea": "14. Run flow"
   },
   "game.core.scenarios-test/poetri-hidden-info-game": {
@@ -1907,7 +1907,7 @@
     "crCite": "1.21.1",
     "classificationBasis": "probe",
     "classificationNote": "The ice Poétrï installs after a steal is facedown and the Runner's view does not name it. jnet's third branch logs its title because the Runner saw both candidates; it is still one of two, and CR 1.21.1 keeps a facedown installed card hidden, so jnet's log is not followed.",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts"
   },
   "game.core.scenarios-test/esa-v-thule-hidden-info-known": {
     "upstreamFile": "test/clj/game/core/scenarios_test.clj",
@@ -1919,7 +1919,7 @@
     "crCite": "10.12.2, 10.12.2a",
     "classificationBasis": "probe",
     "classificationNote": "Sabotaged cards go to Archives facedown (ported, passing). The engine makes the Corp pick the cards from HQ one by one with no way to take fewer from HQ and the rest from the top of R&D (CR 10.12.2), so the accessed Vanilla on top of R&D cannot be sabotaged. jnet keeps the accessed Vanilla faceup; CR 10.12.2a puts it facedown.",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts",
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts",
     "engineBugArea": "15. Keywords and credits"
   },
   "game.core.scenarios-test/companions": {
@@ -1932,6 +1932,6 @@
     "crCite": "9.6",
     "classificationBasis": "probe",
     "classificationNote": "Fencer Fueno, Trickster Taka and Mystic Maemi each place 1 credit on a steal and none on a run without one.",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts"
+    "nativeTestFile": "tests/jnet-scenarios/jnet-interactions-cards.test.ts"
   }
 }

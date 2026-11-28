@@ -2,7 +2,7 @@
  * The timing walk (CR audit tool 1.15): during the seeded playouts (tool
  * 1.3), record each step of the timing graph the engine enters
  * (`src/debug/stepHook.ts`) and check each turn, run, breach and access
- * against the pinned chapter 11 charts (tests/timing-chart.ts):
+ * against the pinned chapter 11 charts (tests/timing/timing-chart.ts):
  *
  * - order: each step the engine enters is one the chart reaches from the
  *   step before, passing only through lines the graph folds into another
@@ -26,7 +26,7 @@
  *   does not allow them.
  *
  * Failures are keyed without the format or seed, so the same failure in two
- * playouts is one entry. tests/timing-walk.test.ts compares them with the
+ * playouts is one entry. tests/playout/timing-walk.test.ts compares them with the
  * shrink-only baseline `tests/baselines/timing-walk.json`, grouped by the
  * area that owns each rule (tool 1.13) and by chart line.
  */
@@ -39,15 +39,15 @@ import { costBeginsWithClick } from "../../src/state/keywordsAndCredits/costs.js
 import type { Action } from "../../src/state/types/actions.js";
 import type { GameState } from "../../src/state/types/game.js";
 import { STEPS } from "../../src/timing/graph.js";
-import { loadOwnerTable, ownerOf } from "../cr-owners.js";
-import { ROOT } from "../cr-citations.js";
+import { loadOwnerTable, ownerOf } from "../cr-citations/cr-owners.js";
+import { ROOT } from "../cr-citations/cr-citations.js";
 import {
   CHARTS,
   chartNodes,
   loadChartNodes,
   type Chart,
   type ChartNode,
-} from "../timing-chart.js";
+} from "../timing/timing-chart.js";
 import { PLAYOUT_STEPS, playout, type Format } from "./harness.js";
 
 // ---------------------------------------------------------------- chart
