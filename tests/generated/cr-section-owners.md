@@ -34,26 +34,26 @@ Each CR section has one owner: an area of the CR audit plan, an earlier program 
 | Section | Title | Owner | Split subrules | `src/` cites | Test cites | Test files |
 |---|---|---|---|---|---|---|
 | 1.1 | General | reference |  | 1 | 1 | 1 |
-| 1.2 | Golden Rules | reference |  | 62 | 34 | 17 |
+| 1.2 | Golden Rules | reference |  | 119 | 167 | 41 |
 | 1.3 | Symbols | reference |  | 0 | 0 | 0 |
 | 1.4 | Deck Construction | area 16 |  | 6 | 15 | 2 |
 | 1.5 | Extra Cards | area 16 |  | 29 | 4 | 2 |
-| 1.6 | Starting the Game | area 16 |  | 23 | 5 | 3 |
-| 1.7 | Ending the Game | area 16 |  | 11 | 2 | 2 |
-| 1.8 | Cards | reference |  | 2 | 0 | 0 |
-| 1.9 | Counters and Tokens | area 12 |  | 3 | 0 | 0 |
-| 1.10 | Credits | area 15 |  | 19 | 12 | 6 |
-| 1.11 | Clicks | area 11 |  | 29 | 6 | 3 |
-| 1.12 | Objects | area 2 |  | 6 | 13 | 4 |
-| 1.13 | Host, Hosted, and Hosting | area 1 |  | 46 | 35 | 6 |
-| 1.14 | Ownership and Control | area 11 |  | 67 | 25 | 9 |
-| 1.15 | Targets | area 11 |  | 51 | 36 | 17 |
-| 1.16 | Costs | area 11 | 1.16.6b → area 5 | 95 | 55 | 21 |
-| 1.17 | Score, Scoring and Stealing | area 11 |  | 44 | 8 | 5 |
-| 1.18 | Advancing Cards | area 12 |  | 30 | 13 | 8 |
+| 1.6 | Starting the Game | area 16 |  | 24 | 8 | 4 |
+| 1.7 | Ending the Game | area 16 |  | 15 | 9 | 6 |
+| 1.8 | Cards | reference |  | 26 | 22 | 8 |
+| 1.9 | Counters and Tokens | area 12 |  | 4 | 0 | 0 |
+| 1.10 | Credits | area 15 |  | 22 | 23 | 10 |
+| 1.11 | Clicks | area 11 |  | 32 | 7 | 4 |
+| 1.12 | Objects | area 2 |  | 18 | 24 | 11 |
+| 1.13 | Host, Hosted, and Hosting | area 1 |  | 55 | 44 | 9 |
+| 1.14 | Ownership and Control | area 11 |  | 78 | 37 | 17 |
+| 1.15 | Targets | area 11 |  | 59 | 44 | 21 |
+| 1.16 | Costs | area 11 | 1.16.6b → area 5 | 113 | 79 | 32 |
+| 1.17 | Score, Scoring and Stealing | area 11 |  | 46 | 15 | 10 |
+| 1.18 | Advancing Cards | area 12 |  | 31 | 28 | 14 |
 | 1.19 | Trashing | area 1 |  | 165 | 2 | 2 |
-| 1.20 | Memory | area 6 |  | 0 | 1 | 1 |
-| 1.21 | Card Visibility | area 4 |  | 102 | 62 | 20 |
+| 1.20 | Memory | area 6 |  | 0 | 2 | 2 |
+| 1.21 | Card Visibility | area 4 |  | 120 | 85 | 31 |
 | 2.1 | Name | reference |  | 0 | 0 | 0 |
 | 2.2 | Unique Symbol | reference |  | 0 | 0 | 0 |
 | 2.3 | Play Cost, Install Cost, or Rez Cost | reference |  | 2 | 0 | 0 |
@@ -73,82 +73,82 @@ Each CR section has one owner: an area of the CR audit plan, an earlier program 
 | 2.17 | Text Box | reference |  | 0 | 0 | 0 |
 | 2.18 | Server Indicator | reference |  | 1 | 1 | 1 |
 | 3.1 | Identities | reference |  | 10 | 2 | 2 |
-| 3.2 | Agendas | reference |  | 1 | 0 | 0 |
+| 3.2 | Agendas | reference |  | 1 | 4 | 3 |
 | 3.3 | Assets | reference |  | 1 | 0 | 0 |
-| 3.4 | Ice | reference |  | 10 | 2 | 2 |
+| 3.4 | Ice | reference |  | 11 | 3 | 3 |
 | 3.5 | Operations | reference | 3.5.1 → area 11 | 16 | 4 | 3 |
 | 3.6 | Upgrades | reference | 3.6.5 → area 5 | 1 | 1 | 1 |
-| 3.7 | Events | reference |  | 3 | 3 | 2 |
+| 3.7 | Events | reference |  | 5 | 7 | 4 |
 | 3.8 | Hardware | reference | 3.8.5 → area 6 | 4 | 1 | 1 |
-| 3.9 | Programs | reference | 3.9.3 → area 6; 3.9.5 → area 11 | 39 | 19 | 5 |
+| 3.9 | Programs | reference | 3.9.3 → area 6; 3.9.5 → area 11 | 45 | 80 | 10 |
 | 3.10 | Resources | reference |  | 0 | 0 | 0 |
-| 4.1 | General | reference |  | 14 | 6 | 4 |
-| 4.2 | Deck | area 13 |  | 0 | 0 | 0 |
+| 4.1 | General | reference |  | 15 | 10 | 6 |
+| 4.2 | Deck | area 13 |  | 1 | 0 | 0 |
 | 4.3 | Hand | area 4 | 4.3.6 → area 11 | 0 | 0 | 0 |
-| 4.4 | Discard Pile | area 1 |  | 47 | 24 | 9 |
+| 4.4 | Discard Pile | area 1 |  | 48 | 32 | 11 |
 | 4.5 | Score Area | area 11 |  | 0 | 0 | 0 |
-| 4.6 | Play Area | area 5 | 4.6.2 → area 4; 4.6.3 → area 4; 4.6.4e → area 11; 4.6.5d → area 11; 4.6.8e → area 14; 4.6.9 → area 2 | 42 | 20 | 10 |
+| 4.6 | Play Area | area 5 | 4.6.2 → area 4; 4.6.3 → area 4; 4.6.4e → area 11; 4.6.5d → area 11; 4.6.8e → area 14; 4.6.9 → area 2 | 52 | 32 | 18 |
 | 4.7 | Bank | reference |  | 0 | 0 | 0 |
 | 4.8 | Set Aside | area 13 | 4.8.5 → area 2; 4.8.6 → area 4; 4.8.7 → area 4 | 16 | 4 | 3 |
-| 4.9 | Remove from the Game | area 2 |  | 1 | 1 | 1 |
-| 5.1 | General | area 11 |  | 16 | 3 | 1 |
-| 5.2 | Actions | area 11 |  | 273 | 43 | 16 |
+| 4.9 | Remove from the Game | area 2 |  | 10 | 7 | 2 |
+| 5.1 | General | area 11 |  | 16 | 5 | 2 |
+| 5.2 | Actions | area 11 |  | 278 | 45 | 18 |
 | 5.3 | Draw Phase | area 11 |  | 2 | 1 | 1 |
-| 5.4 | Action Phase | area 11 |  | 15 | 1 | 1 |
-| 5.5 | Discard Phase | area 11 |  | 23 | 6 | 3 |
-| 5.6 | Steps of the Corp's Turn | area 11 |  | 3 | 0 | 0 |
-| 5.7 | Steps of the Runner's Turn | area 11 |  | 2 | 1 | 1 |
-| 6.1 | General | area 14 |  | 43 | 7 | 4 |
-| 6.2 | Position | area 2 |  | 49 | 48 | 9 |
-| 6.3 | Initiation | area 14 |  | 6 | 3 | 2 |
-| 6.4 | Approach Ice | area 14 |  | 9 | 1 | 1 |
-| 6.5 | Encounter Ice | area 11 |  | 80 | 13 | 8 |
-| 6.6 | Movement | area 14 |  | 9 | 3 | 3 |
-| 6.7 | Success | area 14 |  | 10 | 3 | 2 |
-| 6.8 | Run Ends Phase | area 14 |  | 36 | 16 | 8 |
-| 6.9 | Steps of a Run | area 14 |  | 40 | 74 | 24 |
-| 7.1 | Accessing Cards | area 8 |  | 19 | 3 | 1 |
-| 7.2 | Steps of Accessing a Card | area 8 |  | 15 | 5 | 2 |
-| 7.3 | Breaching Servers | area 8 |  | 38 | 7 | 3 |
-| 7.4 | Determining Candidates | area 8 |  | 20 | 13 | 5 |
-| 7.5 | Steps of Breaching a Server | area 8 |  | 1 | 0 | 0 |
-| 8.1 | Faceup and Facedown Status | area 7 | 8.1.4 → area 6 | 71 | 24 | 18 |
-| 8.2 | Card Movements | reference | 8.2.2 → fidelity | 9 | 9 | 7 |
-| 8.3 | Arranging and Rearranging Cards | area 2 |  | 2 | 3 | 2 |
-| 8.4 | Drawing Cards | area 13 |  | 30 | 7 | 3 |
-| 8.5 | Installing and Uninstalling Cards | area 5 | 8.5.1b → area 2; 8.5.4 → area 6; 8.5.6c → area 6; 8.5.8 → area 2; 8.5.10 → area 2 | 112 | 58 | 18 |
-| 8.6 | Playing Events and Operations | area 11 |  | 85 | 33 | 5 |
-| 8.7 | Searching for Cards | area 13 |  | 56 | 31 | 11 |
-| 8.8 | Swapping Cards | area 3 |  | 35 | 19 | 6 |
-| 9.1 | General | fidelity |  | 68 | 20 | 9 |
-| 9.2 | Timing and Priority | fidelity |  | 110 | 56 | 16 |
-| 9.3 | Interpreting Card Text | fidelity |  | 57 | 23 | 10 |
-| 9.4 | Static Abilities | standardization |  | 5 | 2 | 1 |
-| 9.5 | Paid Abilities | area 11 |  | 121 | 16 | 5 |
-| 9.6 | Conditional Abilities | fidelity |  | 152 | 50 | 11 |
+| 5.4 | Action Phase | area 11 |  | 16 | 1 | 1 |
+| 5.5 | Discard Phase | area 11 |  | 24 | 6 | 3 |
+| 5.6 | Steps of the Corp's Turn | area 11 |  | 3 | 7 | 3 |
+| 5.7 | Steps of the Runner's Turn | area 11 |  | 2 | 3 | 3 |
+| 6.1 | General | area 14 |  | 52 | 48 | 16 |
+| 6.2 | Position | area 2 |  | 109 | 106 | 14 |
+| 6.3 | Initiation | area 14 |  | 5 | 3 | 2 |
+| 6.4 | Approach Ice | area 14 |  | 10 | 1 | 1 |
+| 6.5 | Encounter Ice | area 11 |  | 93 | 48 | 13 |
+| 6.6 | Movement | area 14 |  | 9 | 8 | 4 |
+| 6.7 | Success | area 14 |  | 12 | 15 | 8 |
+| 6.8 | Run Ends Phase | area 14 |  | 39 | 24 | 13 |
+| 6.9 | Steps of a Run | area 14 |  | 54 | 132 | 47 |
+| 7.1 | Accessing Cards | area 8 |  | 48 | 32 | 8 |
+| 7.2 | Steps of Accessing a Card | area 8 |  | 16 | 6 | 3 |
+| 7.3 | Breaching Servers | area 8 |  | 52 | 21 | 6 |
+| 7.4 | Determining Candidates | area 8 |  | 21 | 18 | 7 |
+| 7.5 | Steps of Breaching a Server | area 8 |  | 2 | 0 | 0 |
+| 8.1 | Faceup and Facedown Status | area 7 | 8.1.4 → area 6 | 89 | 49 | 34 |
+| 8.2 | Card Movements | reference | 8.2.2 → fidelity | 9 | 13 | 8 |
+| 8.3 | Arranging and Rearranging Cards | area 2 |  | 21 | 12 | 5 |
+| 8.4 | Drawing Cards | area 13 |  | 39 | 18 | 6 |
+| 8.5 | Installing and Uninstalling Cards | area 5 | 8.5.1b → area 2; 8.5.4 → area 6; 8.5.6c → area 6; 8.5.8 → area 2; 8.5.10 → area 2 | 135 | 92 | 30 |
+| 8.6 | Playing Events and Operations | area 11 |  | 90 | 35 | 6 |
+| 8.7 | Searching for Cards | area 13 |  | 106 | 73 | 21 |
+| 8.8 | Swapping Cards | area 3 |  | 35 | 23 | 7 |
+| 9.1 | General | fidelity |  | 99 | 51 | 20 |
+| 9.2 | Timing and Priority | fidelity |  | 143 | 112 | 35 |
+| 9.3 | Interpreting Card Text | fidelity |  | 67 | 37 | 17 |
+| 9.4 | Static Abilities | standardization |  | 8 | 14 | 4 |
+| 9.5 | Paid Abilities | area 11 |  | 126 | 17 | 6 |
+| 9.6 | Conditional Abilities | fidelity |  | 211 | 134 | 30 |
 | 9.7 | Play Abilities | area 11 |  | 4 | 1 | 1 |
-| 9.8 | Subroutines | area 11 |  | 40 | 13 | 3 |
-| 9.9 | Interrupts and Replacement Effects | fidelity |  | 139 | 43 | 10 |
-| 9.10 | Lingering Effects | standardization |  | 61 | 22 | 9 |
-| 9.11 | Identifying Instructions | fidelity |  | 24 | 11 | 2 |
-| 9.12 | Other Rules and Terminology | standardization |  | 149 | 133 | 59 |
-| 10.1 | General | reference |  | 15 | 4 | 3 |
-| 10.2 | Information | area 4 |  | 23 | 17 | 5 |
-| 10.3 | Checkpoints | fidelity |  | 211 | 99 | 10 |
-| 10.4 | Damage | area 9 |  | 31 | 12 | 6 |
-| 10.5 | Tags | area 15 |  | 17 | 1 | 1 |
-| 10.6 | Bad Publicity | area 15 |  | 6 | 0 | 0 |
+| 9.8 | Subroutines | area 11 |  | 43 | 18 | 5 |
+| 9.9 | Interrupts and Replacement Effects | fidelity |  | 161 | 75 | 23 |
+| 9.10 | Lingering Effects | standardization |  | 82 | 50 | 14 |
+| 9.11 | Identifying Instructions | fidelity |  | 36 | 37 | 10 |
+| 9.12 | Other Rules and Terminology | standardization |  | 175 | 178 | 68 |
+| 10.1 | General | reference |  | 18 | 14 | 8 |
+| 10.2 | Information | area 4 |  | 69 | 86 | 15 |
+| 10.3 | Checkpoints | fidelity |  | 235 | 156 | 23 |
+| 10.4 | Damage | area 9 |  | 32 | 13 | 7 |
+| 10.5 | Tags | area 15 |  | 19 | 2 | 2 |
+| 10.6 | Bad Publicity | area 15 |  | 7 | 4 | 1 |
 | 10.7 | Link | area 15 |  | 0 | 0 | 0 |
-| 10.8 | Traces | area 11 |  | 37 | 17 | 8 |
+| 10.8 | Traces | area 11 |  | 42 | 20 | 9 |
 | 10.9 | Load and Empty | area 15 |  | 0 | 1 | 1 |
 | 10.10 | Charge | area 15 |  | 8 | 0 | 0 |
-| 10.11 | Mark | area 15 |  | 11 | 6 | 3 |
-| 10.12 | Sabotage | area 15 |  | 30 | 12 | 4 |
+| 10.11 | Mark | area 15 |  | 11 | 8 | 4 |
+| 10.12 | Sabotage | area 15 |  | 30 | 16 | 5 |
 | 10.13 | Dividends | area 15 |  | 11 | 5 | 2 |
-| 10.14 | Bidding | area 11 |  | 13 | 2 | 1 |
+| 10.14 | Bidding | area 11 |  | 14 | 11 | 4 |
 | 11.1 | Overview | reference |  | 0 | 0 | 0 |
-| 11.2 | Timing Structure of The Corp's Turn | reference |  | 0 | 2 | 2 |
-| 11.3 | Timing Structure of The Runner's Turn | reference |  | 0 | 0 | 0 |
-| 11.4 | Timing Structure of a Run | reference |  | 1 | 1 | 1 |
-| 11.5 | Timing Structure of Breaching a Server | reference |  | 3 | 0 | 0 |
-| 11.6 | Timing Structure of Accessing a Card | reference |  | 2 | 0 | 0 |
+| 11.2 | Timing Structure of The Corp's Turn | reference |  | 1 | 3 | 3 |
+| 11.3 | Timing Structure of The Runner's Turn | reference |  | 1 | 0 | 0 |
+| 11.4 | Timing Structure of a Run | reference |  | 7 | 1 | 1 |
+| 11.5 | Timing Structure of Breaching a Server | reference |  | 5 | 0 | 0 |
+| 11.6 | Timing Structure of Accessing a Card | reference |  | 4 | 0 | 0 |
