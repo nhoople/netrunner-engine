@@ -68,7 +68,7 @@ describe("the-automata-initiative", () => {
       it("CostSpec.removeTags is payable only with enough tags", () => {
         let s = createInitialState();
         s = structuredClone(s);
-        const card = instantiateCard("b-1001", "b1", "server:remote1:root");
+        const card = instantiateCard("b-1001", "b1", "server:remote-1:root");
         s.cards["b1"] = card;
         expect(canPayCost(s, "corp", { removeTags: 1 }, card)).toBe(false);
         s.runner.tags = 2;
@@ -147,20 +147,21 @@ describe("the-automata-initiative", () => {
         const sand = instantiateCard(
           "cybersand-harvester",
           "sand-1",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         sand.hostedCreditsOnAnyIceRez = 2;
         sand.rezzed = true;
         s.cards["sand-1"] = sand;
-        if (!s.servers.remote1) {
-          s.servers.remote1 = {
-            id: "remote1",
+        if (!s.servers["remote-1"]) {
+          s.servers["remote-1"] = {
+            id: "remote-1",
             kind: "remote",
             ice: [],
             root: [],
           };
+          s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         }
-        s.servers.remote1.root.push("sand-1");
+        s.servers["remote-1"].root.push("sand-1");
         const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
         ice.rezzed = true;
         s.cards["ice-1"] = ice;
@@ -176,7 +177,7 @@ describe("the-automata-initiative", () => {
         const sand = instantiateCard(
           "cybersand-harvester",
           "sand-1",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         sand.hostedCreditsSpendFor = ["install"];
         sand.hostedCredits = 5;

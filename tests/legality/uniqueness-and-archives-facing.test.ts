@@ -22,6 +22,7 @@ import { onAccessFinishedWithoutStealOrTrash } from "../../src/state/cardFlags/c
 import type { GameState } from "../../src/index.js";
 import { checkpointAfterInstruction } from "../../src/legality/checkpoints.js";
 import { trashCard } from "../../src/state/hostingAndTrash/trash.js";
+import type { ServerId } from "../../src/state/types/servers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -31,7 +32,7 @@ beforeAll(() => {
 
 function remoteWith(
   s: GameState,
-  serverId: string,
+  serverId: ServerId,
   defId: string,
   id: string,
   rezzed: boolean,

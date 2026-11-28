@@ -1148,7 +1148,11 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     const { noteStoredConditional } =
       await import("../../../src/state/triggers/storedConditionalHooks.js");
     const s = createInitialState();
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     const agenda = instantiateCard(
       "priority-requisition",
       "pr-1",
@@ -1157,11 +1161,13 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     s.cards["pad-1"] = pad;
     s.cards["pr-1"] = agenda;
     s.corp.scoreArea = ["pr-1"];
-    s.servers.remote1 = {
-      id: "remote1",
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
       ice: [],
       root: ["pad-1"],
-    } as (typeof s.servers)["hq"];
+    };
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
 
     noteStoredConditional(s, {
       cardId: "pad-1",
@@ -1205,15 +1211,21 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       "pe-1",
       identityZone(s, "corp"),
     );
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     s.cards["pe-1"] = pe;
     s.cards["pad-1"] = pad;
     s.corp.identityId = "pe-1";
-    s.servers.remote1 = {
-      id: "remote1",
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
       ice: [],
       root: ["pad-1"],
-    } as (typeof s.servers)["hq"];
+    };
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
 
     noteInlineConditional(s, {
       cardId: "pe-1",
@@ -2787,14 +2799,20 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
 
   it("cancels still-pending instances when the Corp source leaves play (CR 9.6.10)", () => {
     const s = createInitialState();
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     pad.rezzed = true;
     s.cards["pad-1"] = pad;
-    s.servers.remote1 = {
-      id: "remote1",
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
       root: ["pad-1"],
       ice: [],
     };
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
     const pending = createPendingAbilityInstance(s, {
       abilityKey: "on-turn-begin",
       sourceId: "pad-1",
@@ -4348,17 +4366,18 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     const card = instantiateCard(
       "pad-campaign",
       "pad-1",
-      "server:remote1:root",
+      "server:remote-1:root",
     );
     card.creditsOnAdvance = { default: 1 };
     card.placeAdvancementOnAnotherOnAdvance = { default: 1 };
     s.cards["pad-1"] = card;
-    s.servers.remote1 = {
-      id: "remote1",
+    s.servers["remote-1"] = {
+      id: "remote-1",
       kind: "remote",
       ice: [],
       root: ["pad-1"],
     };
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
 
     await markInlineAtCheckpoint(s, {
       sourceId: "pad-1",

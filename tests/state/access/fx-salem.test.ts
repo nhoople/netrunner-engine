@@ -22,6 +22,8 @@ import {
 } from "../../../src/index.js";
 import type { Action } from "../../../src/state/types/actions.js";
 import type { GameState } from "../../../src/state/types/game.js";
+import type { ServerId } from "../../../src/state/types/servers.js";
+import { serverOf } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -87,8 +89,9 @@ function installRemote(
   id: string,
   rezzed: boolean,
 ) {
-  const serverId = `remote-${id}`;
-  (s.servers as Record<string, unknown>)[serverId] = {
+  // The engine numbers remotes (`remote-N`) and reads the number.
+  const serverId: ServerId = `remote-${s.nextRemoteNumber++}`;
+  s.servers[serverId] = {
     id: serverId,
     kind: "remote",
     root: [id],
@@ -252,12 +255,11 @@ describe("Quest Completed", () => {
     const s = questBoard((b) => {
       installRemote(b, "pad-campaign", "pad-1", true);
       installRemote(b, "hostile-takeover", "ht-1", false);
-      const ice = put(b, "ice-wall", "iw-1", "server:remote-pad-1:ice");
+      const pad = serverOf(b, "pad-1");
+      const ice = put(b, "ice-wall", "iw-1", `server:${pad}:ice`);
       ice.rezzed = true;
       ice.faceup = true;
-      (b.servers as Record<string, { ice: string[] }>)["remote-pad-1"]!.ice = [
-        "iw-1",
-      ];
+      b.servers[pad]!.ice = ["iw-1"];
     });
     const labels = (s.pendingChoice?.options ?? []).map((o) => o.label);
     expect(optionIds(s)).toEqual([

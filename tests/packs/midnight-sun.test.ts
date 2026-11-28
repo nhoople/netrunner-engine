@@ -4121,7 +4121,8 @@ describe("midnight-sun", () => {
         s = structuredClone(s);
         // Remove remotes
         for (const id of Object.keys(s.servers)) {
-          if (s.servers[id].kind === "remote") delete s.servers[id];
+          const sid = id as ServerId;
+          if (s.servers[sid].kind === "remote") delete s.servers[sid];
         }
         const ltf = instantiateCard(
           "light-the-fire",
@@ -5272,29 +5273,30 @@ describe("midnight-sun", () => {
           accessingCardId: null,
           skipBreach: true,
         };
-        const remote = s.servers["remote:1"];
+        const remote = s.servers["remote-1"];
         if (!remote) {
-          s.servers["remote:1"] = {
-            id: "remote:1",
+          s.servers["remote-1"] = {
+            id: "remote-1",
             kind: "remote",
             ice: [],
             root: [],
           };
+          s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         }
         const asset = instantiateCard(
           "pad-campaign",
           "asset-1",
-          "server:remote:1:root",
+          "server:remote-1:root",
         );
         s.cards["asset-1"] = asset;
-        s.servers["remote:1"].root = ["asset-1"];
+        s.servers["remote-1"].root = ["asset-1"];
         const agenda = instantiateCard(
           "hostile-takeover",
           "agenda-1",
-          "server:remote:1:root",
+          "server:remote-1:root",
         );
         s.cards["agenda-1"] = agenda;
-        s.servers["remote:1"].root.push("agenda-1");
+        s.servers["remote-1"].root.push("agenda-1");
 
         const src = instantiateCard("jailbreak", "pin-1", "runner:heap");
         s.cards["pin-1"] = src;
@@ -5323,18 +5325,19 @@ describe("midnight-sun", () => {
         const agenda = instantiateCard(
           "hostile-takeover",
           "agenda-1",
-          "server:remote:1:root",
+          "server:remote-1:root",
         );
         s.cards["agenda-1"] = agenda;
-        if (!s.servers["remote:1"]) {
-          s.servers["remote:1"] = {
-            id: "remote:1",
+        if (!s.servers["remote-1"]) {
+          s.servers["remote-1"] = {
+            id: "remote-1",
             kind: "remote",
             ice: [],
             root: ["agenda-1"],
           };
+          s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         } else {
-          s.servers["remote:1"].root = ["agenda-1"];
+          s.servers["remote-1"].root = ["agenda-1"];
         }
         s.run = {
           attackedServerId: "hq",

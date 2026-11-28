@@ -198,17 +198,18 @@ describe("trace-amount", () => {
         const asset = instantiateCard(
           "pad-campaign",
           "pad-1",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         asset.trashCost = 2;
         asset.rezzed = true;
         s.cards["pad-1"] = asset;
-        s.servers.remote1 = {
-          id: "remote1",
+        s.servers["remote-1"] = {
+          id: "remote-1",
           kind: "remote",
           root: ["pad-1"],
           ice: [],
         };
+        s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
         expect(runnerTrashCostForCard(s, "pad-1")).toBe(2);
 
         const enc = instantiateCard("pad-campaign", "ep-1", "server:hq:root");

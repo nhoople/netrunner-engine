@@ -31,6 +31,7 @@ import {
   currentMark,
   pickRandomCentral,
 } from "../../../src/state/keywordsAndCredits/keywords.js";
+import type { ServerId } from "../../../src/state/types/servers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -93,7 +94,7 @@ function ice(
   s: GameState,
   defId: string,
   id: string,
-  serverId: string,
+  serverId: ServerId,
   rezzed: boolean,
 ) {
   if (!s.servers[serverId]) {

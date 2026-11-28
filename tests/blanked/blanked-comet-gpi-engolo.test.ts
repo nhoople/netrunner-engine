@@ -148,15 +148,16 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
     const kasi = instantiateCard("kasi-string", "ks-1", "runner:installed");
     s.cards["ks-1"] = kasi;
     s.runner.installed = ["ks-1"];
-    s.servers.remote1 = {
-      id: "remote1",
+    s.servers["remote-1"] = {
+      id: "remote-1",
       kind: "remote",
       root: [],
       ice: [],
     } as (typeof s.servers)["hq"];
+    s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
     s.run = {
       id: "run-1",
-      attackedServerId: "remote1",
+      attackedServerId: "remote-1",
       phase: "success",
       position: 0,
       icePassed: 0,
