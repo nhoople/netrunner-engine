@@ -16,6 +16,7 @@ import { canPayTakeTagsNestedCost } from "../../src/effects/keywordsAndCredits/t
 import { runnerPsiSpendable } from "../../src/state/turnAndActions/psi.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
 import { identityZone } from "../rulings/rulings-helpers.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -33,14 +34,8 @@ describe("blanked psi / tag / starlight helpers (CR 9.12.1d)", () => {
     s.cards["gh-1"] = ghost;
     s.runner.installed = ["gh-1"];
     s.runner.credits = 0;
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "approach_ice",
-      position: 0,
-      successful: false,
-      ended: false,
-    };
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
 
     expect(runnerPsiSpendable(s)).toBe(3);
     suppressAbilities(s, ghost.id);
@@ -57,14 +52,8 @@ describe("blanked psi / tag / starlight helpers (CR 9.12.1d)", () => {
     );
     s.cards["jes-id"] = id;
     s.runner.identityId = "jes-id";
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "encounter_ice",
-      position: 0,
-      successful: false,
-      ended: false,
-    };
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
     s.turn.tagsGivenThisTurn = 0;
 
     // Prevent makes a nested 1-tag cost unpayable while a run is active.

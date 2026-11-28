@@ -19,6 +19,7 @@ import {
   spendHostedCreditsDuringRuns,
 } from "../../src/state/keywordsAndCredits/runnerCredits.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -35,14 +36,8 @@ describe("blanked hosted credits (CR 9.12.1d)", () => {
     ghost.hostedCredits = 3;
     s.cards["gh-1"] = ghost;
     s.runner.installed = ["gh-1"];
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "approach_ice",
-      position: 0,
-      successful: false,
-      ended: false,
-    };
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
 
     expect(hostedCreditsSpendableDuringRuns(s)).toBe(3);
     expect(spendHostedCreditsDuringRuns(s, 1)).toBe(0);
@@ -66,14 +61,8 @@ describe("blanked hosted credits (CR 9.12.1d)", () => {
     taka.hostedCredits = 2;
     s.cards["taka-1"] = taka;
     s.runner.installed = ["taka-1"];
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "encounter_ice",
-      position: 0,
-      successful: false,
-      ended: false,
-    };
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
 
     expect(hostedCreditsSpendableToUseProgramsDuringRuns(s)).toBe(2);
     suppressAbilities(s, taka.id);

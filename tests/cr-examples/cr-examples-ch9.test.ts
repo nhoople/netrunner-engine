@@ -3710,7 +3710,7 @@ describe("CR examples, chapter 9", () => {
     expect(breakerStrength(s, "nnk-1")).toBe(3);
     s.run = {
       attackedServerId: "hq",
-      phase: "approach",
+      phase: "approach_ice",
       position: 0,
       successful: null,
       accessedCardIds: [],

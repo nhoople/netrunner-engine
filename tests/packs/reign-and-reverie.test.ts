@@ -1019,6 +1019,8 @@ describe("reign-and-reverie", () => {
           cannotJackOut: false,
           blankIdentities: true,
           runSourceId: "da",
+          encounter: null,
+          accessingCardId: null,
         };
         const da = instantiateCard("direct-access", "da", "runner:play-area");
         s.cards["da"] = da;

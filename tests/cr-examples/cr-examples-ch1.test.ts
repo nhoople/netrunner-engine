@@ -219,7 +219,7 @@ describe("CR examples, chapter 1", () => {
       accessedCardIds: [],
       accessCandidates: [],
       randomAccessLimit: null,
-      encounter: { iceId: "tb-1", subIndex: 0 },
+      encounter: { iceId: "tb-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
       accessingCardId: null,
@@ -551,7 +551,7 @@ describe("CR examples, chapter 1", () => {
     s.servers.hq.root = ["hole-1"];
     s.run = {
       attackedServerId: "hq",
-      phase: "approach",
+      phase: "movement",
       position: null,
       successful: null,
       accessedCardIds: [],
@@ -950,7 +950,6 @@ describe("CR examples, chapter 1", () => {
       encounter: {
         iceId: "bulk-1",
         broken: [false],
-        subroutinesResolved: [],
       },
       endedTheRun: false,
       cannotJackOut: false,
@@ -1023,7 +1022,6 @@ describe("CR examples, chapter 1", () => {
       encounter: {
         iceId: "howler-1",
         broken: [false],
-        subroutinesResolved: [],
       },
       endedTheRun: false,
       cannotJackOut: false,
@@ -1132,7 +1130,6 @@ describe("CR examples, chapter 1", () => {
       encounter: {
         iceId: "fh-2",
         broken: [false],
-        strengthBoost: 0,
       },
       endedTheRun: false,
       cannotJackOut: false,
@@ -1308,7 +1305,7 @@ describe("CR examples, chapter 1", () => {
     s.runner.credits = 10;
     s.run = {
       attackedServerId: "remote-1",
-      phase: "approach-server",
+      phase: "movement",
       position: null,
       successful: null,
       accessedCardIds: [],
@@ -1402,7 +1399,7 @@ describe("CR examples, chapter 1", () => {
     s.timingKey = "run.approachPaw";
     s.run = {
       attackedServerId: "hq",
-      phase: "approach",
+      phase: "approach_ice",
       position: 0,
       successful: null,
       accessedCardIds: [],

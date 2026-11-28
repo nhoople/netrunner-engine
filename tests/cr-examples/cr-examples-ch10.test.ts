@@ -453,7 +453,6 @@ describe("CR examples, chapter 10", () => {
       encounter: {
         iceId: "draft-1",
         broken: [false, false],
-        subroutinesResolved: [],
       },
       endedTheRun: false,
       cannotJackOut: false,

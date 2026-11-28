@@ -17,6 +17,7 @@ import {
   securityNexusTraceOffered,
 } from "../../src/state/run/onEncounter.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -53,16 +54,7 @@ describe("blanked lifecycle / ice rez / encounter (CR 9.12.1d)", () => {
     ] as typeof ice.subroutines;
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "encounter_ice",
-      position: 0,
-      icePassed: 0,
-      successful: false,
-      breached: false,
-      bypassedIceIds: [],
-    } as typeof s.run;
+    s.run = runState("hq", "encounter", { position: 0, bypassedIceIds: [] });
 
     expect(chosenIceBypassOffered(s, "ice-1")).toBe(true);
     suppressAbilities(s, femme.id);

@@ -39,7 +39,7 @@ function encounterState(
     accessedCardIds: [],
     accessCandidates: [],
     randomAccessLimit: null,
-    encounter: { iceId, broken: [false], subroutinesResolved: [] },
+    encounter: { iceId, broken: [false] },
     endedTheRun: false,
     cannotJackOut: false,
     accessingCardId: null,

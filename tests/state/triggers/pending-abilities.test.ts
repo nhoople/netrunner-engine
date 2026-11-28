@@ -46,6 +46,7 @@ import {
 import { suppressAbilities } from "../../../src/state/continuous/lingeringEffects.js";
 import { currentMark } from "../../../src/state/keywordsAndCredits/keywords.js";
 import { trashCard } from "../../../src/state/hostingAndTrash/trash.js";
+import { runState } from "../run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -641,6 +642,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: { iceId: "ice-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
+      accessingCardId: null,
     };
     noteFirstEncounterEachRun(s);
     expect(s.run!.firstEncounterEachRunMetPending).toBe(true);
@@ -1794,10 +1796,11 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     georgia.rezzed = true;
     s.cards["ga-1"] = georgia;
     s.servers.hq.root = ["ga-1"];
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
     s.run = {
       attackedServerId: "hq",
-      phase: "approach",
-      position: 0,
+      phase: "movement",
+      position: null,
       successful: false,
       accessedCardIds: [],
       accessCandidates: [],
@@ -2064,6 +2067,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
+      accessingCardId: null,
     };
     noteSisyphusFirstPass(s, "ice-1");
     expect(s.turn.sisyphusPassMetPending).toBe(true);
@@ -3072,7 +3076,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       encounter: {
         iceId: "ice-1",
         broken: [false],
-        subroutinesResolved: [],
       },
       endedTheRun: false,
       cannotJackOut: false,
@@ -3605,17 +3608,15 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
     ice.rezzed = true;
     s.cards["pop-1"] = ice;
     s.servers.hq.ice = ["pop-1"];
-    s.run = {
-      serverId: "hq",
+    s.run = runState("hq", "encounter", {
       position: 0,
-      successful: false,
-      ended: false,
       encounter: {
         iceId: "pop-1",
+        broken: [false],
         onEncounterPending: true,
         onEncounterPrevented: false,
       },
-    } as typeof s.run;
+    });
     resolvePendingOnEncounter(s);
     expect(
       s.log.some(
@@ -4764,12 +4765,8 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     s.runner.installed = ["hw-1"];
     s.corp.credits = 0;
     s.runner.credits = 0;
-    s.run = {
-      attackedServerId: "hq",
-      position: 0,
-      successful: false,
-      ended: false,
-    } as typeof s.run;
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
 
     fireAfterMandatoryDraw(s, "of-1");
     expect(

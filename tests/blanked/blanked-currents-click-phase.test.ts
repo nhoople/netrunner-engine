@@ -13,6 +13,7 @@ import {
 import { abilitiesSuppressed } from "../../src/state/continuous/abilities.js";
 import { noteRunnerClickLose } from "../../src/state/turnAndActions/clickHooks.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -30,15 +31,8 @@ describe("blanked currents / click / phase (CR 9.12.1d)", () => {
     s.cards["hg-1"] = hein;
     s.servers.hq.root = ["hg-1"];
     s.runner.credits = 8;
-    s.run = {
-      id: "run-1",
-      attackedServerId: "hq",
-      phase: "approach_ice",
-      position: 0,
-      icePassed: 0,
-      successful: false,
-      breached: false,
-    } as typeof s.run;
+    // HQ has no ice here: the run approaches the server (CR 6.9.4).
+    s.run = runState("hq", "movement");
 
     noteRunnerClickLose(s);
     expect(s.runner.credits).toBe(0);

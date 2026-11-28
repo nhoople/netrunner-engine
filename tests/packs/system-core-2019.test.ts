@@ -44,6 +44,7 @@ import { modifiersFromStartsRun } from "../../src/state/run/runStart.js";
 import type { GameState } from "../../src/state/types/game.js";
 import { noteRunnerClickSpend } from "../../src/state/turnAndActions/clickHooks.js";
 import { identityZone } from "../rulings/rulings-helpers.js";
+import { runState } from "../state/run/run-state.js";
 
 describe("system-core-2019", () => {
   describe("sc19-v159-kickoff", () => {
@@ -1167,11 +1168,18 @@ describe("system-core-2019", () => {
 
         const s = structuredClone(createInitialState());
         s.runner.clicks = 0;
-        s.run = {
-          attackedServerId: "remote-1",
+        // Turing protects remote-1, and the Runner is encountering it.
+        s.servers["remote-1"] = {
+          id: "remote-1",
+          kind: "remote",
+          root: [],
+          ice: ["tur"],
+        };
+        s.nextRemoteNumber = 2;
+        s.run = runState("remote-1", "encounter", {
           position: 0,
-          successful: false,
-        } as typeof s.run;
+          encounter: { iceId: "tur", broken: [false] },
+        });
         s.cards["tur"] = instantiateCard(
           "turing",
           "tur",
@@ -1188,11 +1196,18 @@ describe("system-core-2019", () => {
 
         const s2 = structuredClone(createInitialState());
         s2.runner.clicks = 3;
-        s2.run = {
-          attackedServerId: "remote-1",
+        // Turing protects remote-1, and the Runner is encountering it.
+        s2.servers["remote-1"] = {
+          id: "remote-1",
+          kind: "remote",
+          root: [],
+          ice: ["tur"],
+        };
+        s2.nextRemoteNumber = 2;
+        s2.run = runState("remote-1", "encounter", {
           position: 0,
-          successful: false,
-        } as typeof s2.run;
+          encounter: { iceId: "tur", broken: [false] },
+        });
         s2.cards["tur"] = instantiateCard(
           "turing",
           "tur",
@@ -1645,6 +1660,8 @@ describe("system-core-2019", () => {
           randomAccessLimit: null,
           endedTheRun: false,
           cannotJackOut: false,
+          encounter: null,
+          accessingCardId: null,
         };
         const r = evalEffect(
           { state: s, sourceId: "bj" },
@@ -1695,6 +1712,8 @@ describe("system-core-2019", () => {
           randomAccessLimit: null,
           endedTheRun: false,
           cannotJackOut: false,
+          encounter: null,
+          accessingCardId: null,
         };
         noteRunnerClickSpend(s);
         expect(s.turn.seidrClickMetPending).toBe(true);

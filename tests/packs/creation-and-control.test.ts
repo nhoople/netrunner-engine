@@ -354,6 +354,7 @@ describe("creation-and-control", () => {
           endedTheRun: false,
           cannotJackOut: false,
           awakeningCenterHostedIceIds: ["ice-1"],
+          accessingCardId: null,
         };
         s2.timingKey = "run.ends";
         resolveAndAdvance(s2);
@@ -409,6 +410,7 @@ describe("creation-and-control", () => {
           encounter: { iceId: "wall-1", broken: [false] },
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
         s.timingKey = "run.encounterPaw";
         return s;
@@ -555,6 +557,7 @@ describe("creation-and-control", () => {
           encounter: { iceId: "wall-1", broken: [false] },
           endedTheRun: false,
           cannotJackOut: false,
+          accessingCardId: null,
         };
         s.timingKey = "run.encounterPaw";
 

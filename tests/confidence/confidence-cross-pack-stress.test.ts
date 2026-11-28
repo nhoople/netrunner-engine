@@ -154,7 +154,6 @@ describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Ga
       encounter: {
         iceId: "fh-1",
         broken: [false],
-        strengthBoost: 0,
       },
       endedTheRun: false,
       cannotJackOut: false,

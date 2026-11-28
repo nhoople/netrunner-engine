@@ -289,7 +289,7 @@ describe("the Corp chooses which HQ cards a card trashes (CR 1.15.2)", () => {
     let s = corpWithHq("anemone", "server:hq:ice", ["hedge-fund", "ice-wall"]);
     s.run = {
       attackedServerId: "hq",
-      phase: "approach",
+      phase: "approach_ice",
       position: 0,
       successful: null,
       accessedCardIds: [],

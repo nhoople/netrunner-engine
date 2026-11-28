@@ -39,7 +39,7 @@ function encounterRun(s: GameState): void {
     accessedCardIds: [],
     accessCandidates: [],
     randomAccessLimit: null,
-    encounter: { iceId: "ice-1", broken: [false], subroutinesResolved: [] },
+    encounter: { iceId: "ice-1", broken: [false] },
     endedTheRun: false,
     cannotJackOut: false,
     accessingCardId: null,

@@ -334,7 +334,7 @@ describe("ezaM", () => {
       accessedCardIds: [],
       accessCandidates: [],
       randomAccessLimit: null,
-      encounter: { iceId: "ice-a", broken: [false], subroutinesResolved: [] },
+      encounter: { iceId: "ice-a", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
       accessingCardId: null,

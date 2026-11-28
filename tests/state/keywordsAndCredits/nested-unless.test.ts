@@ -41,9 +41,9 @@ function withRun(credits = 5): GameState {
     encounter: {
       iceId: "ice-1",
       broken: [false],
-      strengthBoost: 0,
     },
     endedTheRun: false,
+    cannotJackOut: false,
     accessingCardId: null,
   };
   s.cards["ice-1"] = {

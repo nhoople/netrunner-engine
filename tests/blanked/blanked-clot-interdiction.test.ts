@@ -24,6 +24,7 @@ import {
 import { clotForbidsScoreAgendaInstalledThisTurn } from "../../src/actions/score.js";
 import { abilitiesSuppressed } from "../../src/state/continuous/abilities.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import { runState } from "../state/run/run-state.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -121,12 +122,11 @@ describe("blanked Clot / Interdiction / create-server (CR 9.12.1d)", () => {
   it("drops Heliamphora host-instead while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    s.run = {
-      attackedServerId: "archives",
-      position: "accessing",
+    s.run = runState("archives", "access", {
       successful: true,
+      breached: true,
       heliamphoraHostInsteadUsedThisBreach: false,
-    } as typeof s.run;
+    });
     const hel = instantiateCard("heliamphora", "hel-1", "runner:installed");
     s.cards["hel-1"] = hel;
     s.runner.installed = ["hel-1"];
