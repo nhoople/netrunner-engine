@@ -15,6 +15,7 @@ import { abilitiesSuppressed } from "../../src/state/continuous/abilities.js";
 import { installBlockReason } from "../../src/state/cardFlags/staticFlags.js";
 import { scoreAgendaAction } from "../../src/actions/score.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import type { ApplyResult } from "../../src/state/types/actions.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -69,7 +70,9 @@ describe("blanked steal/score/install locks (CR 9.12.1d)", () => {
 
     const blocked = scoreAgendaAction(s, "va-1");
     expect(blocked.ok).toBe(false);
-    expect(blocked.error).toMatch(/installed this turn/i);
+    expect((blocked as Extract<ApplyResult, { ok: false }>).error).toMatch(
+      /installed this turn/i,
+    );
 
     suppressAbilities(s, va.id);
     expect(abilitiesSuppressed(s, "va-1")).toBe(true);

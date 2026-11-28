@@ -43,6 +43,7 @@ import {
   noteFirstCorpCardTrashEachTurn,
 } from "../../src/state/hostingAndTrash/trashHooks.js";
 import { noteCorpActionType } from "../../src/state/turnAndActions/corpActionHooks.js";
+import type { ApplyResult } from "../../src/state/types/actions.js";
 
 describe("the-automata-initiative", () => {
   describe("tai-b1001-umbrella-pichacao-cybersand-urban", () => {
@@ -597,10 +598,15 @@ describe("the-automata-initiative", () => {
         s.corp.deck = [];
         const r = applyAction(s, { type: "basic_run", serverId: "archives" });
         expect(r.ok).toBe(true);
-        expect(r.state!.turn.archivesRunBegunThisTurn).toBe(true);
-        expect(r.state!.log.some((line) => /net damage|2/.test(line))).toBe(
-          true,
-        );
+        expect(
+          (r as Extract<ApplyResult, { ok: true }>).state.turn
+            .archivesRunBegunThisTurn,
+        ).toBe(true);
+        expect(
+          (r as Extract<ApplyResult, { ok: true }>).state.log.some((line) =>
+            /net damage|2/.test(line),
+          ),
+        ).toBe(true);
       });
 
       it("Balanced Coverage peek primitive validates", () => {

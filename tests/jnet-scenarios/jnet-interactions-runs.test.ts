@@ -101,7 +101,7 @@ describe("run timing (CR 6.9): approach, encounter, movement", () => {
     s = corpInstall(s, "Tollbooth", "new");
     s = toAction(s, "runner");
     const tb = card(s, "Tollbooth").id;
-    const remote = s.cards[tb]!.zone.split(":")[1]!;
+    const remote = s.cards[tb]!.zone.split(":")[1]! as ServerId;
     s = run(s, remote);
     s = rezOnApproach(s, tb);
     const before = s.runner.credits;
@@ -126,7 +126,7 @@ describe("run timing (CR 6.9): approach, encounter, movement", () => {
     s = runnerInstall(s, "Self-modifying Code");
     const tb = card(s, "Tollbooth").id;
     const smc = card(s, "Self-modifying Code").id;
-    s = run(s, s.cards[tb]!.zone.split(":")[1]!);
+    s = run(s, s.cards[tb]!.zone.split(":")[1]! as ServerId);
     s = rezOnApproach(s, tb);
     s = passUntil(
       s,

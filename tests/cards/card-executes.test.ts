@@ -39,7 +39,7 @@ function isEffect(value: unknown): value is Effect {
 function treesOf(def: CardDef): Array<[string, Effect]> {
   const trees: Array<[string, Effect]> = [];
   if (isEffect(playEffectFromCard(def)))
-    trees.push(["onPlay", playEffectFromCard(def)]);
+    trees.push(["onPlay", playEffectFromCard(def)!]);
   if (isEffect(def.onRez)) trees.push(["onRez", def.onRez]);
   for (const [index, sub] of (def.subroutines ?? []).entries()) {
     if (isEffect(sub.effect)) trees.push([`subroutines[${index}]`, sub.effect]);

@@ -34,10 +34,15 @@ function toCorpTakeAction(state: GameState): GameState {
   return current;
 }
 
-function ofType(state: GameState, type: Action["type"]): Action[] {
+function ofType<T extends Action["type"]>(
+  state: GameState,
+  type: T,
+): Extract<Action, { type: T }>[] {
   return queryLegality(state)
     .legal.map((entry) => entry.action)
-    .filter((action) => action.type === type);
+    .filter(
+      (action): action is Extract<Action, { type: T }> => action.type === type,
+    );
 }
 
 function hold(state: GameState, id: string): void {

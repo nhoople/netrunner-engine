@@ -58,7 +58,7 @@ function rezzedIn(
     kind: "remote",
     ice: [],
     root: [id],
-  } as GameState["servers"][string];
+  };
 }
 
 /** Take `action` from the Corp's action window. */

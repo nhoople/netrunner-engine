@@ -25,6 +25,7 @@ import {
   preventPendingInstalledTrash,
 } from "../../src/state/hostingAndTrash/trashPrevent.js";
 import { trashCard } from "../../src/state/hostingAndTrash/trash.js";
+import type { GameState } from "../../src/state/types/game.js";
 
 describe("core", () => {
   describe("core-final-7-clears", () => {
@@ -280,7 +281,10 @@ describe("core", () => {
         const look = s.pendingChoice!.options[0]!.effect;
         s.pendingChoice = null;
         expect(evalEffect({ state: s, sourceId: "abt" }, look).ok).toBe(true);
-        expect(s.pendingChoice?.chooser).toBe("corp");
+        // evalEffect opens a new choice; tsc still narrows to the null set above.
+        expect((s.pendingChoice as GameState["pendingChoice"])?.chooser).toBe(
+          "corp",
+        );
         expect(s.turn.rdLookedCards).toContain("ice-look");
       });
 

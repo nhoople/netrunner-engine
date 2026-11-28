@@ -500,7 +500,8 @@ function randomDeck(
       }
     };
     if (side === "corp") {
-      const band = agendaPointBand(size);
+      // A deck under 40 cards has no agenda point band and stops here, as before.
+      const band = agendaPointBand(size)!;
       let agendaPoints = 0;
       for (let tries = 0; tries < 200 && agendaPoints < band.min; tries++) {
         const def = pick(agendas, random);

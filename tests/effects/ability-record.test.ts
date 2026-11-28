@@ -26,6 +26,7 @@ import {
   validateAbilityRecord,
 } from "../../src/index.js";
 import { findPaidAbility } from "../../src/actions/paidAbility.js";
+import type { CardInstance } from "../../src/state/types/card.js";
 
 describe("CR 9.3 ability records", () => {
   beforeAll(() => {
@@ -263,9 +264,11 @@ describe("CR 9.3 ability records", () => {
     delete crypsis.paidAbilities;
     const restored = findPaidAbility(crypsis, "crypsis-virus");
     expect(restored?.id).toBe("crypsis-virus");
-    expect(crypsis.paidAbilities?.some((a) => a.id === "crypsis-virus")).toBe(
-      true,
-    );
+    expect(
+      (crypsis.paidAbilities as CardInstance["paidAbilities"])?.some(
+        (a) => a.id === "crypsis-virus",
+      ),
+    ).toBe(true);
     // Engine extras are preserved across sync.
     crypsis.paidAbilities = [
       ...(crypsis.paidAbilities ?? []),
@@ -313,7 +316,9 @@ describe("CR 9.3 ability records", () => {
     expect(wall.subroutines?.some((s) => s.id === "iw-etr")).toBe(true);
     delete wall.subroutines;
     syncSubroutinesFromRecords(wall);
-    expect(wall.subroutines?.map((s) => s.id)).toEqual(["iw-etr"]);
+    expect(
+      (wall.subroutines as CardInstance["subroutines"])?.map((s) => s.id),
+    ).toEqual(["iw-etr"]);
     // Runtime extras keep their positions across sync.
     wall.subroutines = [
       {

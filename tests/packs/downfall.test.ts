@@ -1509,7 +1509,9 @@ describe("downfall", () => {
         );
         expect(corpMay.ok).toBe(true);
         expect(
-          s.pendingChoice?.options.some((o) => o.id === "climactic-decline"),
+          (s.pendingChoice as GameState["pendingChoice"])?.options.some(
+            (o) => o.id === "climactic-decline",
+          ),
         ).toBe(true);
 
         s.pendingChoice = null;

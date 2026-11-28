@@ -63,7 +63,7 @@ function corpWithAbility(cost: PaidAbility["cost"]): GameState {
     kind: "remote",
     ice: [],
     root: ["sv-1"],
-  } as GameState["servers"][string];
+  };
   s.nextRemoteNumber = 2;
   s.activeSide = "corp";
   s.corp.clicks = 3;

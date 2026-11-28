@@ -146,7 +146,7 @@ describe("paid ability windows (CR 9.2.7b / 9.5.2f)", () => {
       kind: "remote",
       ice: [],
       root: ["drago-1"],
-    } as GameState["servers"][string];
+    };
     const drago = instantiateCard(
       "drago-ivanov",
       "drago-1",
@@ -187,7 +187,7 @@ describe("paid ability windows (CR 9.2.7b / 9.5.2f)", () => {
       kind: "remote",
       ice: [],
       root: ["aal-1"],
-    } as GameState["servers"][string];
+    };
     const aal = instantiateCard(
       "advanced-assembly-lines",
       "aal-1",

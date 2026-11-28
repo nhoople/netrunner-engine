@@ -1075,7 +1075,7 @@ describe("CR examples, chapter 10", () => {
     expect(s.cards["fen-1"]!.hostedCredits).toBe(0);
 
     s.psi = null;
-    s.run.runnerCannotSpendCreditsForRun = true;
+    s.run!.runnerCannotSpendCreditsForRun = true;
     s.cards["fen-1"]!.hostedCredits = 1;
     s.runner.credits = 5;
     evalEffect(

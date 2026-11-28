@@ -1408,9 +1408,13 @@ describe("system-core-2019", () => {
         s.pendingChoice = null;
         evalEffect({ state: s, sourceId: s.runner.identityId }, find!.effect);
         expect(s.runner.hand).toContain("kj");
-        expect(s.pendingChoice?.chooser).toBe("runner");
+        expect((s.pendingChoice as GameState["pendingChoice"])?.chooser).toBe(
+          "runner",
+        );
         expect(
-          s.pendingChoice?.options.some((o) => o.id === "install:kj"),
+          (s.pendingChoice as GameState["pendingChoice"])?.options.some(
+            (o) => o.id === "install:kj",
+          ),
         ).toBe(true);
       });
 

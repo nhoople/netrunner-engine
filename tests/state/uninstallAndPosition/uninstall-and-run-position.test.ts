@@ -224,7 +224,7 @@ describe("uninstalling a card fires its uninstall abilities (CR 8.5.1b)", () => 
       kind: "remote",
       ice: [],
       root: ["rg-1"],
-    } as GameState["servers"][string];
+    };
     hostCard(s, "cc-1", "rg-1");
     runKind(s, "rg-1", "score_installed_agenda_ignore_requirement", {
       cardId: "rg-1",
@@ -405,7 +405,7 @@ describe("a remote with nothing left in it (CR 8.5.8)", () => {
       kind: "remote",
       ice: [],
       root: ["pad-1"],
-    } as GameState["servers"][string];
+    };
     expect(uninstallCard(s, "pad-1", "hand")).toBe(true);
     checkpointAfterInstruction(s, "test");
     expect(s.servers["remote-1"]).toBeUndefined();
