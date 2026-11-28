@@ -12,6 +12,7 @@ import {
   validateEffectTree,
   playEffectFromCard,
 } from "../../src/index.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 describe("vantage-point", () => {
   describe("vp-v113-kickoff", () => {
@@ -819,7 +820,7 @@ describe("vantage-point", () => {
         const id = instantiateCard(
           "editorial-division-ad-nihilum",
           "ed",
-          "corp:identity",
+          identityZone(s, "corp"),
         );
         s.cards["ed"] = id;
         s.corp.identityId = "ed";

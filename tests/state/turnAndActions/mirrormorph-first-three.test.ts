@@ -21,6 +21,7 @@ import {
 import { noteCorpActionType } from "../../../src/state/turnAndActions/corpActionHooks.js";
 import type { Action } from "../../../src/state/types/actions.js";
 import type { GameState } from "../../../src/state/types/game.js";
+import { identityZone } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -34,7 +35,7 @@ function mirrormorph(): GameState {
   s.cards[id] = instantiateCard(
     "mirrormorph-endless-iteration",
     id,
-    "corp:identity",
+    identityZone(s, "corp"),
   );
   // The default board's program is not rezzed (CR 8.1.4f).
   s.cards["runner-program-1"]!.rezzed = false;

@@ -34,6 +34,7 @@ import { hostCard } from "../../src/state/hostingAndTrash/host.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
 import { quoteHostServerRecurringTowardCorpRez } from "../../src/cards/stubs.js";
 import { fireScoreOrStealSideEffects } from "../../src/actions/score.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -220,7 +221,7 @@ describe("Ryō “Phoenix” Ōno: Out of the Ashes", () => {
       s,
       "ryo-phoenix-ono-out-of-the-ashes",
       s.runner.identityId,
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     put(s, "hedge-fund", "hq-a", "corp:hq");
     put(s, "ice-wall", "hq-b", "corp:hq");

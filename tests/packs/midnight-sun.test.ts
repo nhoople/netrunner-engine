@@ -73,6 +73,7 @@ import {
 } from "../../src/effects/abilityRecord.js";
 import { passIdle } from "../../src/demo/passIdle.js";
 import { trashCard } from "../../src/state/hostingAndTrash/trash.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 describe("midnight-sun", () => {
   describe("midnight-sun-add-power-counter", () => {
@@ -1923,7 +1924,7 @@ describe("midnight-sun", () => {
         const live = instantiateCard(
           "esa-afontov-eco-insurrectionist",
           "esa-live",
-          "runner:identity",
+          identityZone(s, "runner"),
         );
         s.cards["esa-live"] = live;
         s.runner.identityId = "esa-live";
@@ -4492,7 +4493,7 @@ describe("midnight-sun", () => {
         const id = instantiateCard(
           "nyusha-sable-sintashta-symphonic-prodigy",
           "sable-id",
-          "runner:identity",
+          identityZone(s, "runner"),
         );
         s.cards["sable-id"] = id;
         s.runner.identityId = "sable-id";
@@ -4822,7 +4823,7 @@ describe("midnight-sun", () => {
         const id = instantiateCard(
           "haas-bioroid-precision-design",
           "ob-1",
-          "corp:identity",
+          identityZone(s, "corp"),
         );
         s.cards["ob-1"] = id;
         s.corp.identityId = "ob-1";
@@ -5030,7 +5031,7 @@ describe("midnight-sun", () => {
         const live = instantiateCard(
           "captain-padma-isbister-intrepid-explorer",
           "padma-live",
-          "runner:identity",
+          identityZone(s, "runner"),
         );
         s.cards["padma-live"] = live;
         s.runner.identityId = "padma-live";

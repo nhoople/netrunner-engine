@@ -21,6 +21,7 @@ import {
 } from "../../../src/state/keywordsAndCredits/costs.js";
 import type { GameState } from "../../../src/state/types/game.js";
 import type { PaidAbility } from "../../../src/state/types/abilities.js";
+import { identityZone } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -50,7 +51,7 @@ function corpWithAbility(cost: PaidAbility["cost"]): GameState {
   s.cards[id] = instantiateCard(
     "mirrormorph-endless-iteration",
     id,
-    "corp:identity",
+    identityZone(s, "corp"),
   );
   s.cards["runner-program-1"]!.rezzed = false;
   const card = instantiateCard("sealed-vault", "sv-1", "server:remote-1:root");

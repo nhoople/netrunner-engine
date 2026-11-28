@@ -70,6 +70,7 @@ import {
   stackRd,
   toCorpTurn,
   toHand,
+  identityZone,
 } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
@@ -637,7 +638,7 @@ describe("Nisei Division: The Next Generation", () => {
           s,
           "nisei-division-the-next-generation",
           "nisei-tmp",
-          "corp:identity",
+          identityZone(s, "corp"),
         ),
       ),
       { id: s.corp.identityId },

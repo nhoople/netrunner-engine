@@ -26,6 +26,7 @@ import {
 import { completeExpose } from "../../../src/state/visibility/expose.js";
 import { CR } from "../../../src/timing/labels.js";
 import type { GameState } from "../../../src/state/types/game.js";
+import { identityZone } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -360,7 +361,7 @@ describe("stored conditional triggers", () => {
     const id = instantiateCard(
       "tennin-institute-the-secrets-within",
       "tennin-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     const ice = instantiateCard("ice-wall", "ag-1", "server:hq:ice");
     ice.rezzed = true;
@@ -380,7 +381,7 @@ describe("stored conditional triggers", () => {
     const id = instantiateCard(
       "nisei-division-the-next-generation",
       "nisei-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     s.cards["nisei-1"] = id;
     s.corp.identityId = "nisei-1";

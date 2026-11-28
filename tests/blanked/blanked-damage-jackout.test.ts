@@ -21,6 +21,7 @@ import {
 } from "../../src/state/damageAndPrevention/damage.js";
 import { runnerCannotPlayCurrentEvents } from "../../src/state/continuous/currents.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -36,7 +37,7 @@ describe("blanked damage / jack-out / DBS (CR 9.12.1d)", () => {
       const chronos = instantiateCard(
         "chronos-protocol-selective-mind-mapping",
         s.corp.identityId,
-        "corp:identity",
+        identityZone(s, "corp"),
       );
       if (blanked) suppressAbilities(s, chronos.id);
       s.cards[s.corp.identityId] = chronos;

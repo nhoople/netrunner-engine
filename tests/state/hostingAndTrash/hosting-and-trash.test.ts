@@ -46,6 +46,7 @@ import {
   expectStateDelta,
   snapshot,
 } from "../../effects/kind-coverage.js";
+import { identityZone } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -464,7 +465,7 @@ describe("what leaves play with a trashed card", () => {
         s,
         "skorpios-defense-systems-persuasive-power",
         "sk-id",
-        "corp:identity",
+        identityZone(s, "corp"),
       );
       s.corp.identityId = "sk-id";
       put(s, "corroder", "co-1", "runner:installed");

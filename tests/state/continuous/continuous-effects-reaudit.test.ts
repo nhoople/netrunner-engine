@@ -47,6 +47,7 @@ import { memoryLimit } from "../../../src/state/turnAndActions/turn.js";
 import { collectSubBoostEtrSubs } from "../../../src/state/continuous/continuousSubs.js";
 import { dealDamage } from "../../../src/state/damageAndPrevention/damage.js";
 import { expectStateDelta, snapshot } from "../../effects/kind-coverage.js";
+import { identityZone } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -379,7 +380,7 @@ describe("lingering effects and their expiry at 10.3.1b (CR 9.10)", () => {
       s,
       "thunderbolt-armaments-peace-through-power",
       "tb-id",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     delete s.cards[oldId];
     s.corp.identityId = "tb-id";

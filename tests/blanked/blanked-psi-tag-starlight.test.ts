@@ -15,6 +15,7 @@ import { abilitiesSuppressed } from "../../src/state/continuous/abilities.js";
 import { canPayTakeTagsNestedCost } from "../../src/effects/keywordsAndCredits/tagPrimitives.js";
 import { runnerPsiSpendable } from "../../src/state/turnAndActions/psi.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -52,7 +53,7 @@ describe("blanked psi / tag / starlight helpers (CR 9.12.1d)", () => {
     const id = instantiateCard(
       "jesminder-sareen-girl-behind-the-curtain",
       "jes-id",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     s.cards["jes-id"] = id;
     s.runner.identityId = "jes-id";

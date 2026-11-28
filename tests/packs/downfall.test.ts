@@ -40,6 +40,7 @@ import {
   openPendingEndTheRun,
   preventPendingEndTheRun,
 } from "../../src/state/run/endTheRun.js";
+import { identityZone } from "../rulings/rulings-helpers.js";
 
 describe("downfall", () => {
   describe("df-v147-kickoff", () => {
@@ -1032,7 +1033,7 @@ describe("downfall", () => {
         const az = instantiateCard(
           "az-mccaffrey-mechanical-prodigy",
           "az-id",
-          "runner:identity",
+          identityZone(s, "runner"),
         );
         s.cards["az-id"] = az;
         s.runner.identityId = "az-id";
@@ -1696,7 +1697,7 @@ describe("downfall", () => {
         const mm = instantiateCard(
           "mirrormorph-endless-iteration",
           "mm-1",
-          "corp:identity",
+          identityZone(s, "corp"),
         );
         s.cards["mm-1"] = mm;
         s.corp.identityId = "mm-1";

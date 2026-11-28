@@ -2,7 +2,7 @@
  * Comprehensive Rules examples from chapter 9.
  * Each test plays that example's board.
  */
-import { openAsChoice } from "../rulings/rulings-helpers.js";
+import { openAsChoice, identityZone } from "../rulings/rulings-helpers.js";
 import { hostCard } from "../../src/state/hostingAndTrash/host.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -134,7 +134,7 @@ describe("CR examples, chapter 9", () => {
     const geist = instantiateCard(
       "armand-geist-walker-tech-lord",
       "geist-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     const decoy = instantiateCard("decoy", "decoy-1", "runner:installed");
     decoy.faceup = true;
@@ -278,7 +278,7 @@ describe("CR examples, chapter 9", () => {
     const zahya = instantiateCard(
       "zahya-sadeghi-versatile-smuggler",
       "zahya-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     const event = instantiateCard("direct-access", "da-1", "runner:grip");
     const hq = instantiateCard("hedge-fund", "hq-1", "corp:hq");
@@ -455,7 +455,7 @@ describe("CR examples, chapter 9", () => {
     const skorpios = instantiateCard(
       "skorpios-defense-systems-persuasive-power",
       "skorpios-1",
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     const ihw = instantiateCard("ive-had-worse", "ihw-1", "runner:grip");
     const top = instantiateCard("sure-gamble", "top-1", "runner:stack");
@@ -716,7 +716,7 @@ describe("CR examples, chapter 9", () => {
     const zahya = instantiateCard(
       "zahya-sadeghi-versatile-smuggler",
       "zahya-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
     const hq = instantiateCard("hedge-fund", "hq-1", "corp:hq");
     const rd = instantiateCard("hedge-fund", "rd-1", "corp:rd");
@@ -1395,7 +1395,7 @@ describe("CR examples, chapter 9", () => {
     const identity = instantiateCard(
       "ob-superheavy-logistics-extract-export-excel",
       s.corp.identityId,
-      "corp:identity",
+      identityZone(s, "corp"),
     );
     const reaper = instantiateCard(
       "reaper-function",
@@ -3924,7 +3924,7 @@ describe("CR examples, chapter 9", () => {
       const identity = instantiateCard(
         "chronos-protocol-selective-mind-mapping",
         s.corp.identityId,
-        "corp:identity",
+        identityZone(s, "corp"),
       );
       const ribs = instantiateCard(
         "titanium-ribs",

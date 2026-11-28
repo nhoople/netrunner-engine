@@ -9,6 +9,7 @@ import {
   legalActions,
 } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
+import type { ZoneId } from "../../src/state/types/shared.js";
 import type { Action } from "../../src/state/types/actions.js";
 import type { ServerId } from "../../src/state/types/servers.js";
 import { passIdle } from "../../src/demo/passIdle.js";
@@ -34,14 +35,26 @@ export function put(s: GameState, defId: string, id: string, zone: string) {
   return card;
 }
 
+/**
+ * The zone the engine gives a side's identity card: the one its current
+ * identity was created in. There is no identity zone (`ZoneId`); the engine
+ * builds a game with each identity in that side's hand zone
+ * (`createInitialState`), and seat views show identities by card type.
+ * CR 1.6.1 places identities faceup in the play area instead; that
+ * difference is filed in the CR audit findings (setup and end), and tests
+ * follow what the engine builds.
+ */
+export function identityZone(s: GameState, side: "corp" | "runner"): ZoneId {
+  return s.cards[s[side].identityId]!.zone;
+}
+
 /** Replace a side's identity in place, keeping its id. */
 export function setIdentity(
   s: GameState,
   side: "corp" | "runner",
   defId: string,
 ) {
-  const id = side === "corp" ? s.corp.identityId : s.runner.identityId;
-  return put(s, defId, id, s.cards[id]!.zone);
+  return put(s, defId, s[side].identityId, identityZone(s, side));
 }
 
 /** A Corp card alone in the root of a new remote server. */

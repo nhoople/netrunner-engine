@@ -17,6 +17,7 @@ import {
 } from "../../../src/index.js";
 import type { Action } from "../../../src/state/types/actions.js";
 import type { GameState } from "../../../src/state/types/game.js";
+import { identityZone } from "../../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -236,12 +237,12 @@ describe("Apex: Invasive Predator turn-begin ability (CR 9.6.6)", () => {
   ): GameState {
     const s = createInitialState();
     s.cards["runner-program-1"]!.rezzed = false;
-    delete s.cards[s.runner.identityId];
     s.cards["apex-1"] = instantiateCard(
       "apex-invasive-predator",
       "apex-1",
-      "runner:identity",
+      identityZone(s, "runner"),
     );
+    delete s.cards[s.runner.identityId];
     s.runner.identityId = "apex-1";
     for (const defId of extraInstalled) {
       const id = `${defId}-1`;
