@@ -31,6 +31,7 @@ import {
   playEffectFromCard,
 } from "../../../src/index.js";
 import type { Action, Effect, GameState } from "../../../src/index.js";
+import type { ServerId } from "../../../src/state/types/servers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -71,7 +72,7 @@ function ice(
   s: GameState,
   defId: string,
   id: string,
-  serverId: string,
+  serverId: ServerId,
   rezzed: boolean,
 ) {
   if (!s.servers[serverId]) {
@@ -89,7 +90,7 @@ function rooted(
   s: GameState,
   defId: string,
   id: string,
-  serverId: string,
+  serverId: ServerId,
   rezzed: boolean,
 ) {
   if (!s.servers[serverId]) {

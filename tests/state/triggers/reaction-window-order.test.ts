@@ -18,6 +18,7 @@ import type { Action, GameState } from "../../../src/index.js";
 import { createPendingAbilityInstance } from "../../../src/state/triggers/pendingAbilities.js";
 import { resolveStoredConditionalPendings } from "../../../src/state/triggers/storedTriggers.js";
 import type { Side } from "../../../src/state/types/shared.js";
+import type { ServerId } from "../../../src/state/types/servers.js";
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
@@ -32,13 +33,14 @@ function runnerCard(s: GameState, defId: string, id: string): void {
 
 /** A rezzed Corp asset in a new remote with a made-up Runner-turn-begin gain. */
 function corpTurnBeginWatcher(s: GameState, id: string, gain: number): void {
-  const card = instantiateCard("pad-campaign", id, `server:${id}:root`);
+  const serverId: ServerId = `remote-${s.nextRemoteNumber++}`;
+  const card = instantiateCard("pad-campaign", id, `server:${serverId}:root`);
   card.rezzed = true;
   card.faceup = true;
   card.onTurnBegin = undefined;
   card.onRunnerTurnBegin = fx.gainCredits("corp", gain);
   s.cards[id] = card;
-  s.servers[id] = { id, kind: "remote", ice: [], root: [id] };
+  s.servers[serverId] = { id: serverId, kind: "remote", ice: [], root: [id] };
   s.corp.installed.push(id);
 }
 

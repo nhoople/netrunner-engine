@@ -35,7 +35,7 @@ import { hostCard } from "../../src/state/hostingAndTrash/host.js";
 import { suppressAbilities } from "../../src/state/continuous/lingeringEffects.js";
 import { quoteHostServerRecurringTowardCorpRez } from "../../src/cards/stubs.js";
 import { fireScoreOrStealSideEffects } from "../../src/actions/score.js";
-import { identityZone } from "../rulings/rulings-helpers.js";
+import { identityZone, serverOf } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -152,8 +152,9 @@ function put(s: GameState, defId: string, id: string, zone: ZoneId) {
 
 /** A rezzed asset installed in a new remote. */
 function installAsset(s: GameState, defId: string, id: string) {
-  const serverId = `remote-${id}`;
-  (s.servers as Record<string, unknown>)[serverId] = {
+  // The engine numbers remotes (`remote-N`) and reads the number.
+  const serverId: ServerId = `remote-${s.nextRemoteNumber++}`;
+  s.servers[serverId] = {
     id: serverId,
     kind: "remote",
     root: [id],
@@ -384,11 +385,12 @@ describe("place_advancements keeps its fields through the Corp's pick", () => {
   it("The Holo Man still places its extra counter when the Corp picks between two cards (CR 1.15.2)", () => {
     const s = fresh();
     const holo = installAsset(s, "hostile-takeover", "ag-1");
-    const server = s.servers["remote-ag-1" as ServerId]!;
-    put(s, "hostile-takeover", "ag-2", "server:remote-ag-1:root");
+    const agServer = serverOf(s, "ag-1");
+    const server = s.servers[agServer]!;
+    put(s, "hostile-takeover", "ag-2", `server:${agServer}:root`);
     server.root.push("ag-2");
     holo.rezzed = false;
-    put(s, "the-holo-man", "holo-1", "server:remote-ag-1:root");
+    put(s, "the-holo-man", "holo-1", `server:${agServer}:root`);
     server.root.push("holo-1");
     s.turn.corpInstalledFromHqThisTurn = false;
     run(
@@ -450,6 +452,7 @@ describe("Aircheck", () => {
     put(s, "aircheck", "air-1", "runner:grip");
     s.runner.hand = ["air-1"];
     installAsset(s, "pad-campaign", "pad-1");
+    const padServer = serverOf(s, "pad-1");
     s.cards["pad-1"]!.rezzed = false;
     s.cards["pad-1"]!.faceup = false;
     s = must(s, { type: "play_event", cardId: "air-1", serverId: "hq" });
@@ -461,8 +464,8 @@ describe("Aircheck", () => {
     expect(s.run).toBeNull();
     expect(runnerCreditPoolLocked(s)).toBe(true);
     expect(s.cards["air-1"]?.hostedCredits).toBe(4);
-    s = must(s, { type: "choose_option", optionId: "run:remote-pad-1" });
-    expect(s.run?.attackedServerId).toBe("remote-pad-1");
+    s = must(s, { type: "choose_option", optionId: `run:${padServer}` });
+    expect(s.run?.attackedServerId).toBe(padServer);
     expect(s.run?.blockCreditPoolSpendAndLose).toBe(true);
     expect(s.run?.eventCredits).toBe(4);
     s = drive(s, atRunnerAction);
@@ -560,9 +563,10 @@ describe("Mahkota Langit Grid", () => {
     const s = fresh();
     const grid = installAsset(s, "mahkota-langit-grid", "mlg-1");
     grid.recurringCredits = 2;
-    const server = s.servers["remote-mlg-1" as ServerId]!;
-    const asset = put(s, "pad-campaign", "pad-1", "server:remote-mlg-1:root");
-    const upgrade = put(s, "ash-2x3zb9cy", "ash-1", "server:remote-mlg-1:root");
+    const mlgServer = serverOf(s, "mlg-1");
+    const server = s.servers[mlgServer]!;
+    const asset = put(s, "pad-campaign", "pad-1", `server:${mlgServer}:root`);
+    const upgrade = put(s, "ash-2x3zb9cy", "ash-1", `server:${mlgServer}:root`);
     asset.rezzed = false;
     upgrade.rezzed = false;
     server.root.push("pad-1", "ash-1");
@@ -582,7 +586,7 @@ describe("Malapert Data Vault", () => {
     s.corp.scoreArea.push("ag-1");
     ag.scoredThisTurn = true;
     const deck = [...s.corp.deck];
-    fireScoreOrStealSideEffects(s, "ag-1", "score", "remote-mdv-1");
+    fireScoreOrStealSideEffects(s, "ag-1", "score", serverOf(s, "mdv-1"));
     expect(s.pendingChoice?.chooser).toBe("corp");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
       "search",

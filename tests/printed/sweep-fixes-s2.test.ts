@@ -39,6 +39,7 @@ import { beginBreachAccess } from "../../src/state/access/access.js";
 import { fireIceRezDuringRunHooks } from "../../src/effects/rez/rezDuringRunHooks.js";
 import { placeMark } from "../../src/state/keywordsAndCredits/keywords.js";
 import { passIdle } from "../../src/demo/passIdle.js";
+import { serverOf } from "../rulings/rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -317,8 +318,9 @@ function setIdentity(s: GameState, side: "corp" | "runner", defId: string) {
 
 /** A rezzed Corp card installed in the root of a new remote. */
 function installRoot(s: GameState, defId: string, id: string, rezzed = true) {
-  const serverId = `remote-${id}`;
-  (s.servers as Record<string, unknown>)[serverId] = {
+  // The engine numbers remotes (`remote-N`) and reads the number.
+  const serverId: ServerId = `remote-${s.nextRemoteNumber++}`;
+  s.servers[serverId] = {
     id: serverId,
     kind: "remote",
     root: [id],
@@ -493,7 +495,7 @@ describe("Brasília Government Grid", () => {
   it("declining does not use it up, it watches any ice rezzed during a run on its server, and the +3 lasts the run (CR 9.3.6g, 9.10.1)", () => {
     const s = fresh();
     installRoot(s, "brasilia-government-grid", "bgg-1");
-    const server = "remote-bgg-1" as ServerId;
+    const server = serverOf(s, "bgg-1");
     // Ice protecting HQ is rezzed during a run on Brasília's server.
     const a = put(s, "ice-wall", "iw-a", "server:hq:ice");
     const b = put(s, "ice-wall", "iw-b", "server:hq:ice");

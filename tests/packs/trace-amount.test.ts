@@ -198,13 +198,13 @@ describe("trace-amount", () => {
         const asset = instantiateCard(
           "pad-campaign",
           "pad-1",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         asset.trashCost = 2;
         asset.rezzed = true;
         s.cards["pad-1"] = asset;
-        s.servers.remote1 = {
-          id: "remote1",
+        s.servers["remote-1"] = {
+          id: "remote-1",
           kind: "remote",
           root: ["pad-1"],
           ice: [],

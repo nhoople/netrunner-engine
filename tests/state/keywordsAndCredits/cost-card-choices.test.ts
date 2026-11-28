@@ -19,6 +19,7 @@ import {
   legalActions,
 } from "../../../src/index.js";
 import type { Action, GameState } from "../../../src/index.js";
+import type { ServerId } from "../../../src/state/types/servers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -61,7 +62,7 @@ function installed(s: GameState, defId: string, id: string) {
   return card;
 }
 
-function inRoot(s: GameState, defId: string, id: string, serverId: string) {
+function inRoot(s: GameState, defId: string, id: string, serverId: ServerId) {
   if (!s.servers[serverId]) {
     s.servers[serverId] = { id: serverId, kind: "remote", ice: [], root: [] };
   }

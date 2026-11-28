@@ -168,17 +168,17 @@ describe("future-proof", () => {
         const ruhr = instantiateCard(
           "ruhr-valley",
           "ruhr-1",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         ruhr.rezzed = true;
         s.cards["ruhr-1"] = ruhr;
-        s.servers["remote1"] = {
-          id: "remote1",
+        s.servers["remote-1"] = {
+          id: "remote-1",
           kind: "remote",
           root: ["ruhr-1"],
           ice: [],
         };
-        expect(additionalRunInitiateTax(s, "remote1")).toEqual({
+        expect(additionalRunInitiateTax(s, "remote-1")).toEqual({
           credits: 0,
           clicks: 1,
         });

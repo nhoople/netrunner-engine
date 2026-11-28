@@ -23,6 +23,7 @@ import {
 } from "../../../src/index.js";
 import type { Action, GameState } from "../../../src/index.js";
 import { passIdle } from "../../../src/demo/passIdle.js";
+import type { ServerId } from "../../../src/state/types/servers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -47,7 +48,7 @@ function runnerTurn(): GameState {
   return s;
 }
 
-function remote(s: GameState, serverId: string): void {
+function remote(s: GameState, serverId: ServerId): void {
   s.servers[serverId] = { id: serverId, kind: "remote", ice: [], root: [] };
 }
 
@@ -55,7 +56,7 @@ function inRoot(
   s: GameState,
   defId: string,
   id: string,
-  serverId: string,
+  serverId: ServerId,
   rezzed: boolean,
 ): void {
   const card = instantiateCard(defId, id, `server:${serverId}:root`);
@@ -66,7 +67,12 @@ function inRoot(
   s.corp.installed.push(id);
 }
 
-function ice(s: GameState, defId: string, id: string, serverId: string): void {
+function ice(
+  s: GameState,
+  defId: string,
+  id: string,
+  serverId: ServerId,
+): void {
   const card = instantiateCard(defId, id, `server:${serverId}:ice`);
   card.rezzed = true;
   card.faceup = true;
@@ -416,7 +422,7 @@ describe("passing all ice needs ice to pass (CR 6.9.4a)", () => {
     s.runner.installed.push("poly-1");
   }
 
-  function awakeningCenter(s: GameState, serverId: string): void {
+  function awakeningCenter(s: GameState, serverId: ServerId): void {
     inRoot(s, "awakening-center", "ac-1", serverId, true);
     const hosted = instantiateCard("eli-1-0", "eli-1", "hosted:ac-1");
     hosted.rezzed = false;

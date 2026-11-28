@@ -1350,18 +1350,18 @@ describe("downfall", () => {
         const card = instantiateCard(
           "reduced-service",
           "rs-1",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         card.rezzed = true;
         card.powerCounters = 2;
         s.cards["rs-1"] = card;
-        s.servers["remote1"] = {
-          id: "remote1",
+        s.servers["remote-1"] = {
+          id: "remote-1",
           kind: "remote",
           root: ["rs-1"],
           ice: [],
         };
-        expect(additionalRunInitiateTax(s, "remote1")).toEqual({
+        expect(additionalRunInitiateTax(s, "remote-1")).toEqual({
           credits: 4,
           clicks: 0,
         });
@@ -1391,18 +1391,18 @@ describe("downfall", () => {
         const card = instantiateCard(
           "cold-site-server",
           "cs-1",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         card.rezzed = true;
         card.powerCounters = 3;
         s.cards["cs-1"] = card;
-        s.servers["remote1"] = {
-          id: "remote1",
+        s.servers["remote-1"] = {
+          id: "remote-1",
           kind: "remote",
           root: ["cs-1"],
           ice: [],
         };
-        expect(additionalRunInitiateTax(s, "remote1")).toEqual({
+        expect(additionalRunInitiateTax(s, "remote-1")).toEqual({
           credits: 3,
           clicks: 3,
         });
@@ -1717,18 +1717,18 @@ describe("downfall", () => {
         const card = instantiateCard(
           "cold-site-server",
           "cs-1",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         card.rezzed = true;
         card.powerCounters = 2;
         s.cards["cs-1"] = card;
-        s.servers["remote1"] = {
-          id: "remote1",
+        s.servers["remote-1"] = {
+          id: "remote-1",
           kind: "remote",
           root: ["cs-1"],
           ice: [],
         };
-        expect(additionalRunInitiateTax(s, "remote1")).toEqual({
+        expect(additionalRunInitiateTax(s, "remote-1")).toEqual({
           credits: 2,
           clicks: 2,
         });

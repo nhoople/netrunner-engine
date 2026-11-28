@@ -100,16 +100,16 @@ describe("blanked Aesop / Oberth / Anson (CR 9.12.1d)", () => {
   it("drops Estelle Moon power while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    s.servers.remote1 = {
-      id: "remote1",
+    s.servers["remote-1"] = {
+      id: "remote-1",
       kind: "remote",
       root: [],
       ice: [],
     } as (typeof s.servers)["hq"];
-    const et = instantiateCard("estelle-moon", "et-1", "server:remote1:root");
+    const et = instantiateCard("estelle-moon", "et-1", "server:remote-1:root");
     et.rezzed = true;
     s.cards["et-1"] = et;
-    s.servers.remote1.root = ["et-1"];
+    s.servers["remote-1"].root = ["et-1"];
 
     onCorpCardInstalledInRemote(s);
     expect(et.powerCounters ?? 0).toBeGreaterThan(0);

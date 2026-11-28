@@ -1193,22 +1193,23 @@ describe("parhelion", () => {
         const agenda = instantiateCard(
           "hostile-takeover",
           "ag-1",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         s.cards["ag-1"] = agenda;
-        s.servers.remote1 = {
-          id: "remote1",
+        s.servers["remote-1"] = {
+          id: "remote-1",
+          kind: "remote",
           root: ["ag-1"],
           ice: [],
         };
         // Ensure remote exists in servers map used by createInitialState
-        if (!s.servers.remote1) {
+        if (!s.servers["remote-1"]) {
           (
             s.servers as Record<
               string,
               { id: string; root: string[]; ice: string[] }
             >
-          )["remote1"] = { id: "remote1", root: ["ag-1"], ice: [] };
+          )["remote-1"] = { id: "remote-1", root: ["ag-1"], ice: [] };
         }
 
         let r = applyAction(s, { type: "play_operation", cardId: "ship-1" });
@@ -2166,7 +2167,7 @@ describe("parhelion", () => {
         const keeling = instantiateCard(
           "pad-campaign",
           "keel-1",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         keeling.title = "Dr. Vientiane Keeling";
         keeling.rezCost = 0;
@@ -2175,15 +2176,15 @@ describe("parhelion", () => {
         keeling.onTurnBegin = def.onTurnBegin;
         keeling.unsupported = [];
         s.cards["keel-1"] = keeling;
-        if (!s.servers.remote1) {
-          s.servers.remote1 = {
-            id: "remote1",
+        if (!s.servers["remote-1"]) {
+          s.servers["remote-1"] = {
+            id: "remote-1",
             kind: "remote",
             ice: [],
             root: [],
           };
         }
-        s.servers.remote1.root = ["keel-1"];
+        s.servers["remote-1"].root = ["keel-1"];
         s.corp.credits = 5;
         s.activeSide = "corp";
         s.timingKey = "corp.actionPaw";

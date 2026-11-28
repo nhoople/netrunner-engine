@@ -681,14 +681,14 @@ describe("system-core-2019", () => {
         const rezzed = instantiateCard(
           "pad-campaign",
           "pad",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         rezzed.rezzed = true;
         s.cards["iw"] = ice;
         s.cards["pad"] = rezzed;
         s.servers.hq.ice = ["iw"];
-        s.servers.remote1 = {
-          id: "remote1",
+        s.servers["remote-1"] = {
+          id: "remote-1",
           kind: "remote",
           root: ["pad"],
           ice: [],
@@ -702,7 +702,7 @@ describe("system-core-2019", () => {
         expect(s.pendingChoice).toBeFalsy();
         expect(s.corp.hand).toContain("iw");
         expect(s.servers.hq.ice).not.toContain("iw");
-        expect(s.servers.remote1.root).toContain("pad");
+        expect(s.servers["remote-1"].root).toContain("pad");
       });
     });
   });
@@ -1044,7 +1044,7 @@ describe("system-core-2019", () => {
         s.cards["mills"] = instantiateCard(
           "elizabeth-mills",
           "mills",
-          "server:remote1:root",
+          "server:remote-1:root",
         );
         const r = evalEffect(
           { state: s, sourceId: "mills" },
@@ -1167,11 +1167,15 @@ describe("system-core-2019", () => {
         const s = structuredClone(createInitialState());
         s.runner.clicks = 0;
         s.run = {
-          attackedServerId: "remote1",
+          attackedServerId: "remote-1",
           position: 0,
           successful: false,
         } as typeof s.run;
-        s.cards["tur"] = instantiateCard("turing", "tur", "server:remote1:ice");
+        s.cards["tur"] = instantiateCard(
+          "turing",
+          "tur",
+          "server:remote-1:ice",
+        );
         const r = evalEffect(
           { state: s, sourceId: "tur" },
           fx.endTheRunUnlessRunnerSpendsClicks(3),
@@ -1184,14 +1188,14 @@ describe("system-core-2019", () => {
         const s2 = structuredClone(createInitialState());
         s2.runner.clicks = 3;
         s2.run = {
-          attackedServerId: "remote1",
+          attackedServerId: "remote-1",
           position: 0,
           successful: false,
         } as typeof s2.run;
         s2.cards["tur"] = instantiateCard(
           "turing",
           "tur",
-          "server:remote1:ice",
+          "server:remote-1:ice",
         );
         const r2 = evalEffect(
           { state: s2, sourceId: "tur" },

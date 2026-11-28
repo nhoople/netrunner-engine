@@ -22,6 +22,7 @@ import { noteCorpActionType } from "../../../src/state/turnAndActions/corpAction
 import type { Action } from "../../../src/state/types/actions.js";
 import type { GameState } from "../../../src/state/types/game.js";
 import { identityZone } from "../../rulings/rulings-helpers.js";
+import type { ServerId } from "../../../src/state/types/servers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -48,7 +49,7 @@ function rezzedIn(
   s: GameState,
   defId: string,
   id: string,
-  server: string,
+  server: ServerId,
 ): void {
   const card = instantiateCard(defId, id, `server:${server}:root`);
   card.rezzed = true;
