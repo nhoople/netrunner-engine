@@ -94,7 +94,7 @@ describe("CR examples, chapter 3", () => {
     expect(breakerStrength(s, "co-1")).toBe(before + 1);
     occurCheckpoint(
       s,
-      "test",
+      "timing",
       "after encounter",
       [CR.encounterIcePhase],
       "test",
@@ -131,7 +131,7 @@ describe("CR examples, chapter 3", () => {
     expect(pumped.ok).toBe(true);
     occurCheckpoint(
       s,
-      "test",
+      "timing",
       "after encounter",
       [CR.encounterIcePhase],
       "test",
@@ -160,7 +160,7 @@ describe("CR examples, chapter 3", () => {
     ).toBe(true);
     occurCheckpoint(
       s,
-      "test",
+      "timing",
       "checkpoint",
       [CR.checkpointDurationAbilities],
       "test",

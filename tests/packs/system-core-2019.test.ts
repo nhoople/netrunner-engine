@@ -650,6 +650,8 @@ describe("system-core-2019", () => {
           {
             id: "fake-plascrete",
             label: "prevent meat",
+            clickCost: 0,
+            creditCost: 0,
             windows: ["damage_interrupt"],
             requirePendingDamageTypes: ["meat"],
             cost: { credits: 0 },

@@ -53,6 +53,7 @@ function withRun(credits = 5): GameState {
     type: "ice",
     side: "corp",
     zone: "server:hq:ice",
+    installCost: 0,
     faceup: true,
     rezzed: true,
   };

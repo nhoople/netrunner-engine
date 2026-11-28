@@ -10,6 +10,7 @@ import {
   getCardDef,
   loadCardCatalog,
 } from "../../src/index.js";
+import type { DeclaredCardDef } from "../cards/declared-card-def.js";
 
 describe("breaker-bay", () => {
   describe("bb-v110-set-complete", () => {
@@ -36,7 +37,7 @@ describe("breaker-bay", () => {
         expect(getCardDef("dorm-computer").powerCountersOnInstall).toBe(4);
         expect(getCardDef("game-day").playAdditionalClick).toBe(true);
         expect(getCardDef("comet").muBonus).toBe(1);
-        expect(getCardDef("comet").maxConsole).toBe(1);
+        expect((getCardDef("comet") as DeclaredCardDef).maxConsole).toBe(1);
         expect(getCardDef("comet").onFirstEventEachTurnMayPlayAnother).toBe(
           true,
         );

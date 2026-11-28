@@ -109,7 +109,7 @@ const choose = (s: GameState, optionId: string): GameState =>
 
 /** Net damage the Runner has taken or is about to take. */
 function damage(s: GameState): number {
-  return 3 - s.runner.hand.length + (s.pendingDamage?.amount ?? 0);
+  return 3 - s.runner.hand.length + (s.pendingDamage?.remaining ?? 0);
 }
 
 describe("the controller of the ability trashes the card (CR 1.14.5)", () => {

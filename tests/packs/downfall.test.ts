@@ -1554,7 +1554,7 @@ describe("downfall", () => {
         s.cards["hq-2"] = h2;
         s.cards["hq-3"] = h3;
         s.corp.hand = ["hq-1", "hq-2", "hq-3"];
-        beginBreachAccess(s, "hq");
+        beginBreachAccess(s);
         expect(s.turn.climacticBonusAccessOnFirstHqRdBreach).toBe(0);
         expect(s.run!.bonusAccess ?? 0).toBeGreaterThanOrEqual(2);
       });

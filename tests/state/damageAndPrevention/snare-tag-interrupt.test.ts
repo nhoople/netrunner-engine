@@ -37,11 +37,15 @@ describe("CR C4 — Snare tag interrupt before damage (9.1.2a)", () => {
       type: "resource",
       side: "runner",
       zone: "runner:installed",
+      installCost: 0,
       faceup: true,
       rezzed: true,
       paidAbilities: [
         {
           id: "avoid-tag",
+          label: "Avoid 1 tag",
+          clickCost: 0,
+          creditCost: 0,
           windows: ["tag_interrupt"],
           cost: { trashSelf: true },
           effect: {
@@ -64,6 +68,7 @@ describe("CR C4 — Snare tag interrupt before damage (9.1.2a)", () => {
         type: "event",
         side: "runner",
         zone: "runner:grip",
+        installCost: 0,
         faceup: true,
         rezzed: false,
       };
@@ -136,11 +141,15 @@ describe("CR C4 — Snare tag interrupt before damage (9.1.2a)", () => {
       type: "resource",
       side: "runner",
       zone: "runner:installed",
+      installCost: 0,
       faceup: true,
       rezzed: true,
       paidAbilities: [
         {
           id: "avoid-tag",
+          label: "Avoid 1 tag",
+          clickCost: 0,
+          creditCost: 0,
           windows: ["tag_interrupt"],
           cost: { trashSelf: true },
           effect: {

@@ -42,7 +42,7 @@ describe("blanked damage / hosted-credits threshold (CR 9.12.1d)", () => {
       s.runner.hand.push(id);
     }
 
-    resolveDamage(s, "core", 1, null);
+    resolveDamage(s, "core", 1, s.corp.identityId);
     expect(
       s.log.some(
         (line) =>
@@ -67,7 +67,7 @@ describe("blanked damage / hosted-credits threshold (CR 9.12.1d)", () => {
       s.runner.hand.push(id);
     }
     expect(abilitiesSuppressed(s, "sdp-2")).toBe(true);
-    resolveDamage(s, "core", 1, null);
+    resolveDamage(s, "core", 1, s.corp.identityId);
     expect(
       s.log.some(
         (line) =>

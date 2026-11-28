@@ -4976,7 +4976,6 @@ describe("CR examples, chapter 9 timing (RA-1)", () => {
       "ht-1",
       "server:remote-1:root",
     );
-    agenda.installed = true;
     s.cards["ht-1"] = agenda;
     s.corp.hand.push("psy-1");
     s.servers["remote-1"] = {

@@ -1746,8 +1746,8 @@ describe("parhelion", () => {
         ice.rezzed = true;
         ice.subtypes = ["sentry"];
         ice.subroutines = [
-          { text: "ETR", effect: fx.do({ kind: "end_the_run" }) },
-          { text: "ETR2", effect: fx.do({ kind: "end_the_run" }) },
+          { id: "etr-1", text: "ETR", effect: fx.do({ kind: "end_the_run" }) },
+          { id: "etr-2", text: "ETR2", effect: fx.do({ kind: "end_the_run" }) },
         ];
         s.cards["ice-1"] = ice;
         s.servers.hq.ice = ["ice-1"];
@@ -2648,8 +2648,8 @@ describe("parhelion", () => {
         ice.rezzed = true;
         ice.subtypes = ["sentry"];
         ice.subroutines = [
-          { text: "ETR", effect: fx.do({ kind: "end_the_run" }) },
-          { text: "ETR2", effect: fx.do({ kind: "end_the_run" }) },
+          { id: "etr-1", text: "ETR", effect: fx.do({ kind: "end_the_run" }) },
+          { id: "etr-2", text: "ETR2", effect: fx.do({ kind: "end_the_run" }) },
         ];
         s.cards["ice-1"] = ice;
         s.servers.hq.ice = ["ice-1"];

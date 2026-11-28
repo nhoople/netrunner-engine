@@ -1142,6 +1142,7 @@ describe("CR examples, chapter 1", () => {
       type: "ice",
       side: "corp",
       zone: "server:hq:ice",
+      installCost: 0,
       faceup: true,
       rezzed: true,
     };
@@ -1348,7 +1349,6 @@ describe("CR examples, chapter 1", () => {
       "ht-1",
       "server:remote-1:root",
     );
-    agenda.installed = true;
     s.cards["psy-1"] = op;
     s.cards["ht-1"] = agenda;
     s.corp.hand = ["psy-1"];

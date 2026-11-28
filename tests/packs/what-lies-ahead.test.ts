@@ -171,10 +171,14 @@ describe("what-lies-ahead", () => {
         let s = createInitialState();
         s = structuredClone(s);
         const br = instantiateCard("corroder", "br-1", "runner:installed");
-        br.breaker = { breaksSubtype: "barrier", strength: 2 };
+        br.breaker = { breaksSubtype: "barrier", strength: 2, breakCredits: 1 };
         s.cards["br-1"] = br;
         const br2 = instantiateCard("yog-0", "br-2", "runner:installed");
-        br2.breaker = { breaksSubtype: "code gate", strength: 3 };
+        br2.breaker = {
+          breaksSubtype: "code gate",
+          strength: 3,
+          breakCredits: 0,
+        };
         s.cards["br-2"] = br2;
         s.runner.installed = ["br-1", "br-2"];
 
@@ -214,7 +218,7 @@ describe("what-lies-ahead", () => {
         let s = createInitialState();
         s = structuredClone(s);
         const br = instantiateCard("corroder", "br-1", "runner:installed");
-        br.breaker = { breaksSubtype: "barrier", strength: 2 };
+        br.breaker = { breaksSubtype: "barrier", strength: 2, breakCredits: 1 };
         s.cards["br-1"] = br;
         s.runner.installed = ["br-1"];
         const r = evalEffect(
