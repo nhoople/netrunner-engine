@@ -40,6 +40,9 @@ export function put(s: GameState, defId: string, id: string, zone: string) {
  * identity was created in. There is no identity zone (`ZoneId`); the engine
  * builds a game with each identity in that side's hand zone
  * (`createInitialState`), and seat views show identities by card type.
+ * CR 1.6.1 places identities faceup in the play area instead; that
+ * difference is filed in the CR audit findings (setup and end), and tests
+ * follow what the engine builds.
  */
 export function identityZone(s: GameState, side: "corp" | "runner"): ZoneId {
   return s.cards[s[side].identityId]!.zone;
