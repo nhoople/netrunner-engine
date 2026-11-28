@@ -199,7 +199,3 @@ describe("test placement (layout plan decision 5)", () => {
     ]);
   });
 });
-
-// E-types demo: a deliberate type error the CI step must catch.
-const deliberateTypeError: number = "not a number";
-void deliberateTypeError;
