@@ -4,7 +4,7 @@ import type { Effect } from "../../effects/ir/effect.js";
 
 /**
  * The `CardInstance` fields named `on<Event>`: the card's trigger hooks.
- * `tests/state-types-layout.test.ts` checks the rule.
+ * `tests/state/types/state-types-layout.test.ts` checks the rule.
  */
 export interface CardTriggerHooks {
   /**

@@ -13,7 +13,7 @@
  *   in src/effects/ir/, the type `Effect` runs through
  *   `{ op: "do"; action: Primitive }`;
  * - verbs: `PROCEDURE_VERBS` in src/effects/primitiveNames.ts;
- * - card use: every `kind` nested in the card JSON under vendor/cards-data;
+ * - card use: every `kind` nested in the card rules files under vendor/cards-data/rules;
  * - engine builds: a `kind: "<name>"` object property in src/ outside the
  *   IR files (src/effects/ir/), or a call from outside
  *   them to an `fx` helper (src/effects/ir/fx.ts) that builds the kind.
@@ -324,7 +324,7 @@ function readCardUse(root, known) {
   const byKind = new Map();
   let cards = 0;
   for (const side of ["corp", "runner"]) {
-    for (const path of listFiles(join(cardsDir, side), ".json")) {
+    for (const path of listFiles(join(cardsDir, "rules", side), ".json")) {
       const card = JSON.parse(readFileSync(path, "utf8"));
       if (typeof card.id !== "string") continue;
       cards += 1;

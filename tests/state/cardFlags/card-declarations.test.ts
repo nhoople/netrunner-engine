@@ -26,7 +26,7 @@ import { runState } from "../run/run-state.js";
 
 describe("remaining static declarations", () => {
   beforeAll(() => {
-    assertCardsPinnedTag("v1.147.29");
+    assertCardsPinnedTag("v1.148.0");
     assertPinnedTag("v26.03");
     expect(cardsDataPresent() && crDataPresent()).toBe(true);
   });

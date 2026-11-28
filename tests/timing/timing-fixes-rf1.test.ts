@@ -35,7 +35,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.29");
+  assertCardsPinnedTag("v1.148.0");
 });
 
 /** The test board, with no Runner card marked rezzed (CR 8.1.4f). */
@@ -405,7 +405,7 @@ describe("trash triggers of other cards on a checkpoint trash (CR 10.3.1a)", () 
 
 describe("Corp trash triggers (CR 1.14.5a, 9.6.5c)", () => {
   it("every supported Corp card with a 'trash' trigger prints 'the Runner trashes', so only a Runner trash of an active card meets it", () => {
-    const dir = join(process.cwd(), "vendor/cards-data/corp");
+    const dir = join(process.cwd(), "vendor/cards-data/rules/corp");
     const wrong: string[] = [];
     for (const type of readdirSync(dir)) {
       for (const file of readdirSync(join(dir, type))) {
@@ -419,7 +419,11 @@ describe("Corp trash triggers (CR 1.14.5a, 9.6.5c)", () => {
         // finding filed by RA-1 for the sweep.
         if (def.id === "mavirus") continue;
         const text = readFileSync(
-          join(process.cwd(), "vendor/cards-data/printed", `${def.id}.json`),
+          join(
+            process.cwd(),
+            "vendor/cards-data/print/printed",
+            `${def.id}.json`,
+          ),
           "utf8",
         );
         if (!/the Runner trashes/i.test(text)) wrong.push(def.title);

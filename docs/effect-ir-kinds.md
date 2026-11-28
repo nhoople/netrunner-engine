@@ -6,7 +6,7 @@ Every primitive kind the engine knows, with its fields, how many cards use it, a
 
 ## Totals
 
-Card counts are from cards `v1.147.29` (2016 cards).
+Card counts are from cards `v1.148.0` (2016 cards).
 
 | Measure | Count |
 | --- | ---: |

@@ -33,7 +33,7 @@ describe("CR 9.3 ability records", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.29");
+    assertCardsPinnedTag("v1.148.0");
   });
 
   it("round-trips a conditional trigger to its hook", () => {

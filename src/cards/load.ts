@@ -19,6 +19,8 @@ import { instantiateCard } from "./instantiateCard.js";
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const cardsDir = join(root, "vendor/cards-data");
 const cardsPinPath = join(root, "data/cards-pin.json");
+/** The card pool, under vendor/cards-data (cards v1.148.0 and later). */
+const POOL_PATH = "rules/pool.json";
 
 export interface CardsPin {
   tag: string;
@@ -34,9 +36,9 @@ export function loadCardsPin(): CardsPin {
 
 /** True when pin-required paths exist under vendor/cards-data/. */
 export function cardsDataPresent(): boolean {
-  if (!existsSync(join(cardsDir, "pool.json"))) return false;
+  if (!existsSync(join(cardsDir, POOL_PATH))) return false;
   const pin = loadCardsPin();
-  return (pin.required ?? ["pool.json"]).every((rel) =>
+  return (pin.required ?? [POOL_PATH]).every((rel) =>
     existsSync(join(cardsDir, rel)),
   );
 }
@@ -140,19 +142,19 @@ export const CARD_WAVE_DIRS = [
   "vantage-point",
 ] as const;
 
-/** Card JSON directories: data/<side>/<type>/<id>.json. */
+/** Card rules files: data/rules/<side>/<type>/<id>.json (cards v1.148.0 and later). */
 export const CARD_STORAGE_DIRS = [
-  "corp/identity",
-  "corp/agenda",
-  "corp/asset",
-  "corp/ice",
-  "corp/operation",
-  "corp/upgrade",
-  "runner/identity",
-  "runner/event",
-  "runner/hardware",
-  "runner/program",
-  "runner/resource",
+  "rules/corp/identity",
+  "rules/corp/agenda",
+  "rules/corp/asset",
+  "rules/corp/ice",
+  "rules/corp/operation",
+  "rules/corp/upgrade",
+  "rules/runner/identity",
+  "rules/runner/event",
+  "rules/runner/hardware",
+  "rules/runner/program",
+  "rules/runner/resource",
 ] as const;
 
 export interface CardPool {
@@ -732,7 +734,9 @@ function loadAllCardFiles(): Map<string, CardDef> {
   }
   for (const wave of CARD_STORAGE_DIRS) {
     const dir = join(cardsDir, wave);
-    if (!existsSync(dir)) continue;
+    if (!existsSync(dir)) {
+      throw new Error(`Missing card rules directory: ${dir}`);
+    }
     for (const file of readdirSync(dir)) {
       if (!file.endsWith(".json")) continue;
       if (file.startsWith("_")) continue;
@@ -756,7 +760,7 @@ export function loadCardCatalog(force = false): Map<string, CardDef> {
 
 export function loadCardPool(force = false): CardPool {
   if (!force && poolCache) return poolCache;
-  const path = join(cardsDir, "pool.json");
+  const path = join(cardsDir, POOL_PATH);
   poolCache = JSON.parse(readFileSync(path, "utf8")) as CardPool;
   return poolCache;
 }

@@ -6,7 +6,7 @@ import type { Effect } from "../../effects/ir/effect.js";
  * The `CardInstance` fields whose names say Cost, Discount or Requires (and are
  * not trigger hooks): what the card costs, what makes it cheaper, and what it
  * needs before it can be played, installed, rezzed or used.
- * `tests/state-types-layout.test.ts` checks the rule.
+ * `tests/state/types/state-types-layout.test.ts` checks the rule.
  */
 export interface CardCostsAndRequirements {
   /** Printed install cost in credits (programs/hardware/resources/ice). */

@@ -19,7 +19,7 @@ const { buildKindReference, KIND_REFERENCE_COMMAND, KIND_REFERENCE_PATH } =
 
 beforeAll(() => {
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
-  assertCardsPinnedTag("v1.147.29");
+  assertCardsPinnedTag("v1.148.0");
 });
 
 // Each test builds the reference from the whole card corpus, which can take

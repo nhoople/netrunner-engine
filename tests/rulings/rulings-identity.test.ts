@@ -2,7 +2,7 @@
  * Official rulings on identities (CR audit tool 1.14, first batch).
  *
  * Each it() names a card, states the ruling's answer in plain words, and
- * ends with the ruling number at the cards pin (vendor/cards-data/rulings/,
+ * ends with the ruling number at the cards pin (vendor/cards-data/rulings/rulings/,
  * numbered in file order). tests/rulings/rulings.test.ts reads these titles. A
  * ruling the engine plays wrong is an it.skip naming the ruling and the CR
  * rule, filed under its area in the CR audit plan, not a fix here.
@@ -55,7 +55,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.29");
+  assertCardsPinnedTag("v1.148.0");
 });
 
 // ---------------------------------------------------------------------------

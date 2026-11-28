@@ -55,7 +55,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.29");
+  assertCardsPinnedTag("v1.148.0");
 });
 
 /** The remote `padBoard` makes for PAD Campaign: the first remote of a fresh game. */

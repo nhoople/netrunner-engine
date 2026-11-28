@@ -26,7 +26,7 @@ describe("magnum-opus", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.29");
+      assertCardsPinnedTag("v1.148.0");
       loadCardCatalog(true);
     });
 
@@ -368,7 +368,7 @@ describe("magnum-opus", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.29");
+      assertCardsPinnedTag("v1.148.0");
     });
 
     describe("Magnum Opus v1.142.0 set-complete", () => {

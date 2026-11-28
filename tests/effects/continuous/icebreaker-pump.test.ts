@@ -39,7 +39,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.29");
+  assertCardsPinnedTag("v1.148.0");
   loadCardCatalog(true);
 });
 
@@ -565,7 +565,7 @@ describe("the card data's pump fields say what the card prints", () => {
    */
   it("every built pump costs and gives what the card prints (CR 1.2.1)", () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), "../../..");
-    const dir = join(root, "vendor/cards-data/runner");
+    const dir = join(root, "vendor/cards-data/rules/runner");
     const differs: string[] = [];
     const built: string[] = [];
     for (const sub of readdirSync(dir)) {
@@ -588,7 +588,10 @@ describe("the card data's pump fields say what the card prints", () => {
         if (!pump) continue;
         built.push(def.id);
         const printed = JSON.parse(
-          readFileSync(join(root, "vendor/cards-data/printed", f), "utf8"),
+          readFileSync(
+            join(root, "vendor/cards-data/print/printed", f),
+            "utf8",
+          ),
         ) as { text?: string };
         const text = (printed.text ?? "").replace(/<[^>]+>/g, "");
         const m = /(\d+)\[credit\]:\s*\+(\d+) strength/.exec(text);

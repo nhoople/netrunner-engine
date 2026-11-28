@@ -31,7 +31,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.29");
+  assertCardsPinnedTag("v1.148.0");
 });
 
 const ROOT = process.cwd();
@@ -69,7 +69,10 @@ function catalog(): { cardKinds: Set<string>; titles: string[] } {
   const cardKinds = new Set<string>();
   const titles = new Set<string>();
   for (const side of ["corp", "runner"]) {
-    for (const file of walk(join(ROOT, "vendor/cards-data", side), ".json")) {
+    for (const file of walk(
+      join(ROOT, "vendor/cards-data/rules", side),
+      ".json",
+    )) {
       const card = JSON.parse(readFileSync(file, "utf8")) as {
         title?: unknown;
       };
