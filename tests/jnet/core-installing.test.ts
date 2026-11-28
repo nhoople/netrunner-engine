@@ -3,7 +3,7 @@
  * bc9e2fca073a5b21d247e72877804118e81d5472. See tests/jnet/NOTICE.md and
  * docs/jnet-test-ports.md. The MU-overflow trash prompt was missing from
  * the engine; that fix carries the native regression in
- * tests/program-install-memory.test.ts.
+ * tests/state/install/program-install-memory.test.ts.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {

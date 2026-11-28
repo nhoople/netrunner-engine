@@ -34,9 +34,9 @@ Verdict: clear | clear-with-debt | blocked | n/a — <reason>
 ### Checklist
 
 - [ ] Effect IR / card wiring: CR gate filled above (or `n/a` with reason)
-- [ ] New `CR.*` cites (if any) pass bidirectional index check (`tests/cr-cite-map.test.ts`)
-- [ ] New timing graph steps (if any) use stepIds present in pinned `timing-structures.json` (`tests/engine.test.ts`)
-- [ ] Supported-wave pool invariant still holds (`tests/pool-supported-invariant.test.ts`)
+- [ ] New `CR.*` cites (if any) pass bidirectional index check (`tests/cr-citations/rule-cite-map.test.ts`)
+- [ ] New timing graph steps (if any) use stepIds present in pinned `timing-structures.json` (`tests/cr/engine.test.ts`)
+- [ ] Supported-wave pool invariant still holds (`tests/cards/pool-supported-invariant.test.ts`)
 
 ## Release
 

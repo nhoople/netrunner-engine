@@ -15,7 +15,7 @@ import {
 import type { Action, GameState } from "../../src/index.js";
 import type { ServerId } from "../../src/state/types/servers.js";
 import { approachedIceId } from "../../src/actions/rez.js";
-import { must, optionIds, pick } from "../rulings-helpers.js";
+import { must, optionIds, pick } from "../rulings/rulings-helpers.js";
 import { offered } from "./harness.js";
 import type { Report } from "./harness.js";
 

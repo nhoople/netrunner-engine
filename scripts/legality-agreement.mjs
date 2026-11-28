@@ -15,7 +15,11 @@ import { join } from "node:path";
 const filters = process.argv.slice(2);
 const files = filters.length
   ? filters
-  : ["tests/rulings-", "tests/printed-sweep", "tests/sweep-fixes"];
+  : [
+      "tests/rulings/rulings-",
+      "tests/printed/printed-sweep",
+      "tests/printed/sweep-fixes",
+    ];
 const out = mkdtempSync(join(tmpdir(), "legality-agreement-"));
 try {
   spawnSync("npx", ["vitest", "run", ...files], {

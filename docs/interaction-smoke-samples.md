@@ -46,4 +46,4 @@ Swap in wave-local cards that fill the same **role**. Three diverse rows beat si
 
 - Per-slice gate: [`cr-adherence-gate.md`](cr-adherence-gate.md)
 - Pin bumps: [`cr-pin-bump-checklist.md`](cr-pin-bump-checklist.md)
-- Engine confidence suite: `tests/confidence-*.test.ts` (merged [#193](https://github.com/nhoople/netrunner-engine/pull/193))
+- Engine confidence suite: `tests/confidence/confidence-*.test.ts` (merged [#193](https://github.com/nhoople/netrunner-engine/pull/193))

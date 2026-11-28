@@ -6,7 +6,7 @@
  * Not a test file: vitest only runs `*.test.ts`.
  */
 import type { GameState } from "../../src/index.js";
-import { must, pick, toCorpTurn } from "../rulings-helpers.js";
+import { must, pick, toCorpTurn } from "../rulings/rulings-helpers.js";
 import { Board, hasOption, offered, take } from "./harness.js";
 import type { Report } from "./harness.js";
 import {

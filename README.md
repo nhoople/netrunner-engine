@@ -134,14 +134,14 @@ Card abilities are a hand-authored effect language evaluated by `evalEffect`, no
 
 - UI / multiplayer / networking (out of scope for this Project)
 - Full NetrunnerDB / every NSG expansion beyond the declared `pool.json` corpus (Gateway → Vantage Point today)
-- Compiling `nodes.json` or Comprehensive Rules prose into executable behavior. Effect IR is hand-authored. Example boards in `tests/cr-examples-chN.test.ts` prove the outcomes those examples name. A catalog sweep proves an ability ran on its step, a missing window, cost, encounter, or target was refused, a score or steal moved the agenda (CR 1.17.6, CR 1.17.7), and a one-instruction subroutine changed the board by its printed number (`tests/printed-board.test.ts`). A play ability such as Hedge Fund resolves from its instruction and does not need that sentence stored.
+- Compiling `nodes.json` or Comprehensive Rules prose into executable behavior. Effect IR is hand-authored. Example boards in `tests/cr-examples/cr-examples-chN.test.ts` prove the outcomes those examples name. A catalog sweep proves an ability ran on its step, a missing window, cost, encounter, or target was refused, a score or steal moved the agenda (CR 1.17.6, CR 1.17.7), and a one-instruction subroutine changed the board by its printed number (`tests/printed/printed-board.test.ts`). A play ability such as Hedge Fund resolves from its instruction and does not need that sentence stored.
 - Deckbuilding during a game. `deckbuildingReport` checks extra copies, influence after a reduction, minimum deck size (CR 1.4.3), the identity's influence limit (CR 1.4.5), and the Corp agenda band (CR 1.4.6) before a match exists. CR 3.1.2: those limits do not apply once the game has started. Format bans stay with the host.
 - Perfect fidelity for every printed clause outside the supported mapping (partial cards use explicit `unsupported` notes; supported waves must keep those empty unless allowlisted)
 - Full **9.12** continuous-effect compiler. Blanking order (CR 9.12.1d / 9.12.1e) covers Standard. A gained subtype that feeds a further grant is the continuous subtype layer (Mother Goddess, Egret, Warden Fatuma).
 
 ## Layout
 
-Every top-level folder and every folder under `src/` is listed here; `tests/readme-layout.test.ts` fails on a folder this map leaves out or names wrongly. No `src/` file may pass 2,000 lines (`tests/src-file-size.test.ts`); the files already over it are on a shrink-only list, `tests/baselines/src-file-size.json`.
+Every top-level folder and every folder under `src/` is listed here; `tests/repo/readme-layout.test.ts` fails on a folder this map leaves out or names wrongly. No `src/` file may pass 2,000 lines (`tests/repo/src-file-size.test.ts`); the files already over it are on a shrink-only list, `tests/baselines/src-file-size.json`.
 
 ```
 data/                     # pins: cr-pin.json (CR tag), cards-pin.json (cards-data tag); cr-term-map.json
@@ -194,9 +194,7 @@ src/                      # index.ts: the package entry; cli.ts: the development
     visibility/           # what each seat may see (CR 1.21, 10.2): seat visibility, revealing, exposing
   timing/                 # graph.ts: the timing step graph (CR 11.2–11.5); machine.ts: stepping through it
     graph/                # the steps graph.ts joins into STEPS, one file per part of the timing structures (opening, Corp turn, Runner turn, each run phase, breach and access), and stepHelpers.ts: the step builders and the procedures the steps call
-tests/                    # vitest suites, grouped by file name prefix (confidence-*, cr-*, blanked-*, …)
-  baselines/              # shrink-only baselines the guard tests read
-  fixtures/               # goldens/: regression transcripts (see the README there); game exports, playout seeds
+tests/                    # every test, in folders that mirror src/ or hold one kind of check; tests/README.md lists each folder
 vendor/                   # pinned data, fetched by npm run prepare-data
   cr-data/                # Comprehensive Rules JSON (nodes.json is gitignored)
   cards-data/             # card definitions (gitignored)

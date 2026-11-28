@@ -29,7 +29,7 @@ export const areas = {
       "src/state/hostingAndTrash/host.ts",
       "src/state/hostingAndTrash/trash.ts",
     ],
-    tests: ["tests/*trash*.test.ts", "tests/*host*.test.ts"],
+    tests: ["tests/**/*trash*.test.ts", "tests/**/*host*.test.ts"],
     grep: /\btrashCard\(|\bhostCard\(|\bunhostCard\(|\b10\.3\.1g\b|\b1\.13\.1[23]\b|\b4\.4\.6b\b|Off-Campus Apartment|Personal Workshop|Street Peddler|Sacrificial Construct|Skorpios|Marilyn Campaign|Director Haas/,
   },
   uninstall: {
@@ -40,25 +40,25 @@ export const areas = {
       "src/state/uninstallAndPosition/rearrange.ts",
     ],
     tests: [
-      "tests/*uninstall*.test.ts",
-      "tests/run-movement-phase.test.ts",
-      "tests/ice-installed-outermost.test.ts",
+      "tests/**/*uninstall*.test.ts",
+      "tests/state/run/run-movement-phase.test.ts",
+      "tests/state/install/ice-installed-outermost.test.ts",
     ],
     grep: /noteIceUninstalled|removeCardFromCurrentZone|uninstallCard|rearrangeIce|moveIce|\b(8\.5\.1b|8\.5\.10|6\.2\.4|6\.2\.6|6\.2\.7[a-e]?|6\.2\.8[a-c]?|8\.3\.[12]a?|8\.8\.2|4\.9\.2)\b|Mandatory Seed Replacement|Sunset|Escher|Mind Game|Formicary|Nanuq|Muertos Gang Member/,
   },
   swap: {
     title: "3. Swap",
     mutate: ["src/effects/swap/swapKinds.ts"],
-    tests: ["tests/*swap*.test.ts"],
+    tests: ["tests/**/*swap*.test.ts"],
     grep: /\b8\.8\.[1-4]|Yagi-Uda|Daruma|Sakai|Surfer|Inversificator|Allele|Nihongai|Turntable|Midori|Mitra Aman|Tāo Salonga|\bswap_/,
   },
   visibility: {
     title: "4. Visibility",
     mutate: ["src/state/visibility/seatVisibility.ts", "src/api/library.ts"],
     tests: [
-      "tests/*public-view*.test.ts",
-      "tests/*visib*.test.ts",
-      "tests/*seat*.test.ts",
+      "tests/**/*public-view*.test.ts",
+      "tests/**/*visib*.test.ts",
+      "tests/**/*seat*.test.ts",
     ],
     grep: /getPublicView|seatVisibility|\b(1\.21\.[1-6]|10\.2\.[1-3])/,
   },
@@ -69,7 +69,10 @@ export const areas = {
       "src/effects/install/corpInstall.ts",
       "src/effects/install/corpAbilityInstall.ts",
     ],
-    tests: ["tests/corp-install*.test.ts", "tests/*corp-install*.test.ts"],
+    tests: [
+      "tests/**/corp-install*.test.ts",
+      "tests/**/*corp-install*.test.ts",
+    ],
     grep: /applyCorpInstallPrimitive|\b(8\.5\.(1|2|3|4|5|7|8|9|11)|4\.6\.8)\b|Architect|Jinja City Grid|Casting Call|Mushin/,
   },
   "runner-install": {
@@ -81,15 +84,15 @@ export const areas = {
       "src/state/install/virusInstall.ts",
     ],
     tests: [
-      "tests/program-install-memory.test.ts",
-      "tests/*runner-install*.test.ts",
+      "tests/state/install/program-install-memory.test.ts",
+      "tests/**/*runner-install*.test.ts",
     ],
     grep: /installRunner|\b8\.5\.6|Street Peddler|Hayley|Compile|DaVinci|Rosetta/,
   },
   rez: {
     title: "7. Rez and derez",
     mutate: ["src/actions/rez.ts", "src/state/rez/iceRezHooks.ts"],
-    tests: ["tests/*rez*.test.ts"],
+    tests: ["tests/**/*rez*.test.ts"],
     grep: /\brez_card\b|\bderez_card\b|Surat|Sensor Net|Worlds Plaza|Keros|Brasília/,
   },
   access: {
@@ -99,7 +102,7 @@ export const areas = {
       "src/state/access/access.ts",
       "src/state/access/accessFilter.ts",
     ],
-    tests: ["tests/*access*.test.ts"],
+    tests: ["tests/**/*access*.test.ts"],
     grep: /\baccess_card\b|\b7\.[1-5]\.|Khusyuk|Deep Dive|Detente/,
   },
   damage: {
@@ -108,7 +111,10 @@ export const areas = {
       "src/state/damageAndPrevention/damage.ts",
       "src/effects/damageAndPrevention/damagePrimitives.ts",
     ],
-    tests: ["tests/*damage*.test.ts", "tests/cr-examples-ch10.test.ts"],
+    tests: [
+      "tests/**/*damage*.test.ts",
+      "tests/cr-examples/cr-examples-ch10.test.ts",
+    ],
     grep: /dealDamage|resolveDamage|\bdeal_(net|meat|core|brain)_damage\b|\b10\.4\.|Titanium Ribs|Chronos Protocol/,
   },
   timing: {
@@ -121,20 +127,23 @@ export const areas = {
       "src/state/triggers/inlineConditionalHooks.ts",
     ],
     tests: [
-      "tests/timing-reaudit.test.ts",
-      "tests/pending-abilities.test.ts",
-      "tests/reaction-window-order.test.ts",
-      "tests/replacement-layer-9.9.9.test.ts",
-      "tests/stored-triggers.test.ts",
-      "tests/instruction-checkpoints.test.ts",
-      "tests/choice-timing.test.ts",
+      "tests/timing/timing-reaudit.test.ts",
+      "tests/state/triggers/pending-abilities.test.ts",
+      "tests/state/triggers/reaction-window-order.test.ts",
+      "tests/state/triggers/replacement-layer-9.9.9.test.ts",
+      "tests/state/triggers/stored-triggers.test.ts",
+      "tests/legality/instruction-checkpoints.test.ts",
+      "tests/timing/choice-timing.test.ts",
     ],
     grep: /\b(9\.2\.[89]|9\.6\.\d|9\.9\.\d|9\.11\.\d|10\.3\.\d)|noteInlineConditional|noteStoredConditional|tryApplyReplacement/,
   },
   "card-flags": {
     title: "10. Card flags and declarations",
     mutate: ["src/state/cardFlags/cardDeclarations.ts"],
-    tests: ["tests/card-declarations.test.ts", "tests/static-flags.test.ts"],
+    tests: [
+      "tests/state/cardFlags/card-declarations.test.ts",
+      "tests/state/cardFlags/static-flags.test.ts",
+    ],
     grep: /\b9\.12\b|continuousSubtypeGrants/,
   },
   continuous: {
@@ -146,9 +155,9 @@ export const areas = {
       "src/state/triggers/pendingChoice.ts",
     ],
     tests: [
-      "tests/blank*.test.ts",
-      "tests/continuous-*.test.ts",
-      "tests/cr-examples-ch9.test.ts",
+      "tests/**/blank*.test.ts",
+      "tests/**/continuous-*.test.ts",
+      "tests/cr-examples/cr-examples-ch9.test.ts",
     ],
     grep: /\b(9\.4\.\d|9\.10\.\d|9\.12\.1[a-e]?|9\.12\.5[a-d]?)\b|lingering|addLingeringEffect|resolveIceSubtypes|openPendingChoose|Mother Goddess|Klevetnik/,
   },
@@ -160,31 +169,44 @@ export const areas = {
  * can never kill a behavioural mutant. They stay out of every area.
  */
 export const sourceScanTests = new Set([
-  "tests/ability-hooks.test.ts",
-  "tests/card-flag-inventory.test.ts",
-  "tests/cr-citation-topics.test.ts",
-  "tests/cr-cited-text.test.ts",
-  "tests/cr-example-coverage.test.ts",
-  "tests/cr-section-owners.test.ts",
-  "tests/cr-subrule-coverage.test.ts",
-  "tests/effect-ir-names.test.ts",
-  "tests/format-counts.test.ts",
-  "tests/invariants-baseline.test.ts",
-  "tests/kind-effect-coverage.test.ts",
-  "tests/kind-liveness.test.ts",
-  "tests/kind-reference.test.ts",
-  "tests/printed-procedure.test.ts",
-  "tests/procedure-write-guard.test.ts",
-  "tests/rng-determinism.test.ts",
-  "tests/rule-cite-map.test.ts",
-  "tests/term-denylist.test.ts",
+  "tests/effects/ability-hooks.test.ts",
+  "tests/state/cardFlags/card-flag-inventory.test.ts",
+  "tests/cr-citations/cr-citation-topics.test.ts",
+  "tests/cr-citations/cr-cited-text.test.ts",
+  "tests/cr-examples/cr-example-coverage.test.ts",
+  "tests/cr-citations/cr-section-owners.test.ts",
+  "tests/cr-citations/cr-subrule-coverage.test.ts",
+  "tests/effects/effect-ir-names.test.ts",
+  "tests/cards/format-counts.test.ts",
+  "tests/debug/invariants-baseline.test.ts",
+  "tests/effects/kind-effect-coverage.test.ts",
+  "tests/effects/kind-liveness.test.ts",
+  "tests/effects/kind-reference.test.ts",
+  "tests/printed/printed-procedure.test.ts",
+  "tests/state/procedure-write-guard.test.ts",
+  "tests/state/rng-determinism.test.ts",
+  "tests/cr-citations/rule-cite-map.test.ts",
+  "tests/repo/term-denylist.test.ts",
 ]);
 
+// A single star matches within one folder; a double star and slash match any
+// number of folders.
 function globToRegExp(glob) {
   const escaped = glob
     .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-    .replace(/\*/g, "[^/]*");
+    .replace(/\*\*\//g, "\0")
+    .replace(/\*/g, "[^/]*")
+    .replace(/\0/g, "(?:[^/]+/)*");
   return new RegExp(`^${escaped}$`);
+}
+
+/** Every test file under tests/ that `npm test` runs (not tests/jnet), relative to the repo root. */
+function testFiles() {
+  return readdirSync(join(root, "tests"), { recursive: true })
+    .map((file) => `tests/${file.split("\\").join("/")}`)
+    .filter(
+      (rel) => rel.endsWith(".test.ts") && !rel.startsWith("tests/jnet/"),
+    );
 }
 
 /** Test files for an area, relative to the repo root, sorted. */
@@ -193,9 +215,7 @@ export function testFilesFor(name) {
   if (!area) throw new Error(`Unknown mutation area "${name}"`);
   const globs = area.tests.map(globToRegExp);
   const picked = new Set();
-  for (const file of readdirSync(join(root, "tests"))) {
-    if (!file.endsWith(".test.ts")) continue;
-    const rel = `tests/${file}`;
+  for (const rel of testFiles()) {
     if (sourceScanTests.has(rel)) continue;
     if (globs.some((g) => g.test(rel))) {
       picked.add(rel);

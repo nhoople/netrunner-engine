@@ -1,5 +1,5 @@
 {
-  "_comment": "Shrink-only baseline for tests/cr-example-coverage.test.ts (CR audit tool 1.6). Recorded 2026-11-12 at CR v26.03: examples that no it() title in tests/cr-examples-ch*.test.ts cites. 2026-11-19 (RA-1): 9.3.3f.ex1, 9.6.4b.ex1, 9.11.2a.ex1, 9.11.2a.ex2 and 9.11.4a.ex1 now cited.",
+  "_comment": "Shrink-only baseline for tests/cr-examples/cr-example-coverage.test.ts (CR audit tool 1.6). Recorded 2026-11-12 at CR v26.03: examples that no it() title in tests/cr-examples/cr-examples-ch*.test.ts cites. 2026-11-19 (RA-1): 9.3.3f.ex1, 9.6.4b.ex1, 9.11.2a.ex1, 9.11.2a.ex2 and 9.11.4a.ex1 now cited.",
   "unreferenced": [
     "1.4.5a.ex1",
     "1.4.6d.ex1",

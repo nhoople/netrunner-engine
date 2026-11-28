@@ -1,0 +1,274 @@
+/**
+ * CR subrule coverage (CR audit tool 1.17). Tool 1.6 one level finer.
+ *
+ * Lists every rule below section level at the pin (every node in
+ * vendor/cr-data/nodes.json that is not a chapter, a section, or an
+ * example: `8.5.1`, `8.5.1b`, and the appendix timing steps such as
+ * `11.4_2_b`) and the `it()` titles in tests/**\/*.test.ts (not tests/jnet)
+ * that cite it.
+ *
+ * - A title cites a rule when it names its number, with or without `CR `
+ *   (tests/cr-citations/cr-citations.ts, titleRuleNumbers). A title that names an
+ *   example (`1.12.2.ex1`, tool 1.6) cites the rule it illustrates. Otherwise
+ *   only the exact number counts: citing 8.5.1 does not cite 8.5.1b, and
+ *   citing 8.5.1b does not cite 8.5.1. A citation in a comment or a
+ *   describe() title does not count.
+ * - Uncited subrules are in tests/baselines/cr-subrules.json, grouped by
+ *   their owner from tool 1.13 (tests/cr-citations/cr-section-owners.json, with its
+ *   subrule splits; tests/cr-citations/cr-owners.ts), so each area's evidence step reads
+ *   its own list. The baseline may only shrink.
+ * - tests/generated/cr-subrule-coverage.md is the per-owner table, with the
+ *   titles that cite each subrule. Its owners and cited/uncited state must
+ *   match what this test computes; the titles are a snapshot. Regenerate it,
+ *   and drop newly cited subrules from the baseline or move them to a new
+ *   owner, with
+ *     UPDATE_CR_SUBRULE_COVERAGE=1 npx vitest run tests/cr-citations/cr-subrule-coverage.test.ts
+ *   That never adds a subrule to the baseline.
+ *
+ * This checks that a test names each rule. Whether the test is adequate is
+ * tool 1.9, and whether the cited rule says what the test claims is P1-r.
+ */
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { beforeAll, describe, expect, it } from "vitest";
+import { assertPinnedTag, crDataPresent } from "../../src/index.js";
+import {
+  compareNumbers,
+  itTitles,
+  literalCitations,
+  loadNodes,
+  rel,
+  ROOT,
+  testFiles,
+  titleRuleNumbers,
+} from "./cr-citations.js";
+import { loadOwnerTable, ownerOf, ownerRank, sectionOf } from "./cr-owners.js";
+
+beforeAll(() => {
+  if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
+  assertPinnedTag("v26.03");
+});
+
+const BASELINE_PATH = join(ROOT, "tests/baselines/cr-subrules.json");
+const TABLE_PATH = join(ROOT, "tests/generated/cr-subrule-coverage.md");
+const UPDATE = "UPDATE_CR_SUBRULE_COVERAGE";
+const REGENERATE = `${UPDATE}=1 npx vitest run tests/cr-citations/cr-subrule-coverage.test.ts`;
+
+/** Node kinds at or above section level, and examples (tool 1.6). */
+const NOT_SUBRULE = new Set(["chapter", "section", "example"]);
+
+type Baseline = {
+  _comment: string;
+  crTag: string;
+  /** owner -> uncited subrule numbers */
+  uncited: Record<string, string[]>;
+};
+
+type Row = {
+  number: string;
+  section: string;
+  owner: string;
+  /** `file › it title` for each test that cites it */
+  citedBy: string[];
+};
+
+/** Rule number -> `file › it title` for each it() title that names it. */
+function titleCitations(rules: Set<string>): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  for (const file of testFiles()) {
+    const path = rel(file);
+    for (const title of itTitles(readFileSync(file, "utf8"))) {
+      for (const number of new Set(titleRuleNumbers(title))) {
+        if (!rules.has(number)) continue;
+        if (!out.has(number)) out.set(number, []);
+        out.get(number)!.push(`${path} › ${title.replace(/\s+/g, " ")}`);
+      }
+    }
+  }
+  return out;
+}
+
+function computeRows(): Row[] {
+  const nodes = loadNodes();
+  const table = loadOwnerTable();
+  const subrules = nodes
+    .filter((n) => !NOT_SUBRULE.has(n.kind))
+    .sort((a, b) => compareNumbers(a.number, b.number));
+  const cited = titleCitations(new Set(subrules.map((n) => n.number)));
+  return subrules.map((n) => ({
+    number: n.number,
+    section: sectionOf(n.number) ?? "",
+    owner: ownerOf(table, n.number),
+    citedBy: cited.get(n.number) ?? [],
+  }));
+}
+
+function owners(rows: Row[]): string[] {
+  return [...new Set(rows.map((r) => r.owner))].sort(
+    (a, b) => ownerRank(a) - ownerRank(b),
+  );
+}
+
+function uncitedByOwner(rows: Row[]): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const o of owners(rows)) {
+    const mine = rows
+      .filter((r) => r.owner === o && r.citedBy.length === 0)
+      .map((r) => r.number);
+    if (mine.length) out[o] = mine;
+  }
+  return out;
+}
+
+function cell(text: string): string {
+  return text.replace(/\|/g, "\\|").replace(/</g, "&lt;");
+}
+
+function render(rows: Row[], crTag: string): string {
+  const os = owners(rows);
+  const count = (o: string | null, cited: boolean | null): number =>
+    rows.filter(
+      (r) =>
+        (o === null || r.owner === o) &&
+        (cited === null || r.citedBy.length > 0 === cited),
+    ).length;
+  const lines = [
+    "# CR subrule coverage",
+    "",
+    `Generated by \`tests/cr-citations/cr-subrule-coverage.test.ts\` (CR audit tool 1.17) from the CR \`${crTag}\` rules below section level (not examples), the \`it()\` titles in \`tests/**/*.test.ts\` (not \`tests/jnet\`), and the owners in \`tests/cr-citations/cr-section-owners.json\` (tool 1.13). Do not edit by hand; regenerate with \`${REGENERATE}\`.`,
+    "",
+    "A title cites a rule when it names that exact number, with or without `CR `, or one of its examples (`1.12.2.ex1` cites 1.12.2). Uncited subrules are in `tests/baselines/cr-subrules.json` under the same owner, and that list may only shrink. The titles are a snapshot from the last regeneration; the test checks the owners and which subrules are cited.",
+    "",
+    "## Per owner",
+    "",
+    "| Owner | Subrules | Cited | Uncited |",
+    "|---|---|---|---|",
+    ...os.map(
+      (o) =>
+        `| ${o} | ${count(o, null)} | ${count(o, true)} | ${count(o, false)} |`,
+    ),
+    `| **Total** | ${count(null, null)} | ${count(null, true)} | ${count(null, false)} |`,
+    "",
+  ];
+  for (const o of os) {
+    lines.push(
+      `## ${o}`,
+      "",
+      "| Rule | Section | Cited by |",
+      "|---|---|---|",
+      ...rows
+        .filter((r) => r.owner === o)
+        .map(
+          (r) =>
+            `| ${r.number} | ${r.section} | ${
+              r.citedBy.map(cell).join("<br>") || "—"
+            } |`,
+        ),
+      "",
+    );
+  }
+  return lines.join("\n");
+}
+
+/** The generated table with each subrule's titles reduced to cited or not. */
+function citedView(md: string): string {
+  return md
+    .split("\n")
+    .map((l) => {
+      const m = /^(\| [\d][^|]* \| [^|]* \| )(.*) \|$/.exec(l);
+      return m ? `${m[1]}${m[2] === "—" ? "—" : "cited"} |` : l;
+    })
+    .join("\n");
+}
+
+describe("CR subrule coverage (CR audit 1.17)", () => {
+  const rows = computeRows();
+  const pin = JSON.parse(
+    readFileSync(join(ROOT, "vendor/cr-data/PIN.json"), "utf8"),
+  ) as { tag?: string };
+  const crTag = pin.tag ?? "";
+  const uncited = uncitedByOwner(rows);
+  const baseline = JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as Baseline;
+
+  if (process.env[UPDATE]) {
+    // Shrink and regroup only: a subrule not already in the baseline is never added.
+    const kept = new Set(Object.values(baseline.uncited).flat());
+    const next: Record<string, string[]> = {};
+    for (const [o, ns] of Object.entries(uncited)) {
+      // A section with no owner yet fails tests/cr-citations/cr-section-owners.test.ts.
+      if (o === "(missing)") continue;
+      const mine = ns.filter((n) => kept.has(n));
+      if (mine.length) next[o] = mine;
+    }
+    baseline.crTag = crTag;
+    baseline.uncited = next;
+    writeFileSync(BASELINE_PATH, `${JSON.stringify(baseline, null, 2)}\n`);
+    mkdirSync(dirname(TABLE_PATH), { recursive: true });
+    writeFileSync(TABLE_PATH, render(rows, crTag));
+  }
+
+  it("finds every rule below section level at the pin", () => {
+    expect(crTag).toBe("v26.03");
+    expect(baseline.crTag).toBe(crTag);
+    expect(rows.length).toBe(1512);
+    expect(
+      rows.filter((r) => r.owner === "(missing)").map((r) => r.number),
+      "subrule(s) in a section with no owner: tests/cr-citations/cr-section-owners.test.ts says which",
+    ).toEqual([]);
+  });
+
+  it("every rule number an it() title cites with `CR` exists at the pin", () => {
+    const numbers = new Set(loadNodes().map((n) => n.number));
+    const unknown: string[] = [];
+    for (const file of testFiles()) {
+      for (const title of itTitles(readFileSync(file, "utf8"))) {
+        for (const { number } of literalCitations(title)) {
+          if (!numbers.has(number)) unknown.push(`${rel(file)}: CR ${number}`);
+        }
+      }
+    }
+    expect(unknown).toEqual([]);
+  });
+
+  it("every CR subrule is cited by a test or listed in the baseline under its owner", () => {
+    const problems: string[] = [];
+    for (const [o, ns] of Object.entries(uncited)) {
+      const listed = baseline.uncited[o] ?? [];
+      for (const n of ns) {
+        if (listed.includes(n)) continue;
+        const elsewhere = Object.keys(baseline.uncited).find((k) =>
+          baseline.uncited[k]!.includes(n),
+        );
+        problems.push(
+          elsewhere
+            ? `${n}: listed under "${elsewhere}", owner is now "${o}"`
+            : `${n} (${o}): no it() title cites it`,
+        );
+      }
+    }
+    expect(
+      problems,
+      "Name the subrule in an it() title of a test for it. A subrule that " +
+        "moved owner in tests/cr-citations/cr-section-owners.json moves with " +
+        REGENERATE,
+    ).toEqual([]);
+  });
+
+  it("the baseline only shrinks: a subrule a test now cites leaves it", () => {
+    const stillUncited = new Set(Object.values(uncited).flat());
+    const stale = Object.entries(baseline.uncited).flatMap(([o, ns]) =>
+      ns.filter((n) => !stillUncited.has(n)).map((n) => `${n} (${o})`),
+    );
+    expect(
+      stale,
+      `subrule(s) now cited, or not at the pin: remove from tests/baselines/cr-subrules.json, or run ${REGENERATE}`,
+    ).toEqual([]);
+  });
+
+  it("the generated per-owner table is current", () => {
+    expect(
+      citedView(readFileSync(TABLE_PATH, "utf8")),
+      `tests/generated/cr-subrule-coverage.md is stale; regenerate with ${REGENERATE}`,
+    ).toBe(citedView(render(rows, crTag)));
+  });
+});

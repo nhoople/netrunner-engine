@@ -9,7 +9,7 @@
  * `tests/baselines/legality-agreement/<format>.json`, one entry per
  * disagreement key with a first example. The baseline only shrinks: a new
  * key fails, and so does a recorded key that no longer happens. Regenerate
- * with `UPDATE_LEGALITY_AGREEMENT=1 npx vitest run tests/legality-agreement`.
+ * with `UPDATE_LEGALITY_AGREEMENT=1 npx vitest run tests/playout/legality-agreement`.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -66,7 +66,7 @@ function compareAgreement(found: Found, recorded: Found): string[] {
     if (!(key in found)) {
       errors.push(
         `${key} is in the baseline but no longer happens: remove it ` +
-          "(UPDATE_LEGALITY_AGREEMENT=1 npx vitest run tests/legality-agreement)",
+          "(UPDATE_LEGALITY_AGREEMENT=1 npx vitest run tests/playout/legality-agreement)",
       );
     }
   }

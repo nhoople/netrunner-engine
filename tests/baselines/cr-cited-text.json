@@ -1,5 +1,5 @@
 {
-  "_comment": "Text at the CR pin of every rule node that src/ or a test cites (CR audit tool 1.19, tests/cr-cited-text.test.ts). Recorded 2026-11-19 at CR v26.03. On a CR pin bump, a cited rule whose text changed fails until the code and tests citing it are re-read and its entry becomes { \"text\": \"<new text>\", \"reread\": \"<pin tag>: <note>\" }. Add and drop entries with UPDATE_CR_CITED_TEXT=1 npx vitest run tests/cr-cited-text.test.ts; it never changes an existing entry's text.",
+  "_comment": "Text at the CR pin of every rule node that src/ or a test cites (CR audit tool 1.19, tests/cr-citations/cr-cited-text.test.ts). Recorded 2026-11-19 at CR v26.03. On a CR pin bump, a cited rule whose text changed fails until the code and tests citing it are re-read and its entry becomes { \"text\": \"<new text>\", \"reread\": \"<pin tag>: <note>\" }. Add and drop entries with UPDATE_CR_CITED_TEXT=1 npx vitest run tests/cr-citations/cr-cited-text.test.ts; it never changes an existing entry's text.",
   "crTag": "v26.03",
   "rules": {
     "1": "Game Concepts",

@@ -1,0 +1,5129 @@
+/**
+ * Pending ability instances, checkpoint diffs, reaction windows, lingering
+ * registry, and damage expected-effects (CR 9.6 / 9.9.2 / 9.10 / 10.3).
+ */
+import { openAsChoice } from "../../rulings/rulings-helpers.js";
+import { beforeAll, describe, expect, it } from "vitest";
+import {
+  CR,
+  addLingeringEffect,
+  applyAction,
+  assertCardsPinnedTag,
+  assertPinnedTag,
+  captureCheckpointFacts,
+  cardsDataPresent,
+  commitCheckpointSnapshot,
+  createInitialState,
+  autoWalk,
+  cancelPendingIfSourceInactive,
+  createPendingAbilityInstance,
+  crDataPresent,
+  diffAgainstPreviousCheckpoint,
+  enterStep,
+  evalEffect,
+  evaluateTriggerPredicate,
+  expireLingeringEffects,
+  fx,
+  instantiateCard,
+  setPrintedPlay,
+  markPendingAbilityImminent,
+  occurCheckpoint,
+  openPendingTags,
+  pendingAbilitiesWithStatus,
+  PREDICATE_ADVANCEMENT_FROM_ZERO,
+  PREDICATE_ENTERED_BREACHED_ROOT,
+  PREDICATE_ENTERED_DRAW_SET_ASIDE,
+  PREDICATE_ENTERED_REMOTE_INSTALL,
+  PREDICATE_EXPOSED_SINCE_PREVIOUS,
+  PREDICATE_RUNNER_TAGS_FROM_ZERO,
+  preventPendingTags,
+} from "../../../src/index.js";
+import { abilitiesSuppressed } from "../../../src/state/continuous/abilities.js";
+import {
+  dealDamage,
+  preventPendingDamage,
+} from "../../../src/state/damageAndPrevention/damage.js";
+import { suppressAbilities } from "../../../src/state/continuous/lingeringEffects.js";
+import { currentMark } from "../../../src/state/keywordsAndCredits/keywords.js";
+import { trashCard } from "../../../src/state/hostingAndTrash/trash.js";
+
+beforeAll(() => {
+  if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
+  if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
+  assertPinnedTag("v26.03");
+  assertCardsPinnedTag("v1.147.29");
+});
+
+describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
+  it("records facts at a checkpoint and diffs the next change", () => {
+    const s = createInitialState();
+    expect(s.previousCheckpointSnapshot).toBeNull();
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "test",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.previousCheckpointSnapshot).not.toBeNull();
+    expect(s.previousCheckpointSnapshot?.facts.corpCredits).toBe(
+      s.corp.credits,
+    );
+
+    const before = s.corp.credits;
+    s.corp.credits += 3;
+    const diff = diffAgainstPreviousCheckpoint(s);
+    expect(diff.corpCreditsDelta).toBe(3);
+    expect(diff.runnerCreditsDelta).toBe(0);
+
+    commitCheckpointSnapshot(s, "manual");
+    expect(s.previousCheckpointSnapshot?.facts.corpCredits).toBe(before + 3);
+    expect(diffAgainstPreviousCheckpoint(s).corpCreditsDelta).toBe(0);
+  });
+
+  it("reports zone changes against the previous snapshot (CR 9.6.6a)", () => {
+    const s = createInitialState();
+    commitCheckpointSnapshot(s, null);
+    const facts = captureCheckpointFacts(s);
+    expect(Object.keys(facts.cardZones).length).toBeGreaterThan(0);
+
+    const cardId = Object.keys(s.cards)[0]!;
+    const prevZone = s.cards[cardId]!.zone;
+    s.cards[cardId]!.zone = "removed-from-game";
+    const diff = diffAgainstPreviousCheckpoint(s);
+    expect(diff.zoneChangedIds).toContain(cardId);
+    s.cards[cardId]!.zone = prevZone;
+  });
+
+  it("diffs advancement-from-zero for Built to Last (CR 9.6.6a)", () => {
+    const s = createInitialState();
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-1",
+      "server:hq:root",
+    );
+    s.cards["ht-1"] = agenda;
+    s.servers.hq.root = ["ht-1"];
+    commitCheckpointSnapshot(s, "before-advance");
+    expect(
+      s.previousCheckpointSnapshot?.facts.cardAdvancementCounters["ht-1"],
+    ).toBe(0);
+
+    agenda.advancementCounters = 2;
+    const diff = diffAgainstPreviousCheckpoint(s);
+    expect(diff.advancementIncreasedFromZeroIds).toContain("ht-1");
+
+    commitCheckpointSnapshot(s, "after-advance");
+    agenda.advancementCounters = 3;
+    expect(
+      diffAgainstPreviousCheckpoint(s).advancementIncreasedFromZeroIds,
+    ).not.toContain("ht-1");
+  });
+
+  it("marks Sebastião when the Runner had no tags at the previous checkpoint (CR 9.6.6a)", () => {
+    const s = createInitialState();
+    const id = instantiateCard(
+      "sebastiao-souza-pessoa-activist-organizer",
+      s.runner.identityId,
+      s.cards[s.runner.identityId]!.zone,
+    );
+    s.cards[s.runner.identityId] = id;
+    const conn = instantiateCard("aaron-marron", "conn-1", "runner:grip");
+    s.cards["conn-1"] = conn;
+    s.runner.hand = ["conn-1"];
+    s.runner.credits = 10;
+    s.runner.tags = 0;
+    commitCheckpointSnapshot(s, "untagged");
+    s.runner.tags = 2;
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "sebastiao had-no-tags",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("had no tags") &&
+          line.includes(CR.hadPreviousCheckpoint.number),
+      ),
+    ).toBe(true);
+    // Optional install opens a choice in the checkpoint reaction window.
+    expect(s.pendingChoice).toBeTruthy();
+  });
+
+  it("does not mark Sebastião when previous checkpoint had tags (CR 9.6.6a)", () => {
+    const s = createInitialState();
+    const id = instantiateCard(
+      "sebastiao-souza-pessoa-activist-organizer",
+      s.runner.identityId,
+      s.cards[s.runner.identityId]!.zone,
+    );
+    s.cards[s.runner.identityId] = id;
+    // Previous checkpoint: tagged. Mid-interval untagged then re-tagged would
+    // fool a tagsBefore hook, but "had" looks at the prior 10.3.1a.
+    s.runner.tags = 1;
+    commitCheckpointSnapshot(s, "tagged");
+    s.runner.tags = 0;
+    s.runner.tags = 1;
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "sebastiao mid-interval flicker",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+
+    expect(s.log.some((line) => line.includes("had no tags"))).toBe(false);
+    expect(
+      s.pendingAbilities.some(
+        (p) => p.abilityKey === "on-take-tags-when-untagged",
+      ),
+    ).toBe(false);
+  });
+
+  it("evaluates had-family trigger predicates as data (CR 9.6.6a)", () => {
+    const s = createInitialState();
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-pred",
+      "server:hq:root",
+    );
+    s.cards["ht-pred"] = agenda;
+    s.servers.hq.root = ["ht-pred"];
+    commitCheckpointSnapshot(s, "baseline");
+
+    agenda.advancementCounters = 1;
+    s.runner.tags = 2;
+    const diff = diffAgainstPreviousCheckpoint(s);
+
+    const adv = evaluateTriggerPredicate(
+      s,
+      diff,
+      PREDICATE_ADVANCEMENT_FROM_ZERO,
+    );
+    expect(adv).toEqual({
+      kind: "advancement_increased_from_zero",
+      cardIds: ["ht-pred"],
+    });
+
+    const tags = evaluateTriggerPredicate(
+      s,
+      diff,
+      PREDICATE_RUNNER_TAGS_FROM_ZERO,
+    );
+    expect(tags).toEqual({
+      kind: "runner_tags_increased_from_zero",
+      matched: true,
+    });
+
+    // Previous baseline had tags → predicate fails even if delta is positive.
+    s.runner.tags = 1;
+    commitCheckpointSnapshot(s, "tagged-baseline");
+    s.runner.tags = 3;
+    const taggedDiff = diffAgainstPreviousCheckpoint(s);
+    expect(
+      evaluateTriggerPredicate(s, taggedDiff, PREDICATE_RUNNER_TAGS_FROM_ZERO),
+    ).toEqual({ kind: "runner_tags_increased_from_zero", matched: false });
+  });
+
+  it("evaluates expose and draw-set-aside predicates (CR 9.6.4b / 8.4.5a)", () => {
+    const s = createInitialState();
+    commitCheckpointSnapshot(s, "baseline");
+    s.turn.exposureCounts = { ...(s.turn.exposureCounts ?? {}), "exp-1": 2 };
+    const exposeDiff = diffAgainstPreviousCheckpoint(s);
+    expect(
+      evaluateTriggerPredicate(s, exposeDiff, PREDICATE_EXPOSED_SINCE_PREVIOUS),
+    ).toEqual({
+      kind: "exposed_since_previous",
+      cardIds: ["exp-1", "exp-1"],
+    });
+
+    const drawn = instantiateCard("sure-gamble", "draw-1", "runner:set-aside");
+    drawn.setAsideGroupId = "draw";
+    s.cards["draw-1"] = drawn;
+    // Zone change vs previous snapshot (card was not present / not set-aside).
+    const drawDiff = diffAgainstPreviousCheckpoint(s);
+    expect(
+      evaluateTriggerPredicate(s, drawDiff, PREDICATE_ENTERED_DRAW_SET_ASIDE),
+    ).toEqual({
+      kind: "entered_draw_set_aside",
+      side: "runner",
+      cardIds: ["draw-1"],
+    });
+  });
+
+  it("evaluates remote-install and breached-root predicates (CR 8.8.4b / 10.3.1j)", () => {
+    const s = createInitialState();
+    commitCheckpointSnapshot(s, "baseline");
+    const asset = instantiateCard(
+      "pad-campaign",
+      "remote-asset-1",
+      "server:remote-1:root",
+    );
+    s.cards["remote-asset-1"] = asset;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["remote-asset-1"],
+    };
+    const remoteDiff = diffAgainstPreviousCheckpoint(s);
+    expect(
+      evaluateTriggerPredicate(s, remoteDiff, PREDICATE_ENTERED_REMOTE_INSTALL),
+    ).toEqual({
+      kind: "entered_remote_install",
+      entries: [{ cardId: "remote-asset-1", serverId: "remote-1" }],
+    });
+
+    // Outside breach structure → empty breached-root match.
+    expect(
+      evaluateTriggerPredicate(s, remoteDiff, PREDICATE_ENTERED_BREACHED_ROOT),
+    ).toEqual({
+      kind: "entered_breached_root",
+      serverId: null,
+      cardIds: [],
+    });
+  });
+
+  it("marks Find the Truth from draw set-aside zone diff (CR 8.4.5a)", () => {
+    const s = createInitialState();
+    const truth = instantiateCard(
+      "find-the-truth",
+      "ftt-1",
+      "runner:installed",
+    );
+    truth.revealDrawnCards = true;
+    s.cards["ftt-1"] = truth;
+    s.runner.installed = ["ftt-1"];
+    const drawn = s.runner.deck[0]!;
+    commitCheckpointSnapshot(s, "before-draw");
+    s.runner.deck.shift();
+    const card = s.cards[drawn]!;
+    card.zone = "runner:set-aside";
+    card.setAsideGroupId = "draw";
+    if (!s.runner.setAside) s.runner.setAside = [];
+    s.runner.setAside.push(drawn);
+
+    occurCheckpoint(
+      s,
+      "draw",
+      "Draw checkpoint",
+      [CR.drawCheckpoint, CR.drawPause],
+      "draw",
+    );
+    expect(
+      s.pendingAbilities.some(
+        (p) =>
+          p.payload?.kind === "reveal_drawn_card" && p.payload.cardId === drawn,
+      ) ||
+        s.log.some(
+          (line) => line.includes("Find the Truth") || line.includes("reveal"),
+        ),
+    ).toBe(true);
+  });
+
+  it("marks Valley first damage at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteValDamageTrigger } =
+      await import("../../../src/effects/triggers/firstTimeEachTurnTriggers.js");
+    const s = createInitialState();
+    const blood = instantiateCard(
+      "synthetic-blood",
+      "sb-1",
+      "runner:installed",
+    );
+    const top = instantiateCard("sure-gamble", "sg-1", "runner:stack");
+    s.cards["sb-1"] = blood;
+    s.cards["sg-1"] = top;
+    s.runner.installed = ["sb-1"];
+    s.runner.deck = ["sg-1"];
+    s.runner.hand = [];
+    noteValDamageTrigger(s);
+    expect(s.turn.valDamageTriggerCount).toBe(1);
+    expect(s.turn.valDamageTriggerPendingCounts).toEqual([1]);
+    expect(s.runner.hand).toEqual([]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Valley first damage",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.valDamageTriggerPendingCounts).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — onFirstDamageEachTurn"),
+      ),
+    ).toBe(true);
+    expect(s.runner.hand).toEqual(["sg-1"]);
+  });
+
+  it("marks Valley first install at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteValRunnerTrigger } =
+      await import("../../../src/effects/triggers/firstTimeEachTurnTriggers.js");
+    const s = createInitialState();
+    const hayley = instantiateCard(
+      "hayley-kaplan-universal-scholar",
+      "hk-1",
+      "runner:identity",
+    );
+    s.cards["hk-1"] = hayley;
+    s.runner.identityId = "hk-1";
+    noteValRunnerTrigger(s, "install");
+    expect(s.turn.valInstallTriggerCount).toBe(1);
+    expect(s.turn.valInstallTriggerPendingCounts).toEqual([1]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Valley first install",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.valInstallTriggerPendingCounts).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — onFirstInstallEachTurn"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Valley first click-loss at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteValRunnerTrigger } =
+      await import("../../../src/effects/triggers/firstTimeEachTurnTriggers.js");
+    const s = createInitialState();
+    const chrono = instantiateCard(
+      "adjusted-chronotype",
+      "ac-1",
+      "runner:installed",
+    );
+    s.cards["ac-1"] = chrono;
+    s.runner.installed = ["ac-1"];
+    s.runner.clicks = 0;
+    noteValRunnerTrigger(s, "click_loss");
+    expect(s.turn.valClickLossTriggerCount).toBe(1);
+    expect(s.turn.valClickLossTriggerPendingCounts).toEqual([1]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Valley first click-loss",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.valClickLossTriggerPendingCounts).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — onFirstClickLossEachTurnExceptPaidAbility",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.clicks).toBe(1);
+  });
+
+  it("marks Valley first basic click-draw at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteValRunnerTrigger } =
+      await import("../../../src/effects/triggers/firstTimeEachTurnTriggers.js");
+    const s = createInitialState();
+    const visage = instantiateCard(
+      "symmetrical-visage",
+      "sv-1",
+      "runner:installed",
+    );
+    s.cards["sv-1"] = visage;
+    s.runner.installed = ["sv-1"];
+    s.runner.credits = 0;
+    noteValRunnerTrigger(s, "basic_click_draw");
+    expect(s.turn.valBasicClickDrawTriggerCount).toBe(1);
+    expect(s.turn.valBasicClickDrawTriggerPendingCounts).toEqual([1]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Valley first basic click-draw",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.valBasicClickDrawTriggerPendingCounts).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — onFirstBasicClickDrawEachTurn"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+  });
+
+  it("marks first program install at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstProgramInstall } =
+      await import("../../../src/state/install/programHardwareInstall.js");
+    const s = createInitialState();
+    const pad = instantiateCard("lilypad", "pad-1", "runner:installed");
+    s.cards["pad-1"] = pad;
+    s.runner.installed = ["pad-1"];
+    noteFirstProgramInstall(s);
+    expect(s.turn.firstProgramInstallMetPending).toBe(true);
+    expect(s.turn.firstProgramInstallUsedThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first program install",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstProgramInstallMetPending).toBe(false);
+    expect(s.turn.firstProgramInstallUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first program install this turn"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks first virus install at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstVirusInstall } =
+      await import("../../../src/state/install/virusInstall.js");
+    const s = createInitialState();
+    const avg = instantiateCard(
+      "avgustina-ivanovskaya",
+      "avg-1",
+      "runner:installed",
+    );
+    s.cards["avg-1"] = avg;
+    s.runner.installed = ["avg-1"];
+    noteFirstVirusInstall(s);
+    expect(s.turn.firstVirusInstallMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first virus install",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstVirusInstallUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first virus install this turn"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Valley first successful run at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteValSuccessfulRunTrigger } =
+      await import("../../../src/effects/triggers/firstTimeEachTurnTriggers.js");
+    const s = createInitialState();
+    const id = s.cards[s.corp.identityId];
+    id.onFirstSuccessfulRunThisTurn = fx.gainCredits("corp", 1);
+    s.corp.credits = 0;
+    noteValSuccessfulRunTrigger(s);
+    expect(s.turn.valSuccessfulRunTriggerCount).toBe(1);
+    expect(s.turn.valSuccessfulRunTriggerPendingCounts).toEqual([1]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Valley first successful run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.valSuccessfulRunTriggerPendingCounts).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first successful run this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+  });
+
+  it("marks first run begin at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstRunBegin } =
+      await import("../../../src/state/run/runBeginHooks.js");
+    const s = createInitialState();
+    const tiered = instantiateCard(
+      "tiered-subscription",
+      "ts-1",
+      "server:hq:root",
+    );
+    tiered.rezzed = true;
+    s.cards["ts-1"] = tiered;
+    s.servers.hq.root = ["ts-1"];
+    s.corp.credits = 0;
+    noteFirstRunBegin(s);
+    expect(s.turn.firstRunBeginMetPending).toBe(true);
+    expect(s.turn.runBeginThisTurnUsed).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first run begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstRunBeginMetPending).toBe(false);
+    expect(s.turn.runBeginThisTurnUsed).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first run begin this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+  });
+
+  it("marks first unsuccessful run at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstUnsuccessfulRun } =
+      await import("../../../src/state/run/unsuccessfulRunHooks.js");
+    const s = createInitialState();
+    const john = instantiateCard("john-masanori", "jm-1", "runner:installed");
+    s.cards["jm-1"] = john;
+    s.runner.installed = ["jm-1"];
+    s.runner.tags = 0;
+    noteFirstUnsuccessfulRun(s);
+    expect(s.turn.firstUnsuccessfulRunMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first unsuccessful run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstUnsuccessfulRunMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first unsuccessful run this turn"),
+      ),
+    ).toBe(true);
+    expect(s.runner.tags).toBe(1);
+  });
+
+  it("marks first successful HQ run at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstSuccessfulHqRun } =
+      await import("../../../src/state/run/firstSuccessfulRunHooks.js");
+    const s = createInitialState();
+    const pw = instantiateCard("pan-weave", "pw-1", "runner:installed");
+    s.cards["pw-1"] = pw;
+    s.runner.installed = ["pw-1"];
+    s.corp.credits = 5;
+    s.runner.credits = 3;
+    noteFirstSuccessfulHqRun(s);
+    expect(s.turn.firstSuccessfulHqRunMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first successful HQ run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstSuccessfulHqRunMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first successful HQ run this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(4);
+    expect(s.runner.credits).toBe(4);
+  });
+
+  it("marks first encounter each run at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstEncounterEachRun } =
+      await import("../../../src/state/run/firstEncounterPassHooks.js");
+    const s = createInitialState();
+    const bak = instantiateCard("baklan-bochkin", "bak-1", "runner:installed");
+    s.cards["bak-1"] = bak;
+    s.runner.installed = ["bak-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "ice-1", broken: [false] },
+      endedTheRun: false,
+      cannotJackOut: false,
+    };
+    noteFirstEncounterEachRun(s);
+    expect(s.run!.firstEncounterEachRunMetPending).toBe(true);
+    expect(s.run!.onFirstEncounterEachRunFired).toBe(true);
+    expect(bak.powerCounters ?? 0).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first encounter each run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.run!.firstEncounterEachRunMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first encounter this run"),
+      ),
+    ).toBe(true);
+    expect(s.cards["bak-1"]!.powerCounters).toBe(1);
+  });
+
+  it("marks pass rezzed ice at 10.3.1a (phase 3 scanner)", async () => {
+    const { notePassRezzedIce } =
+      await import("../../../src/state/run/passIceHooks.js");
+    const s = createInitialState();
+    const slip = instantiateCard("slipstream", "ss-1", "runner:installed");
+    s.cards["ss-1"] = slip;
+    s.runner.installed = ["ss-1"];
+    notePassRezzedIce(s);
+    expect(s.turn.passRezzedIceMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "pass rezzed ice",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.passRezzedIceMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — rezzed ice passed"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks encounter-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteEncounterEndIfRezzed } =
+      await import("../../../src/state/run/encounterEndHooks.js");
+    const s = createInitialState();
+    const ice = instantiateCard("knowledge-seeker", "ks-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.cards["ks-1"] = ice;
+    s.servers.hq.ice = ["ks-1"];
+    noteEncounterEndIfRezzed(s, "ks-1");
+    expect(s.turn.encounterEndPendingIds).toEqual(["ks-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.encounterEndPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — encounter ends")),
+    ).toBe(true);
+  });
+
+  it("marks host-encounter at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteHostEncounter } =
+      await import("../../../src/state/run/hostEncounterHooks.js");
+    const s = createInitialState();
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    const chisel = instantiateCard("chisel", "ch-1", "runner:installed");
+    chisel.hostId = "ice-1";
+    s.cards["ch-1"] = chisel;
+    s.runner.installed = ["ch-1"];
+    noteHostEncounter(s, "ice-1");
+    expect(s.turn.hostEncounterPendingIceIds).toEqual(["ice-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "host encounter",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.hostEncounterPendingIceIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — host ice encountered"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks approach-server at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteApproachServer } =
+      await import("../../../src/state/run/approachServerHooks.js");
+    const s = createInitialState();
+    const grid = instantiateCard("nanisivik-grid", "ng-1", "server:hq:root");
+    grid.rezzed = true;
+    s.cards["ng-1"] = grid;
+    s.servers.hq.root = ["ng-1"];
+    noteApproachServer(s, "ng-1");
+    expect(s.turn.approachServerPendingIds).toEqual(["ng-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "approach server",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.approachServerPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — server approached"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks bypass at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteBypassTriggers } =
+      await import("../../../src/state/run/bypassHooks.js");
+    const s = createInitialState();
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    const capy = instantiateCard("capybara", "cap-1", "runner:installed");
+    s.cards["cap-1"] = capy;
+    s.runner.installed = ["cap-1"];
+    noteBypassTriggers(s, "ice-1");
+    expect(s.turn.bypassPendingSourceIds).toEqual(["cap-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "bypass",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.bypassPendingSourceIds).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — ice bypassed")),
+    ).toBe(true);
+  });
+
+  it("marks approach-ice at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnApproachIce } =
+      await import("../../../src/state/run/approachIceHooks.js");
+    const s = createInitialState();
+    const midori = instantiateCard("midori", "mid-1", "server:hq:root");
+    midori.rezzed = true;
+    s.cards["mid-1"] = midori;
+    s.servers.hq.root = ["mid-1"];
+    noteOnApproachIce(s, "mid-1");
+    expect(s.turn.approachIcePendingIds).toEqual(["mid-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "approach ice",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.approachIcePendingIds).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — ice approached")),
+    ).toBe(true);
+  });
+
+  it("marks first successful R&D run end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstSuccessfulRunOnRdEnds } =
+      await import("../../../src/state/run/approachIceHooks.js");
+    const s = createInitialState();
+    const mike = instantiateCard("psych-mike", "pm-1", "runner:installed");
+    s.cards["pm-1"] = mike;
+    s.runner.installed = ["pm-1"];
+    noteFirstSuccessfulRunOnRdEnds(s);
+    expect(s.turn.firstSuccessfulRdRunEndMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "rd run end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstSuccessfulRdRunEndMetPending).toBe(false);
+    expect(s.turn.firstSuccessfulRdRunEndUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first successful R&D run ends this turn",
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks successful-run-on-RD at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSuccessfulRunOnRd } =
+      await import("../../../src/state/run/successfulRunOnRdHooks.js");
+    const s = createInitialState();
+    const chakana = instantiateCard("chakana", "ch-1", "runner:installed");
+    s.cards["ch-1"] = chakana;
+    s.runner.installed = ["ch-1"];
+    noteSuccessfulRunOnRd(s, "ch-1");
+    expect(s.turn.successfulRunOnRdPendingIds).toEqual(["ch-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "successful run on rd",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.successfulRunOnRdPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run on R&D"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks successful-run-end-once at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSuccessfulRunEndOncePerTurn } =
+      await import("../../../src/state/run/successfulRunEndHooks.js");
+    const s = createInitialState();
+    const dop = instantiateCard("doppelganger", "dop-1", "runner:installed");
+    s.cards["dop-1"] = dop;
+    s.runner.installed = ["dop-1"];
+    noteSuccessfulRunEndOncePerTurn(s, "dop-1");
+    expect(s.turn.successfulRunEndOncePendingIds).toEqual(["dop-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "successful run end once",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.successfulRunEndOncePendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run ends"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks successful-run-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSuccessfulRunEnd } =
+      await import("../../../src/state/run/successfulRunEndHooks.js");
+    const s = createInitialState();
+    const drt = instantiateCard(
+      "dedicated-response-team",
+      "drt-1",
+      "server:hq:root",
+    );
+    drt.rezzed = true;
+    s.cards["drt-1"] = drt;
+    s.servers.hq.root = ["drt-1"];
+    noteSuccessfulRunEnd(s, "drt-1");
+    expect(s.turn.successfulRunEndPendingIds).toEqual(["drt-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "successful run end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.successfulRunEndPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run ends"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Corp turn-begin at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnCorpTurnBegin } =
+      await import("../../../src/state/turnAndActions/corpTurnBeginHooks.js");
+    const s = createInitialState();
+    const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
+    s.cards["dd-1"] = dealer;
+    s.runner.installed = ["dd-1"];
+    noteOnCorpTurnBegin(s, "dd-1");
+    expect(s.turn.corpTurnBeginPending).toEqual([
+      expect.objectContaining({
+        cardId: "dd-1",
+        effectKey: "onCorpTurnBegin",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "corp turn begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.corpTurnBeginPending).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — Corp turn begin")),
+    ).toBe(true);
+  });
+
+  it("marks Builder of Nations encounter-end meat inline at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } =
+      await import("../../../src/state/triggers/inlineConditionalHooks.js");
+    const s = createInitialState();
+    const id = instantiateCard(
+      "weyland-consortium-builder-of-nations",
+      "bm-1",
+      "corp:identity",
+    );
+    s.cards["bm-1"] = id;
+    s.corp.identityId = "bm-1";
+    noteInlineConditional(s, {
+      cardId: "bm-1",
+      abilityKey: "first-advanced-ice-encounter-end-meat",
+      controller: "corp",
+      mandatory: true,
+      effect: { op: "do", action: { kind: "meat_damage", amount: 1 } },
+      logLine: `${id.title} becomes pending — first advanced ice encounter ends (meat damage).`,
+    });
+    expect(s.turn.inlineConditionalPending).toEqual([
+      expect.objectContaining({
+        cardId: "bm-1",
+        abilityKey: "first-advanced-ice-encounter-end-meat",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter end meat",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first advanced ice encounter ends (meat damage)",
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Out of the Ashes turn-begin inline at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } =
+      await import("../../../src/state/triggers/inlineConditionalHooks.js");
+    const s = createInitialState();
+    const ashes = instantiateCard("out-of-the-ashes", "ash-1", "runner:heap");
+    s.cards["ash-1"] = ashes;
+    s.runner.discardPile = ["ash-1"];
+    noteInlineConditional(s, {
+      cardId: "ash-1",
+      abilityKey: "heap-on-turn-begin-may-rfg-self-to-make-run",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "choose",
+        chooser: "runner",
+        options: [
+          {
+            id: "accept",
+            label: "RFG",
+            effect: {
+              op: "do",
+              action: { kind: "tlm_out_of_ashes_rfg_and_run" },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      },
+      logLine: `${ashes.title} becomes pending — Runner turn begin (may RFG self to make a run).`,
+      independentOfSource: true,
+    });
+    expect(s.turn.inlineConditionalPending).toEqual([
+      expect.objectContaining({
+        cardId: "ash-1",
+        abilityKey: "heap-on-turn-begin-may-rfg-self-to-make-run",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "runner turn begin inline",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Runner turn begin (may RFG self"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks encounter-begin heap-install inline at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } =
+      await import("../../../src/state/triggers/inlineConditionalHooks.js");
+    const s = createInitialState();
+    const paper = instantiateCard("paperclip", "pc-1", "runner:heap");
+    s.cards["pc-1"] = paper;
+    s.runner.discardPile = ["pc-1"];
+    noteInlineConditional(s, {
+      cardId: "pc-1",
+      abilityKey: "paperclip-heap-install-on-encounter-barrier",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "choose",
+        chooser: "runner",
+        options: [
+          {
+            id: "install",
+            label: "Install",
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_heap_card",
+                cardId: "pc-1",
+                discount: 0,
+              },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      },
+      logLine: `${paper.title} becomes pending — encounter (may install from heap).`,
+      independentOfSource: true,
+    });
+    expect(s.turn.inlineConditionalPending).toEqual([
+      expect.objectContaining({
+        cardId: "pc-1",
+        abilityKey: "paperclip-heap-install-on-encounter-barrier",
+        independentOfSource: true,
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter begin inline",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — encounter (may install from heap)"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Runner turn-end inline conditionals at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } =
+      await import("../../../src/state/triggers/inlineConditionalHooks.js");
+    const s = createInitialState();
+    const alg = instantiateCard("algernon", "alg-1", "runner:installed");
+    s.cards["alg-1"] = alg;
+    s.runner.installed = ["alg-1"];
+    noteInlineConditional(s, {
+      cardId: "alg-1",
+      abilityKey: "trash-at-turn-end-unless-successful-run",
+      controller: "runner",
+      mandatory: true,
+      effect: { op: "do", action: { kind: "trash_self" } },
+      logLine: `${alg.title} becomes pending — turn end (trash unless successful run).`,
+    });
+    expect(s.turn.inlineConditionalPending).toEqual([
+      expect.objectContaining({
+        cardId: "alg-1",
+        abilityKey: "trash-at-turn-end-unless-successful-run",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "runner turn end inline",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — turn end (trash unless successful run)",
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks stored on-advance / on-score notes at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteStoredConditional } =
+      await import("../../../src/state/triggers/storedConditionalHooks.js");
+    const s = createInitialState();
+    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "pr-1",
+      "corp:score-area",
+    );
+    s.cards["pad-1"] = pad;
+    s.cards["pr-1"] = agenda;
+    s.corp.scoreArea = ["pr-1"];
+    s.servers.remote1 = {
+      id: "remote1",
+      ice: [],
+      root: ["pad-1"],
+    } as (typeof s.servers)["hq"];
+
+    noteStoredConditional(s, {
+      cardId: "pad-1",
+      abilityKey: "on-advance",
+      effectKey: "onAdvance",
+      controller: "corp",
+      mandatory: true,
+      logLine: `${pad.title} becomes pending — advanced.`,
+    });
+    noteStoredConditional(s, {
+      cardId: "pr-1",
+      abilityKey: "on-score",
+      effectKey: "onScore",
+      controller: "corp",
+      mandatory: true,
+      logLine: `${agenda.title} becomes pending — scored.`,
+    });
+    expect(s.turn.storedConditionalPending).toHaveLength(2);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "stored score/advance",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.storedConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — advanced.")),
+    ).toBe(true);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — scored.")),
+    ).toBe(true);
+  });
+
+  it("marks score/steal and advance inlines at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } =
+      await import("../../../src/state/triggers/inlineConditionalHooks.js");
+    const s = createInitialState();
+    const pe = instantiateCard(
+      "jinteki-personal-evolution",
+      "pe-1",
+      "corp:identity",
+    );
+    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    s.cards["pe-1"] = pe;
+    s.cards["pad-1"] = pad;
+    s.corp.identityId = "pe-1";
+    s.servers.remote1 = {
+      id: "remote1",
+      ice: [],
+      root: ["pad-1"],
+    } as (typeof s.servers)["hq"];
+
+    noteInlineConditional(s, {
+      cardId: "pe-1",
+      abilityKey: "net-damage-on-agenda-scored-or-stolen",
+      controller: "corp",
+      mandatory: true,
+      effect: { op: "do", action: { kind: "net_damage", amount: 1 } },
+      logLine: `${pe.title} becomes pending — agenda scored or stolen (net damage).`,
+    });
+    noteInlineConditional(s, {
+      cardId: "pad-1",
+      abilityKey: "credits-on-advance",
+      controller: "corp",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: { kind: "gain_credits", side: "corp", amount: 1 },
+      },
+      logLine: `${pad.title} becomes pending — advanced (gain 1¢).`,
+    });
+    expect(s.turn.inlineConditionalPending).toHaveLength(2);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "score/advance inline",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — agenda scored or stolen (net damage)"),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — advanced (gain 1¢)"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks successful-run / run-end / access inlines at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } =
+      await import("../../../src/state/triggers/inlineConditionalHooks.js");
+    const s = createInitialState();
+    const hat = instantiateCard("top-hat", "th-1", "runner:installed");
+    const boom = instantiateCard("boomerang", "boom-1", "runner:heap");
+    const aeneas = instantiateCard(
+      "aeneas-informant",
+      "ae-1",
+      "runner:installed",
+    );
+    s.cards["th-1"] = hat;
+    s.cards["boom-1"] = boom;
+    s.cards["ae-1"] = aeneas;
+    s.runner.installed = ["th-1", "ae-1"];
+    s.runner.discardPile = ["boom-1"];
+
+    noteInlineConditional(s, {
+      cardId: "th-1",
+      abilityKey: "top-hat-may-instead-of-breach",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: { kind: "top_hat_may_instead_of_breach", n: 5 },
+      },
+      logLine: `${hat.title} becomes pending — successful R&D run (may instead of breach).`,
+    });
+    noteInlineConditional(s, {
+      cardId: "boom-1",
+      abilityKey: "may-shuffle-title-from-heap-on-successful-run-end",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: {
+          kind: "may_shuffle_title_from_heap_into_stack",
+          title: "Boomerang",
+        },
+      },
+      logLine: `${boom.title} becomes pending — successful run end (may shuffle from heap).`,
+      independentOfSource: true,
+    });
+    noteInlineConditional(s, {
+      cardId: "ae-1",
+      abilityKey: "aeneas-may-reveal-gain-on-access-without-trash",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: { kind: "may_reveal_aeneas_gain_one", cardId: "x-1" },
+      },
+      logLine: `${aeneas.title} becomes pending — access without trash (may reveal and gain).`,
+    });
+    expect(s.turn.inlineConditionalPending).toHaveLength(3);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "run success/end/access inline",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — successful R&D run (may instead of breach)",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — successful run end (may shuffle from heap)",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — access without trash (may reveal and gain)",
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks host-rez-state at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteHostRezStateTriggers } =
+      await import("../../../src/state/rez/iceRezHooks.js");
+    const s = createInitialState();
+    const ice = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    const saci = instantiateCard("saci", "saci-1", "runner:installed");
+    saci.hostId = "iw-1";
+    s.cards["iw-1"] = ice;
+    s.cards["saci-1"] = saci;
+    s.servers.hq.ice = ["iw-1"];
+    s.runner.installed = ["saci-1"];
+    noteHostRezStateTriggers(s, "iw-1", "rez");
+    expect(s.turn.iceRezAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "saci-1",
+        effectKey: "onHostRezzed",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "host rez",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.iceRezAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — host ice rezzed")),
+    ).toBe(true);
+  });
+
+  it("marks any-ice-rez at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnAnyIceRez } =
+      await import("../../../src/state/rez/iceRezHooks.js");
+    const s = createInitialState();
+    const ice = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    const emp = instantiateCard(
+      "compromised-employee",
+      "emp-1",
+      "runner:installed",
+    );
+    s.cards["iw-1"] = ice;
+    s.cards["emp-1"] = emp;
+    s.servers.hq.ice = ["iw-1"];
+    s.runner.installed = ["emp-1"];
+    noteOnAnyIceRez(s, "iw-1");
+    expect(s.turn.iceRezAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "emp-1",
+        effectKey: "onAnyIceRez",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "any ice rez",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.iceRezAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — any ice rezzed")),
+    ).toBe(true);
+  });
+
+  it("marks before-first-turn at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnBeforeFirstTurn } =
+      await import("../../../src/state/setupAndEnd/beforeFirstTurnHooks.js");
+    const s = createInitialState();
+    const seidr = instantiateCard(
+      "seidr-laboratories-destiny-defined",
+      "seidr-1",
+      "corp:identity",
+    );
+    seidr.onBeforeFirstTurn = {
+      op: "do",
+      action: { kind: "gain_credits", side: "corp", amount: 1 },
+    };
+    s.cards["seidr-1"] = seidr;
+    s.corp.identityId = "seidr-1";
+    noteOnBeforeFirstTurn(s, "seidr-1");
+    expect(s.turn.beforeFirstTurnPending).toEqual([
+      expect.objectContaining({
+        cardId: "seidr-1",
+        effectKey: "onBeforeFirstTurn",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "before first turn",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.beforeFirstTurnPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — before first turn"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks outside-pool spend at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOutsidePoolSpendTriggers } =
+      await import("../../../src/state/keywordsAndCredits/outsidePoolSpend.js");
+    const s = createInitialState();
+    const grid = instantiateCard("shackleton-grid", "sg-1", "server:hq:root");
+    grid.rezzed = true;
+    s.cards["sg-1"] = grid;
+    s.servers.hq.root = ["sg-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "iw-1", broken: [] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+      outsidePoolCreditSpendThisRun: true,
+    };
+    noteOutsidePoolSpendTriggers(s);
+    expect(s.run?.outsidePoolCreditSpendThisRun).toBe(false);
+    expect(s.turn.outsidePoolSpendAbilityUsedIds).toContain("sg-1");
+    expect(s.turn.outsidePoolSpendPending).toEqual([
+      expect.objectContaining({
+        cardId: "sg-1",
+        effectKey: "onSpendCreditsOutsidePoolDuringRunOncePerTurn",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter paw",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.outsidePoolSpendPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — spent credits outside the pool"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks encounter-any-ice once-per-turn at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteEncounterAnyIceOncePerTurn } =
+      await import("../../../src/state/run/encounterAbilityHooks.js");
+    const s = createInitialState();
+    const pancha = instantiateCard("panchatantra", "pan-1", "runner:installed");
+    s.cards["pan-1"] = pancha;
+    s.runner.installed = ["pan-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "iw-1", broken: [] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+    };
+    noteEncounterAnyIceOncePerTurn(s);
+    expect(s.turn.encounterAnyIceHookFiredThisTurn).toBe(true);
+    expect(s.run?.firstEncounteredIceId).toBe("iw-1");
+    expect(s.turn.encounterAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "pan-1",
+        effectKey: "onEncounterAnyIceOncePerTurn",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.encounterAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — encounter ice, once this turn"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Compile first-encounter at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteCompileFirstEncounter } =
+      await import("../../../src/state/run/encounterAbilityHooks.js");
+    const s = createInitialState();
+    const compile = instantiateCard("compile", "cmp-1", "runner:play-area");
+    s.cards["cmp-1"] = compile;
+    s.playedRunEventId = "cmp-1";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "iw-1", broken: [] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+      compileFirstEncounterFired: false,
+    };
+    noteCompileFirstEncounter(s);
+    expect(s.run?.compileFirstEncounterFired).toBe(true);
+    expect(s.turn.encounterAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "cmp-1",
+        effectKey: "runEvent.onFirstEncounterThisRun",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.encounterAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first encounter this run"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Corp action-phase-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteCorpActionPhaseEnd } =
+      await import("../../../src/state/turnAndActions/phaseEndHooks.js");
+    const s = createInitialState();
+    const mercia = instantiateCard("mercia-b4ll4rd", "mer-1", "corp:identity");
+    s.cards["mer-1"] = mercia;
+    s.corp.identityId = "mer-1";
+    noteCorpActionPhaseEnd(s);
+    expect(s.turn.corpActionPhaseEndPending).toEqual([
+      expect.objectContaining({
+        cardId: "mer-1",
+        effectKey: "onCorpActionPhaseEnd",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "corp action phase end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.corpActionPhaseEndPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Corp action phase ends"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Runner action-phase-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteRunnerActionPhaseEnd } =
+      await import("../../../src/state/turnAndActions/phaseEndHooks.js");
+    const s = createInitialState();
+    const cacophony = instantiateCard("cacophony", "cac-1", "runner:installed");
+    s.cards["cac-1"] = cacophony;
+    s.runner.installed = ["cac-1"];
+    noteRunnerActionPhaseEnd(s);
+    expect(s.turn.runnerActionPhaseEndPending).toEqual([
+      expect.objectContaining({
+        cardId: "cac-1",
+        effectKey: "onRunnerActionPhaseEnd",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "runner action phase end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.runnerActionPhaseEndPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Runner action phase ends"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks accessed-card abilities at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteAccessedCardAbilities } =
+      await import("../../../src/state/access/accessAbilityHooks.js");
+    const s = createInitialState();
+    const field = instantiateCard("psychic-field", "pf-1", "server:hq:root");
+    field.rezzed = true;
+    s.cards["pf-1"] = field;
+    s.servers.hq.root = ["pf-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "access",
+      position: 0,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: "pf-1",
+    };
+    noteAccessedCardAbilities(s);
+    expect(s.turn.accessAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "pf-1",
+        effectKey: "onAccessWhileInstalled",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "card accessed",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.accessAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — accessed while installed"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks finish-access-R&D once-per-turn at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFinishAccessRdOncePerTurn } =
+      await import("../../../src/state/access/accessAbilityHooks.js");
+    const s = createInitialState();
+    const maya = instantiateCard("maya", "maya-1", "runner:installed");
+    s.cards["maya-1"] = maya;
+    s.runner.installed = ["maya-1"];
+    s.run = {
+      attackedServerId: "rd",
+      phase: "access",
+      position: 0,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+    };
+    noteFinishAccessRdOncePerTurn(s);
+    expect(s.turn.finishAccessRdHookFiredThisTurn).toBe(true);
+    expect(s.turn.accessAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "maya-1",
+        effectKey: "onFinishAccessRdOncePerTurn",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "access complete",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.accessAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — an R&D access finishes"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks successful-run server abilities at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSuccessfulRunServerAbilities } =
+      await import("../../../src/state/run/successfulRunServerHooks.js");
+    const s = createInitialState();
+    const wisp = instantiateCard("will-o-the-wisp", "wisp-1", "server:hq:root");
+    wisp.rezzed = true;
+    s.cards["wisp-1"] = wisp;
+    s.servers.hq.root = ["wisp-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: 0,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+    };
+    noteSuccessfulRunServerAbilities(s);
+    expect(s.turn.successfulRunServerPending).toEqual([
+      expect.objectContaining({
+        cardId: "wisp-1",
+        effectKey: "onSuccessfulRunOnThisServer",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "run success",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.successfulRunServerPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run on this server"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks unsuccessful-run server abilities at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteUnsuccessfulRunServerAbilities } =
+      await import("../../../src/state/run/unsuccessfulRunServerHooks.js");
+    const s = createInitialState();
+    const georgia = instantiateCard(
+      "georgia-emelyov",
+      "ga-1",
+      "server:hq:root",
+    );
+    georgia.rezzed = true;
+    s.cards["ga-1"] = georgia;
+    s.servers.hq.root = ["ga-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "approach",
+      position: 0,
+      successful: false,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+    };
+    noteUnsuccessfulRunServerAbilities(s);
+    expect(s.turn.unsuccessfulRunServerPendingIds).toEqual(["ga-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "run unsuccessful",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.unsuccessfulRunServerPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — unsuccessful run on this server"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Tennin Corp turn-begin at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteCorpTenninTurnBegin } =
+      await import("../../../src/state/turnAndActions/corpTurnBeginHooks.js");
+    const s = createInitialState();
+    const id = instantiateCard(
+      "tennin-institute-the-secrets-within",
+      "tennin-1",
+      "corp:identity",
+    );
+    s.cards["tennin-1"] = id;
+    s.corp.identityId = "tennin-1";
+    s.turn.successfulRunLastTurn = false;
+    noteCorpTenninTurnBegin(s);
+    expect(s.turn.corpTurnBeginPending).toEqual([
+      expect.objectContaining({
+        cardId: "tennin-1",
+        effectKey: "onTurnBeginIfNoRunnerSuccessfulRunLastTurn",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "corp turn begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.corpTurnBeginPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — the Runner made no successful run last turn",
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks onScoreTurnEnd at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnScoreTurnEnd } =
+      await import("../../../src/state/turnAndActions/corpTurnEndHooks.js");
+    const s = createInitialState();
+    const agenda = instantiateCard("viral-weaponization", "vw-1", "corp:score");
+    agenda.scoredThisTurn = true;
+    s.cards["vw-1"] = agenda;
+    s.corp.scoreArea = ["vw-1"];
+    noteOnScoreTurnEnd(s, "vw-1");
+    expect(agenda.scoredThisTurn).toBe(false);
+    expect(s.turn.scoreTurnEndPendingIds).toEqual(["vw-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "corp turn end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.scoreTurnEndPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — the turn it was scored ends"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Runner turn-begin at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteRunnerRigTurnBegin } =
+      await import("../../../src/state/turnAndActions/runnerTurnBeginHooks.js");
+    const s = createInitialState();
+    const aesop = instantiateCard(
+      "aesops-pawnshop",
+      "aesop-1",
+      "runner:installed",
+    );
+    s.cards["aesop-1"] = aesop;
+    s.runner.installed = ["aesop-1"];
+    noteRunnerRigTurnBegin(s, "aesop-1");
+    expect(s.turn.runnerTurnBeginPending).toEqual([
+      expect.objectContaining({
+        cardId: "aesop-1",
+        effectKey: "onTurnBegin",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "runner turn begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.runnerTurnBeginPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Runner turn begin"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Runner turn-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnRunnerTurnEnd } =
+      await import("../../../src/state/turnAndActions/runnerTurnEndHooks.js");
+    const s = createInitialState();
+    const crowd = instantiateCard("crowdfunding", "cf-1", "runner:heap");
+    s.cards["cf-1"] = crowd;
+    s.runner.discardPile = ["cf-1"];
+    noteOnRunnerTurnEnd(s, "cf-1");
+    expect(s.turn.runnerTurnEndPendingIds).toEqual(["cf-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "runner turn end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.runnerTurnEndPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — Runner turn end")),
+    ).toBe(true);
+  });
+
+  it("marks Corp turn-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnCorpTurnEnd } =
+      await import("../../../src/state/turnAndActions/corpTurnEndHooks.js");
+    const s = createInitialState();
+    const jumon = instantiateCard("jumon", "jum-1", "corp:score");
+    s.cards["jum-1"] = jumon;
+    s.corp.scoreArea = ["jum-1"];
+    noteOnCorpTurnEnd(s, "jum-1");
+    expect(s.turn.corpTurnEndPendingIds).toEqual(["jum-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "corp turn end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.corpTurnEndPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — Corp turn end")),
+    ).toBe(true);
+  });
+
+  it("marks run-begin at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnRunBegin } =
+      await import("../../../src/state/run/runBeginEffectHooks.js");
+    const s = createInitialState();
+    const card = instantiateCard("methuselah", "meth-1", "runner:installed");
+    s.cards["meth-1"] = card;
+    s.runner.installed = ["meth-1"];
+    noteOnRunBegin(s, "meth-1");
+    expect(s.turn.runBeginPendingIds).toEqual(["meth-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "run begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.runBeginPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — run begins")),
+    ).toBe(true);
+  });
+
+  it("marks successful-run at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnSuccessfulRun } =
+      await import("../../../src/state/run/successfulRunHooks.js");
+    const s = createInitialState();
+    const card = instantiateCard("paragon", "pg-1", "runner:installed");
+    s.cards["pg-1"] = card;
+    s.runner.installed = ["pg-1"];
+    noteOnSuccessfulRun(s, "pg-1");
+    expect(s.turn.successfulRunPendingIds).toEqual(["pg-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "successful run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.successfulRunPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — successful run.")),
+    ).toBe(true);
+  });
+
+  it("marks other-server success at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSuccessfulRunOtherServer } =
+      await import("../../../src/state/run/otherServerSuccessHooks.js");
+    const s = createInitialState();
+    const zone = instantiateCard(
+      "sacrifice-zone-expansion",
+      "sze-1",
+      "server:remote-1:root",
+    );
+    zone.faceup = true;
+    s.cards["sze-1"] = zone;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["sze-1"],
+    };
+    noteSuccessfulRunOtherServer(s, "sze-1");
+    expect(s.turn.otherServerSuccessPendingIds).toEqual(["sze-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "other server success",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.otherServerSuccessPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run on another server"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSisyphusFirstPass } =
+      await import("../../../src/state/run/firstEncounterPassHooks.js");
+    const s = createInitialState();
+    const sp = instantiateCard("sisyphus-protocol", "sp-1", "corp:score");
+    s.cards["sp-1"] = sp;
+    s.corp.scoreArea = ["sp-1"];
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    ice.rezzed = true;
+    ice.subtypes = ["barrier", "code gate"];
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "movement",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+    };
+    noteSisyphusFirstPass(s, "ice-1");
+    expect(s.turn.sisyphusPassMetPending).toBe(true);
+    expect(s.run!.pendingReencounterIceId).toBe("ice-1");
+    expect(s.turn.sisyphusPassUsedThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "sisyphus first pass",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.sisyphusPassMetPending).toBe(false);
+    expect(s.turn.sisyphusPassUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first pass of rezzed code gate or sentry this turn",
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks first pass ice at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstPassIce } =
+      await import("../../../src/state/run/firstEncounterPassHooks.js");
+    const s = createInitialState();
+    const khan = instantiateCard(
+      "khan-savvy-skiptracer",
+      "khan-1",
+      "runner:identity",
+    );
+    s.cards["khan-1"] = khan;
+    s.runner.identityId = "khan-1";
+    noteFirstPassIce(s);
+    expect(s.turn.firstPassIceMetPending).toBe(true);
+    expect(s.turn.bmFirstPassIceUsedThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first pass ice",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstPassIceMetPending).toBe(false);
+    expect(s.turn.bmFirstPassIceUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first ice passed this turn"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Daredevil first-run ice-gte at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteDaredevilFirstRun } =
+      await import("../../../src/state/run/runBeginHooks.js");
+    const s = createInitialState();
+    const dd = instantiateCard("daredevil", "dd-1", "runner:installed");
+    s.cards["dd-1"] = dd;
+    s.runner.installed = ["dd-1"];
+    for (let i = 0; i < 3; i++) {
+      const id = `stk-dd-${i}`;
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:stack");
+      s.runner.deck.push(id);
+    }
+    const iceA = instantiateCard("ice-wall", "ice-a", "corp:remote-1:ice");
+    const iceB = instantiateCard("ice-wall", "ice-b", "corp:remote-1:ice");
+    s.cards["ice-a"] = iceA;
+    s.cards["ice-b"] = iceB;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: ["ice-a", "ice-b"],
+      root: [],
+    };
+    s.run = {
+      attackedServerId: "remote-1",
+      position: "approach",
+      successful: null,
+    } as never;
+    const grip0 = s.runner.hand.length;
+    noteDaredevilFirstRun(s);
+    expect(s.turn.daredevilDrawMetPending).toBe(true);
+    expect(s.turn.daredevilDrawUsedThisTurn).toBeFalsy();
+    occurCheckpoint(
+      s,
+      "instruction",
+      "daredevil first run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.daredevilDrawMetPending).toBe(false);
+    expect(s.turn.daredevilDrawUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first run on server with 2 ice (draw 2)",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.hand.length).toBe(grip0 + 2);
+  });
+
+  it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstCreditPoolEmpty } =
+      await import("../../../src/state/triggers/storedTriggers.js");
+    const s = createInitialState();
+    const sol = instantiateCard("order-of-sol", "sol-1", "runner:installed");
+    s.cards["sol-1"] = sol;
+    s.runner.installed = ["sol-1"];
+    s.runner.credits = 0;
+    noteFirstCreditPoolEmpty(s);
+    expect(s.turn.firstCreditPoolEmptyMetPending).toBe(true);
+    expect(s.turn.runnerCreditPoolEmptyFiredThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first credit pool empty",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.runnerCreditPoolEmptyFiredThisTurn).toBe(true);
+    expect(s.turn.firstCreditPoolEmptyMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — the Runner's credit pool is empty for the first time this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+    noteFirstCreditPoolEmpty(s);
+    expect(s.turn.firstCreditPoolEmptyMetPending).toBe(false);
+  });
+
+  it("marks first reveal this turn at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstRevealThisTurn } =
+      await import("../../../src/state/triggers/miscConditionalHooks.js");
+    const s = createInitialState();
+    const id = instantiateCard(
+      "hyoubu-institute-absolute-clarity",
+      "hy-1",
+      "corp:identity",
+    );
+    s.cards["hy-1"] = id;
+    s.corp.identityId = "hy-1";
+    s.corp.credits = 0;
+    noteFirstRevealThisTurn(s);
+    expect(s.turn.firstRevealMetPending).toBe(true);
+    expect(s.turn.firstRevealCreditUsedThisTurn).toBe(false);
+    expect(s.corp.credits).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first reveal this turn",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstRevealCreditUsedThisTurn).toBe(true);
+    expect(s.turn.firstRevealMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first reveal this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+    noteFirstRevealThisTurn(s);
+    expect(s.turn.firstRevealMetPending).toBe(false);
+  });
+
+  it("marks first tag this turn at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstTagThisTurn } =
+      await import("../../../src/state/triggers/miscConditionalHooks.js");
+    const s = createInitialState();
+    const id = instantiateCard("nbn-reality-plus", "nbn-1", "corp:identity");
+    s.cards["nbn-1"] = id;
+    s.corp.identityId = "nbn-1";
+    s.corp.credits = 0;
+    noteFirstTagThisTurn(s);
+    expect(s.turn.firstTagThisTurnMetPending).toBe(true);
+    expect(s.turn.firstTagThisTurnUsedThisTurn).toBe(false);
+    expect(s.corp.credits).toBe(0);
+    expect(s.pendingChoice).toBeFalsy();
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first tag this turn",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstTagThisTurnUsedThisTurn).toBe(true);
+    expect(s.turn.firstTagThisTurnMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first tag this turn"),
+      ),
+    ).toBe(true);
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    noteFirstTagThisTurn(s);
+    expect(s.turn.firstTagThisTurnMetPending).toBe(false);
+  });
+
+  it("marks first installed trash at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstInstalledTrashForReaver } =
+      await import("../../../src/state/hostingAndTrash/trashHooks.js");
+    const s = createInitialState();
+    const reaver = instantiateCard("reaver", "rv-1", "runner:installed");
+    const top = instantiateCard("sure-gamble", "sg-1", "runner:stack");
+    s.cards["rv-1"] = reaver;
+    s.cards["sg-1"] = top;
+    s.runner.installed = ["rv-1"];
+    s.runner.deck = ["sg-1"];
+    s.runner.hand = [];
+    noteFirstInstalledTrashForReaver(s);
+    expect(s.turn.firstInstalledTrashMetPending).toBe(true);
+    expect(s.turn.mlReaverDrawUsedThisTurn).toBe(false);
+    expect(s.runner.hand).toEqual([]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first installed trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.mlReaverDrawUsedThisTurn).toBe(true);
+    expect(s.turn.firstInstalledTrashMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first installed trash this turn"),
+      ),
+    ).toBe(true);
+    expect(s.runner.hand).toEqual(["sg-1"]);
+    noteFirstInstalledTrashForReaver(s);
+    expect(s.turn.firstInstalledTrashMetPending).toBe(false);
+  });
+
+  it("marks first grip/stack trash batch at 10.3.1a (phase 3 scanner)", async () => {
+    const s = createInitialState();
+    const buf = instantiateCard("buffer-drive", "buf-1", "runner:installed");
+    buf.onFirstGripOrStackTrashBatchEachTurn = fx.do({
+      kind: "may_add_one_of_card_ids_to_stack_bottom",
+    });
+    const a = instantiateCard("sure-gamble", "a-1", "runner:heap");
+    const b = instantiateCard("sure-gamble", "b-1", "runner:heap");
+    s.cards["buf-1"] = buf;
+    s.cards["a-1"] = a;
+    s.cards["b-1"] = b;
+    s.runner.installed = ["buf-1"];
+    s.runner.discardPile = ["a-1", "b-1"];
+    s.turn.pendingGripOrStackTrashBatchIds = ["a-1", "b-1"];
+    s.turn.bufferDriveGripStackTrashMetPending = true;
+    expect(s.turn.bufferDriveGripStackTrashUsedThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first grip/stack trash batch",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.bufferDriveGripStackTrashUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first grip/stack trash batch this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      s.pendingChoice?.options.some((o) => o.id === "batch-bottom:a-1"),
+    ).toBe(true);
+  });
+
+  it("marks Corp flipped first operation play at 10.3.1a (phase 3 scanner)", async () => {
+    const { fireCorpIdentityFlippedFirstOperationPlay } =
+      await import("../../../src/state/setupAndEnd/identityFlipHooks.js");
+    const s = createInitialState();
+    const id = s.cards[s.corp.identityId];
+    id.identityFlipped = true;
+    id.identityFlippedHooks = {
+      onFirstOperationPlayThisTurn: fx.addPowerCounter(1),
+    };
+    id.powerCounters = 0;
+    fireCorpIdentityFlippedFirstOperationPlay(s);
+    expect(s.turn.corpFlippedIdentityFirstOpMetPending).toBe(true);
+    expect(s.turn.corpFlippedIdentityFirstOpUsedThisTurn).toBe(false);
+    expect(id.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Corp flipped first operation play",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.corpFlippedIdentityFirstOpUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first operation play while flipped"),
+      ),
+    ).toBe(true);
+    expect(id.powerCounters).toBe(1);
+  });
+
+  it("marks first trash matching Runner ID faction at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteTrashMatchingRunnerIdentityFaction } =
+      await import("../../../src/state/hostingAndTrash/trashHooks.js");
+    const s = createInitialState();
+    const id = s.cards[s.runner.identityId];
+    id.faction = "anarch";
+    const storgotic = instantiateCard(
+      "storgotic-resonator",
+      "stor-1",
+      "server:remote-1:root",
+    );
+    storgotic.rezzed = true;
+    storgotic.faceup = true;
+    storgotic.onFirstTrashMatchingRunnerIdentityFactionEachTurn =
+      fx.addPowerCounter(1);
+    storgotic.powerCounters = 0;
+    s.cards["stor-1"] = storgotic;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["stor-1"],
+    };
+    const trash = instantiateCard("sure-gamble", "trash-1", "corp:archives");
+    trash.faction = "anarch";
+    s.cards["trash-1"] = trash;
+    noteTrashMatchingRunnerIdentityFaction(s, "trash-1");
+    expect(s.turn.firstTrashMatchingRunnerIdentityFactionMetPending).toBe(true);
+    expect(s.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn).toBe(
+      false,
+    );
+    expect(storgotic.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first trash matching Runner ID faction",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn).toBe(
+      true,
+    );
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first trash matching Runner identity faction",
+        ),
+      ),
+    ).toBe(true);
+    expect(storgotic.powerCounters).toBe(1);
+  });
+
+  it("marks first access trash at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteAccessTrash } =
+      await import("../../../src/state/hostingAndTrash/trashHooks.js");
+    const s = createInitialState();
+    const mache = instantiateCard("mache", "mache-1", "runner:installed");
+    mache.onFirstAccessTrashEachTurn = fx.addPowerCounter(1);
+    mache.powerCounters = 0;
+    s.cards["mache-1"] = mache;
+    s.runner.installed.push("mache-1");
+    noteAccessTrash(s, 3);
+    expect(s.turn.lastAccessTrashCost).toBe(3);
+    expect(s.turn.firstAccessTrashMetPending).toBe(true);
+    expect(s.turn.firstAccessTrashUsedThisTurn).toBe(false);
+    expect(mache.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first access trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstAccessTrashUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first access trash this turn"),
+      ),
+    ).toBe(true);
+    expect(mache.powerCounters).toBe(1);
+  });
+
+  it("marks first program/hardware trash at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstProgramOrHardwareTrashEachTurn } =
+      await import("../../../src/state/hostingAndTrash/trashHooks.js");
+    const s = createInitialState();
+    const district = instantiateCard(
+      "district-99",
+      "d99-1",
+      "runner:installed",
+    );
+    district.onFirstProgramOrHardwareTrashEachTurn = fx.addPowerCounter(1);
+    district.powerCounters = 0;
+    s.cards["d99-1"] = district;
+    s.runner.installed.push("d99-1");
+    const prog = instantiateCard("sure-gamble", "prog-1", "runner:installed");
+    prog.type = "program";
+    s.cards["prog-1"] = prog;
+    noteFirstProgramOrHardwareTrashEachTurn(s, "prog-1");
+    expect(s.turn.firstProgramOrHardwareTrashMetPending).toBe(true);
+    expect(s.turn.firstProgramOrHardwareTrashUsedThisTurn).toBe(false);
+    expect(district.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first program/hardware trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstProgramOrHardwareTrashUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first program/hardware trash this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(district.powerCounters).toBe(1);
+  });
+
+  it("marks first Corp card trash at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstCorpCardTrashEachTurn } =
+      await import("../../../src/state/hostingAndTrash/trashHooks.js");
+    const s = createInitialState();
+    const badge = instantiateCard(
+      "solidarity-badge",
+      "sb-1",
+      "runner:installed",
+    );
+    badge.onFirstCorpCardTrashEachTurn = fx.addPowerCounter(1);
+    badge.powerCounters = 0;
+    s.cards["sb-1"] = badge;
+    s.runner.installed.push("sb-1");
+    noteFirstCorpCardTrashEachTurn(s);
+    expect(s.turn.firstCorpCardTrashMetPending).toBe(true);
+    expect(s.turn.firstCorpCardTrashUsedThisTurn).toBe(false);
+    expect(badge.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first Corp card trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstCorpCardTrashUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first Corp card trashed this turn"),
+      ),
+    ).toBe(true);
+    expect(badge.powerCounters).toBe(1);
+  });
+
+  it("marks first Runner steal/trash at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteRunnerStoleOrTrashedCorpCard } =
+      await import("../../../src/state/hostingAndTrash/trashHooks.js");
+    const s = createInitialState();
+    const id = s.cards[s.runner.identityId];
+    id.onFirstRunnerStoleOrTrashedCorpCardThisTurn = fx.addPowerCounter(1);
+    id.powerCounters = 0;
+    noteRunnerStoleOrTrashedCorpCard(s);
+    expect(s.turn.firstRunnerStoleOrTrashedMetPending).toBe(true);
+    expect(s.turn.firstRunnerStoleOrTrashedUsedThisTurn).toBe(false);
+    expect(id.powerCounters).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first Runner steal/trash",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstRunnerStoleOrTrashedUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first Runner steal/trash of a Corp card this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(id.powerCounters).toBe(1);
+  });
+
+  it("marks first agenda scored/stolen at 10.3.1a (phase 3 scanner)", async () => {
+    const { fireFirstAgendaScoredOrStolenThisTurn } =
+      await import("../../../src/state/turnAndActions/agendaHooks.js");
+    const s = createInitialState();
+    const asset = instantiateCard(
+      "pad-campaign",
+      "pg-1",
+      "server:remote-1:root",
+    );
+    asset.rezzed = true;
+    asset.faceup = true;
+    asset.onFirstAgendaScoredOrStolenThisTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    s.cards["pg-1"] = asset;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pg-1"],
+    };
+    s.corp.credits = 0;
+    fireFirstAgendaScoredOrStolenThisTurn(s);
+    expect(s.turn.firstAgendaScoredOrStolenMetPending).toBe(true);
+    expect(s.turn.firstAgendaScoredOrStolenUsedThisTurn).toBe(false);
+    expect(s.corp.credits).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first agenda scored or stolen",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstAgendaScoredOrStolenUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first agenda scored or stolen this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+  });
+
+  it("marks A Teia normal remote install at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstRemoteInstallThisTurn } =
+      await import("../../../src/state/hostingAndTrash/trashHooks.js");
+    const s = createInitialState();
+    const teia = instantiateCard(
+      "a-teia-ip-recovery",
+      "teia-1",
+      "corp:identity",
+    );
+    teia.onFirstRemoteInstallThisTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    s.cards["teia-1"] = teia;
+    s.corp.identityId = "teia-1";
+    s.corp.credits = 0;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [],
+    };
+    noteFirstRemoteInstallThisTurn(s, "remote-1");
+    expect(s.turn.firstRemoteInstallMetPending).toBe(true);
+    expect(s.turn.firstRemoteInstallThisTurnUsed).toBe(true);
+    expect(s.corp.credits).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "a teia normal remote install",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstRemoteInstallMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first remote install this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+  });
+
+  it("marks A Teia from zone diff after a swap onto a remote (CR 8.8.4b)", () => {
+    const s = createInitialState();
+    const teia = instantiateCard(
+      "a-teia-ip-recovery",
+      "teia-1",
+      "corp:identity",
+    );
+    s.cards["teia-1"] = teia;
+    s.corp.identityId = "teia-1";
+    const tatu = instantiateCard("tatu-bola", "tb-1", "server:remote-1:ice");
+    tatu.rezzed = true;
+    tatu.faceup = true;
+    const palisade = instantiateCard("palisade", "pal-1", "corp:hq");
+    s.cards["tb-1"] = tatu;
+    s.cards["pal-1"] = palisade;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: ["tb-1"],
+      root: [],
+    };
+    s.corp.hand = ["pal-1"];
+    commitCheckpointSnapshot(s, "before-swap");
+
+    s.corp.hand = [];
+    s.servers["remote-1"]!.ice = ["pal-1"];
+    palisade.zone = "server:remote-1:ice";
+    tatu.zone = "corp:hq";
+    s.corp.hand = ["tb-1"];
+
+    occurCheckpoint(s, "instruction", "Swap", [CR.swapBecomeInstalled], "tb-1");
+    expect(s.log.join("\n")).toContain(
+      `A Teia: IP Recovery becomes pending (CR ${CR.swapBecomeInstalled.number})`,
+    );
+    expect(
+      s.pendingAbilities.some(
+        (p) => p.payload?.kind === "swap_install_trigger",
+      ),
+    ).toBe(true);
+  });
+
+  it("diffs exposure counts for Blackguard (CR 9.6.4b)", () => {
+    const s = createInitialState();
+    commitCheckpointSnapshot(s, "before-expose");
+    expect(diffAgainstPreviousCheckpoint(s).exposedIds).toEqual([]);
+
+    s.turn.exposureCounts = { "pad-1": 1, "iw-1": 1 };
+    expect(diffAgainstPreviousCheckpoint(s).exposedIds).toEqual([
+      "pad-1",
+      "iw-1",
+    ]);
+
+    commitCheckpointSnapshot(s, "after-expose");
+    s.turn.exposureCounts = { "pad-1": 2, "iw-1": 1 };
+    expect(diffAgainstPreviousCheckpoint(s).exposedIds).toEqual(["pad-1"]);
+  });
+
+  it("offers root-access from zone diff when a card enters the breached root (CR 10.3.1j)", () => {
+    const s = createInitialState();
+    const pad = instantiateCard("pad-campaign", "pad-1", "corp:hq");
+    s.cards["pad-1"] = pad;
+    s.corp.hand = ["pad-1"];
+    s.timing.structure = "breach";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "breach",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: 0,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+    };
+    commitCheckpointSnapshot(s, "before-root-entry");
+
+    s.corp.hand = [];
+    s.servers.hq.root.push("pad-1");
+    pad.zone = "server:hq:root";
+    pad.rezzed = false;
+    pad.faceup = false;
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Install into a breached root",
+      [CR.checkpointCardEnteringRoot],
+      "test",
+    );
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "root-access:yes:pad-1",
+      "root-access:no:pad-1",
+    ]);
+    const added = applyAction(s, {
+      type: "choose_option",
+      optionId: "root-access:yes:pad-1",
+    });
+    expect(added.ok).toBe(true);
+    if (added.ok) {
+      expect(added.state.run?.accessCandidates).toContain("pad-1");
+    }
+  });
+});
+
+describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
+  it("creates pending instances and marks them independent when imminent", () => {
+    const s = createInitialState();
+    const inst = createPendingAbilityInstance(s, {
+      abilityKey: "test:conditional",
+      sourceId: s.runner.identityId,
+      controller: "runner",
+      mandatory: false,
+    });
+    expect(inst.status).toBe("pending");
+    expect(inst.independentOfSource).toBe(false);
+    expect(pendingAbilitiesWithStatus(s)).toHaveLength(1);
+
+    markPendingAbilityImminent(s, inst.id);
+    expect(inst.status).toBe("imminent");
+    expect(inst.independentOfSource).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(CR.conditionalAbilityIndependent.number),
+      ),
+    ).toBe(true);
+  });
+
+  it("cancels still-pending instances when the Runner source leaves play (CR 9.6.10)", () => {
+    const s = createInitialState();
+    const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
+    s.cards["dd-1"] = dealer;
+    s.runner.installed = ["dd-1"];
+    const pending = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin",
+      sourceId: "dd-1",
+      controller: "runner",
+      mandatory: true,
+    });
+    const imminent = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin-kept",
+      sourceId: "dd-1",
+      controller: "runner",
+      mandatory: true,
+    });
+    markPendingAbilityImminent(s, imminent.id);
+
+    trashCard(s, "dd-1");
+    expect(pending.status).toBe("cancelled");
+    expect(imminent.status).toBe("imminent");
+    expect(
+      s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
+    ).toBe(true);
+  });
+
+  it("cancels still-pending instances when the Corp source leaves play (CR 9.6.10)", () => {
+    const s = createInitialState();
+    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    pad.rezzed = true;
+    s.cards["pad-1"] = pad;
+    s.servers.remote1 = {
+      id: "remote1",
+      root: ["pad-1"],
+      ice: [],
+    };
+    const pending = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin",
+      sourceId: "pad-1",
+      controller: "corp",
+      mandatory: true,
+    });
+    const imminent = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin-kept",
+      sourceId: "pad-1",
+      controller: "corp",
+      mandatory: true,
+    });
+    markPendingAbilityImminent(s, imminent.id);
+
+    trashCard(s, "pad-1");
+    expect(pending.status).toBe("cancelled");
+    expect(imminent.status).toBe("imminent");
+    expect(
+      s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
+    ).toBe(true);
+  });
+
+  it("cancels still-pending instances when the source is blanked (CR 9.6.10)", async () => {
+    const { blankAbilitiesUntilCorpTurnEnd } =
+      await import("../../../src/state/continuous/lingeringEffects.js");
+    const s = createInitialState();
+    const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
+    s.cards["dd-1"] = dealer;
+    s.runner.installed = ["dd-1"];
+    const pending = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin",
+      sourceId: "dd-1",
+      controller: "runner",
+      mandatory: true,
+    });
+    const imminent = createPendingAbilityInstance(s, {
+      abilityKey: "on-turn-begin-kept",
+      sourceId: "dd-1",
+      controller: "runner",
+      mandatory: true,
+    });
+    markPendingAbilityImminent(s, imminent.id);
+
+    blankAbilitiesUntilCorpTurnEnd(s, {
+      createdBy: s.corp.identityId,
+      cardId: "dd-1",
+    });
+    expect(pending.status).toBe("cancelled");
+    expect(imminent.status).toBe("imminent");
+    expect(
+      s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
+    ).toBe(true);
+  });
+
+  it("cancels Hostile Infrastructure pending when blanked before resolve (CR 9.6.10)", () => {
+    const s = createInitialState();
+    const hi = instantiateCard(
+      "hostile-infrastructure",
+      "hi-1",
+      "server:remote-1:root",
+    );
+    hi.rezzed = true;
+    s.cards["hi-1"] = hi;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["hi-1"],
+    };
+    const pending = createPendingAbilityInstance(s, {
+      abilityKey: "hostile-infrastructure:net-on-trash",
+      sourceId: "hi-1",
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "net_damage_on_corp_trash", amount: 1 },
+    });
+    suppressAbilities(s, hi.id);
+    cancelPendingIfSourceInactive(s);
+    expect(pending.status).toBe("cancelled");
+    expect(
+      s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
+    ).toBe(true);
+  });
+
+  it("keeps leftover pending off a checkpoint that marks nothing (CR 10.3.2)", () => {
+    const s = createInitialState();
+    // Deferred leftover (Amaze-class): still pending from an earlier window.
+    const leftover = createPendingAbilityInstance(s, {
+      abilityKey: "amaze:run-ends",
+      sourceId: s.corp.identityId,
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "amaze_give_tags", amount: 1 },
+    });
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "no new marks",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+
+    expect(
+      s.log.some((line) =>
+        line.includes("none marked pending, so it stays closed"),
+      ),
+    ).toBe(true);
+    expect(s.reactionStack).toHaveLength(0);
+    expect(s.pendingAbilities.find((p) => p.id === leftover.id)?.status).toBe(
+      "pending",
+    );
+  });
+
+  it("opens a reaction window only for newly marked pending (CR 9.2.8a / 10.3.2)", () => {
+    const s = createInitialState();
+    s.cards[s.corp.identityId]!.defId = "weyland-consortium-built-to-last";
+    const asset = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
+    asset.rezzed = true;
+    asset.advancementCounters = 0;
+    s.cards["pad-1"] = asset;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      root: ["pad-1"],
+      ice: [],
+    };
+    commitCheckpointSnapshot(s, "baseline");
+    // The Corp advances it (CR 1.18.1), as advanceCard records.
+    asset.advancementCounters = 1;
+    s.turn.advancedSincePreviousCheckpoint.push("pad-1");
+
+    const leftover = createPendingAbilityInstance(s, {
+      abilityKey: "amaze:run-ends",
+      sourceId: s.corp.identityId,
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "amaze_give_tags", amount: 1 },
+    });
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "built-to-last mark",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+
+    expect(
+      s.log.some((line) =>
+        line.includes(`Reaction window (CR ${CR.checkpointReaction.number})`),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) => line.includes(CR.reactionWindowFixedSet.number)),
+    ).toBe(true);
+    expect(s.reactionStack).toHaveLength(0);
+    // Newly marked Built to Last resolved; leftover Amaze stayed pending.
+    expect(
+      s.pendingAbilities.some(
+        (p) => p.abilityKey === "built-to-last-had-no-advancement",
+      ),
+    ).toBe(false);
+    expect(s.pendingAbilities.find((p) => p.id === leftover.id)?.status).toBe(
+      "pending",
+    );
+  });
+});
+
+describe("lingering effect registry (CR 9.10.1)", () => {
+  it("creates independent lingerings and removes them at 10.3.1b", () => {
+    const s = createInitialState();
+    const effect = addLingeringEffect(s, {
+      createdBy: s.runner.identityId,
+      duration: { kind: "until_checkpoint" },
+      kind: "test-boost",
+      payload: { amount: 1 },
+    });
+    expect(effect.independent).toBe(true);
+    expect(s.lingeringEffects).toHaveLength(1);
+    expect(s.log.some((line) => line.includes(CR.lingeringEffect.number))).toBe(
+      true,
+    );
+
+    expireLingeringEffects(s, { untilCheckpoint: true });
+    expect(s.lingeringEffects).toHaveLength(0);
+  });
+
+  it("expires turn-duration lingerings only for the ended side", () => {
+    const s = createInitialState();
+    addLingeringEffect(s, {
+      createdBy: s.corp.identityId,
+      duration: { kind: "turn", side: "corp" },
+      kind: "corp-turn",
+    });
+    addLingeringEffect(s, {
+      createdBy: s.runner.identityId,
+      duration: { kind: "turn", side: "runner" },
+      kind: "runner-turn",
+    });
+    expireLingeringEffects(s, { turn: "corp" });
+    expect(s.lingeringEffects.map((e) => e.kind)).toEqual(["runner-turn"]);
+  });
+
+  it("registers mark designation as a turn-duration lingering (CR 10.11.4)", async () => {
+    const { identifyMark } =
+      await import("../../../src/state/keywordsAndCredits/keywords.js");
+    const { LINGERING_KIND_MARK, lingeringEffectsOfKind } =
+      await import("../../../src/state/continuous/lingeringEffects.js");
+    let s = createInitialState();
+    identifyMark(s, s.runner.identityId);
+    expect(currentMark(s)).toBeTruthy();
+    const marks = lingeringEffectsOfKind(s, LINGERING_KIND_MARK);
+    expect(marks).toHaveLength(1);
+    expect(marks[0]!.duration).toEqual({ kind: "turn" });
+    expect(marks[0]!.payload).toEqual({ serverId: currentMark(s) });
+    expect(marks[0]!.independent).toBe(true);
+    expect(s.log.some((line) => line.includes(CR.markLingering.number))).toBe(
+      true,
+    );
+
+    s.timingKey = "runner.turnEnds";
+    autoWalk(s);
+    const passed = applyAction(s, { type: "pass_window" });
+    expect(passed.ok).toBe(true);
+    if (!passed.ok) return;
+    s = passed.state;
+    expect(currentMark(s)).toBeNull();
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_MARK)).toHaveLength(0);
+  });
+
+  it("registers run/encounter strength boosts as lingerings (CR 9.10.1)", async () => {
+    const {
+      LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+      lingeringEffectsOfKind,
+      lingeringBreakerStrengthOfKind,
+      lingeringIceStrengthOfKind,
+      addBreakerStrengthBoostThisRun,
+      addBreakerStrengthBoostThisEncounter,
+      addIceStrengthBoostThisEncounter,
+    } = await import("../../../src/state/continuous/lingeringEffects.js");
+    const s = createInitialState();
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: false,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: {
+        iceId: "ice-1",
+        broken: [false],
+        subroutinesResolved: [],
+      },
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+    };
+    addBreakerStrengthBoostThisRun(s, {
+      createdBy: s.runner.identityId,
+      breakerId: "br-1",
+      amount: 2,
+    });
+    addBreakerStrengthBoostThisEncounter(s, {
+      createdBy: s.runner.identityId,
+      breakerId: "br-1",
+      amount: 1,
+    });
+    addIceStrengthBoostThisEncounter(s, {
+      createdBy: s.corp.identityId,
+      iceId: "ice-1",
+      amount: 3,
+    });
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "br-1",
+        LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      ),
+    ).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "br-1",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(1);
+    expect(
+      lingeringIceStrengthOfKind(
+        s,
+        "ice-1",
+        LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(3);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_RUN),
+    ).toHaveLength(1);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER),
+    ).toHaveLength(1);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH_ENCOUNTER),
+    ).toHaveLength(1);
+
+    expireLingeringEffects(s, { encounter: true });
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "br-1",
+        LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      ),
+    ).toBe(2);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER),
+    ).toHaveLength(0);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH_ENCOUNTER),
+    ).toHaveLength(0);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_RUN),
+    ).toHaveLength(1);
+
+    expireLingeringEffects(s, { run: true });
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_RUN),
+    ).toHaveLength(0);
+  });
+
+  it("registers until-checkpoint breaker boosts as lingerings (CR 9.10.1)", async () => {
+    const {
+      LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
+      lingeringEffectsOfKind,
+      lingeringBreakerStrengthOfKind,
+      addBreakerStrengthBoostUntilCheckpoint,
+    } = await import("../../../src/state/continuous/lingeringEffects.js");
+    const s = createInitialState();
+    addBreakerStrengthBoostUntilCheckpoint(s, {
+      createdBy: s.runner.identityId,
+      breakerId: "br-1",
+      amount: 2,
+    });
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "br-1",
+        LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
+      ),
+    ).toBe(2);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT),
+    ).toHaveLength(1);
+
+    expireLingeringEffects(s, { untilCheckpoint: true });
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT),
+    ).toHaveLength(0);
+  });
+
+  it("registers Corp-turn ability blanks as lingerings (CR 9.10.1)", async () => {
+    const {
+      LINGERING_KIND_ABILITY_BLANK,
+      lingeringEffectsOfKind,
+      blankAbilitiesUntilCorpTurnEnd,
+    } = await import("../../../src/state/continuous/lingeringEffects.js");
+    let s = createInitialState();
+    const res = instantiateCard("aesops-pawnshop", "res-1", "runner:installed");
+    s.cards["res-1"] = res;
+    s.runner.installed = ["res-1"];
+    blankAbilitiesUntilCorpTurnEnd(s, {
+      createdBy: s.corp.identityId,
+      cardId: "res-1",
+    });
+    const blanks = lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK);
+    expect(blanks).toHaveLength(1);
+    expect(blanks[0]!.duration).toEqual({ kind: "turn", side: "corp" });
+    expect(blanks[0]!.payload).toEqual({ cardId: "res-1" });
+    expect(abilitiesSuppressed(s, "res-1")).toBe(true);
+
+    // Runner turn end does not clear Corp-scoped blanks.
+    expireLingeringEffects(s, { turn: "runner" });
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK),
+    ).toHaveLength(1);
+    expect(abilitiesSuppressed(s, "res-1")).toBe(true);
+
+    s.timingKey = "corp.turnEnds";
+    autoWalk(s);
+    const passed = applyAction(s, { type: "pass_window" });
+    expect(passed.ok).toBe(true);
+    if (!passed.ok) return;
+    s = passed.state;
+    expect(abilitiesSuppressed(s, "res-1")).toBe(false);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK),
+    ).toHaveLength(0);
+  });
+
+  it("registers this-turn strength boosts as turn-duration lingerings (CR 9.10.1)", async () => {
+    const {
+      LINGERING_KIND_BREAKER_STRENGTH,
+      LINGERING_KIND_ICE_STRENGTH,
+      lingeringEffectsOfKind,
+      lingeringBreakerStrengthOfKind,
+      lingeringIceStrengthOfKind,
+      addBreakerStrengthBoostThisTurn,
+      addIceStrengthBoostThisTurn,
+    } = await import("../../../src/state/continuous/lingeringEffects.js");
+    let s = createInitialState();
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    addBreakerStrengthBoostThisTurn(s, {
+      createdBy: s.runner.identityId,
+      breakerId: "breaker-1",
+      amount: 2,
+    });
+    addIceStrengthBoostThisTurn(s, {
+      createdBy: s.corp.identityId,
+      iceId: "ice-1",
+      amount: 1,
+    });
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "breaker-1",
+        LINGERING_KIND_BREAKER_STRENGTH,
+      ),
+    ).toBe(2);
+    expect(
+      lingeringIceStrengthOfKind(s, "ice-1", LINGERING_KIND_ICE_STRENGTH),
+    ).toBe(1);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH),
+    ).toHaveLength(1);
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH)).toHaveLength(
+      1,
+    );
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH)[0]!.payload,
+    ).toEqual({ breakerId: "breaker-1", amount: 2 });
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH)[0]!.payload,
+    ).toEqual({ iceId: "ice-1", amount: 1 });
+
+    s.timingKey = "runner.turnEnds";
+    autoWalk(s);
+    const passed = applyAction(s, { type: "pass_window" });
+    expect(passed.ok).toBe(true);
+    if (!passed.ok) return;
+    s = passed.state;
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "breaker-1",
+        LINGERING_KIND_BREAKER_STRENGTH,
+      ),
+    ).toBe(0);
+    expect(
+      lingeringIceStrengthOfKind(s, "ice-1", LINGERING_KIND_ICE_STRENGTH),
+    ).toBe(0);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH),
+    ).toHaveLength(0);
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH)).toHaveLength(
+      0,
+    );
+  });
+
+  it("registers runner MU modifiers as a lingering that ends with the turn in progress (CR 9.10.1)", async () => {
+    const {
+      LINGERING_KIND_RUNNER_MU,
+      lingeringEffectsOfKind,
+      lingeringRunnerMuModifier,
+    } = await import("../../../src/state/continuous/lingeringEffects.js");
+    let s = createInitialState();
+    const r = evalEffect(
+      { state: s, sourceId: s.corp.identityId },
+      {
+        op: "do",
+        action: { kind: "runner_mu_modifier_until_turn_end", delta: -2 },
+      },
+    );
+    expect(r.ok).toBe(true);
+    expect(lingeringRunnerMuModifier(s)).toBe(-2);
+    const mus = lingeringEffectsOfKind(s, LINGERING_KIND_RUNNER_MU);
+    expect(mus).toHaveLength(1);
+    expect(mus[0]!.duration).toEqual({ kind: "turn" });
+    expect(mus[0]!.payload).toEqual({ delta: -2 });
+    expect(mus[0]!.independent).toBe(true);
+
+    s.timingKey = "runner.turnEnds";
+    autoWalk(s);
+    const passed = applyAction(s, { type: "pass_window" });
+    expect(passed.ok).toBe(true);
+    if (!passed.ok) return;
+    s = passed.state;
+    expect(lingeringRunnerMuModifier(s)).toBe(0);
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_RUNNER_MU)).toHaveLength(0);
+  });
+
+  it("registers granted ice subtypes as a turn-duration lingering (CR 9.10.1)", async () => {
+    const { LINGERING_KIND_GRANTED_SUBTYPES, lingeringEffectsOfKind } =
+      await import("../../../src/state/continuous/lingeringEffects.js");
+    let s = createInitialState();
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    const r = evalEffect(
+      { state: s, sourceId: s.runner.identityId },
+      {
+        op: "do",
+        action: {
+          kind: "grant_ice_subtypes_until_end_of_turn",
+          cardId: "ice-1",
+          subtypes: ["sentry", "code gate"],
+        },
+      },
+    );
+    expect(r.ok).toBe(true);
+    const grants = lingeringEffectsOfKind(s, LINGERING_KIND_GRANTED_SUBTYPES);
+    expect(grants).toHaveLength(1);
+    expect(grants[0]!.duration).toEqual({ kind: "turn" });
+    expect(grants[0]!.payload).toEqual({
+      cardId: "ice-1",
+      subtypes: ["sentry", "code gate"],
+    });
+    expect(grants[0]!.independent).toBe(true);
+
+    s.timingKey = "runner.turnEnds";
+    autoWalk(s);
+    const passed = applyAction(s, { type: "pass_window" });
+    expect(passed.ok).toBe(true);
+    if (!passed.ok) return;
+    s = passed.state;
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_GRANTED_SUBTYPES),
+    ).toHaveLength(0);
+  });
+});
+
+describe("draw on-draw pending (CR 8.4.5a / 10.3.1a / 10.3.2)", () => {
+  it("marks Find the Truth pending at the draw checkpoint, then reveals in the reaction window", () => {
+    let s = createInitialState();
+    const truth = instantiateCard(
+      "find-the-truth",
+      "ftt-1",
+      "runner:installed",
+    );
+    s.cards["ftt-1"] = truth;
+    s.runner.installed.push("ftt-1");
+    const topId = s.runner.deck[0]!;
+    const title = s.cards[topId]!.title;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    s.runner.clicks = 1;
+
+    const r = applyAction(s, { type: "basic_draw" });
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+
+    // The draw's own checkpoint (CR 8.4.5b), after the click's cost
+    // checkpoint (CR 10.3.4).
+    const drawCheckpoint = s.log.findIndex((line) =>
+      line.startsWith("Checkpoint open [draw]"),
+    );
+    expect(drawCheckpoint).toBeGreaterThanOrEqual(0);
+    const checked = s.log.findIndex(
+      (line, i) =>
+        i > drawCheckpoint && line.includes("Conditional abilities checked"),
+    );
+    expect(checked).toBeGreaterThanOrEqual(0);
+    expect(s.log[checked]).toContain("marked pending");
+    expect(s.log[checked]).toContain(CR.pendingInstances.number);
+
+    const window = s.log.findIndex((line) =>
+      line.includes(`Reaction window (CR ${CR.checkpointReaction.number})`),
+    );
+    const reveal = s.log.findIndex((line) =>
+      line.includes(`Find the Truth — reveal drawn card: ${title}`),
+    );
+    expect(window).toBeGreaterThanOrEqual(0);
+    expect(reveal).toBeGreaterThan(window);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+});
+
+describe("simultaneous trash multiplicity (CR 9.12.2a)", () => {
+  it("marks Hostile Infrastructure twice and Warroid once, then resolves via a reaction window", () => {
+    let s = createInitialState();
+    const hi = instantiateCard(
+      "hostile-infrastructure",
+      "hi-1",
+      "server:remote-1:root",
+    );
+    hi.rezzed = true;
+    hi.faceup = true;
+    const warroid = instantiateCard(
+      "warroid-tracker",
+      "war-1",
+      "server:remote-1:root",
+    );
+    warroid.rezzed = true;
+    warroid.faceup = true;
+    const sing = instantiateCard("singularity", "sing-1", "runner:play-area");
+    for (const card of [hi, warroid, sing]) s.cards[card.id] = card;
+    s.runner.hand = ["grip-0", "grip-1"];
+    for (const id of s.runner.hand) {
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+    }
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["hi-1", "war-1"],
+    };
+    s.run = {
+      attackedServerId: "remote-1",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+    };
+    s.activeSide = "runner";
+
+    const opened = openAsChoice(
+      s,
+      "sing-1",
+      "singularity",
+      fx.do({ kind: "breach_instead_singularity_trash_root" }),
+    );
+    expect(opened.ok).toBe(true);
+    const r = applyAction(s, {
+      type: "choose_option",
+      optionId: "singularity",
+    });
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+    // The Corp controls all three and chooses the order (CR 9.2.8d).
+    for (let i = 0; i < 3 && s.pendingChoice; i++) {
+      const pick =
+        s.pendingChoice.options.find(
+          (o) => o.label === "Hostile Infrastructure",
+        ) ?? s.pendingChoice.options[0]!;
+      const next = applyAction(s, {
+        type: "choose_option",
+        optionId: pick.id,
+      });
+      if (!next.ok) throw new Error(next.error);
+      s = next.state;
+    }
+
+    const hiPending = s.log.findIndex((line) =>
+      line.includes(
+        "Hostile Infrastructure remains active — 2 instances become pending",
+      ),
+    );
+    const warPending = s.log.findIndex((line) =>
+      line.includes(
+        "Warroid Tracker — one instance becomes pending for this trash",
+      ),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > hiPending && line.includes("Reaction window open"),
+    );
+    expect(hiPending).toBeGreaterThanOrEqual(0);
+    expect(warPending).toBeGreaterThan(hiPending);
+    expect(windowOpen).toBeGreaterThan(warPending);
+    expect(
+      s.log.filter((line) => line.startsWith("net damage 1:")).length,
+    ).toBe(2);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+  });
+});
+
+describe("interrupt expected effects (CR 9.9.2)", () => {
+  it("tracks expected tags and updates them as they are prevented", () => {
+    const s = createInitialState();
+    openPendingTags(s, 2, s.corp.identityId);
+    expect(s.pendingTags?.expectedEffects?.tags).toEqual({ amount: 2 });
+    preventPendingTags(s, 1);
+    expect(s.pendingTags?.expectedEffects?.tags).toEqual({ amount: 1 });
+  });
+
+  it("tracks expected expose via the interrupt opener and clears it when prevented", async () => {
+    const { beginExpose, preventPendingExpose } =
+      await import("../../../src/state/visibility/expose.js");
+    const s = createInitialState();
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["zb", "hidden"],
+    };
+    const zb = instantiateCard(
+      "zaibatsu-loyalty",
+      "zb",
+      "server:remote-1:root",
+    );
+    zb.rezzed = true;
+    zb.faceup = true;
+    s.cards["zb"] = zb;
+    const hidden = instantiateCard(
+      "melange-mining-corp",
+      "hidden",
+      "server:remote-1:root",
+    );
+    hidden.rezzed = false;
+    hidden.faceup = false;
+    s.cards["hidden"] = hidden;
+    s.corp.credits = 5;
+    expect(beginExpose(s, "hidden")).toBe("pending");
+    expect(s.pendingExpose?.phase).toBe("interrupt");
+    expect(s.pendingExpose?.expectedEffects?.exposeCardIds).toEqual(["hidden"]);
+    preventPendingExpose(s, 1);
+    expect(s.pendingExpose).toBeNull();
+    expect(s.cards["hidden"]!.faceup).toBe(false);
+  });
+
+  it("tracks expected subroutine break and clears it when prevented", async () => {
+    const { finalizePendingSubroutineBreak } =
+      await import("../../../src/actions/breakSubroutine.js");
+    const s = createInitialState();
+    s.pendingSubroutineBreak = {
+      iceId: "heim-1",
+      subIndex: 0,
+      expectedEffects: {
+        breakSubroutine: { iceId: "heim-1", subIndex: 0 },
+      },
+    };
+    expect(s.pendingSubroutineBreak.expectedEffects?.breakSubroutine).toEqual({
+      iceId: "heim-1",
+      subIndex: 0,
+    });
+    const closed = finalizePendingSubroutineBreak(s, true);
+    expect(closed.ok).toBe(true);
+    expect(s.pendingSubroutineBreak).toBeNull();
+  });
+});
+
+describe("storedTriggers pending bag (CR 9.6.2)", () => {
+  it("marks onAgendaScored pending when an agenda is scored", async () => {
+    const { scoreAgendaAction } = await import("../../../src/actions/score.js");
+    const s = createInitialState();
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ag-1",
+      "server:remote-1:root",
+    );
+    agenda.advancementCounters = agenda.advancementRequirement ?? 2;
+    const marrow = instantiateCard("marrow", "mar-1", "runner:installed");
+    s.cards["ag-1"] = agenda;
+    s.cards["mar-1"] = marrow;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ag-1"],
+    };
+    s.runner.installed = ["mar-1"];
+    s.activeSide = "corp";
+    s.timingKey = "corp.actionPaw";
+    const result = scoreAgendaAction(s, "ag-1");
+    expect(result.ok).toBe(true);
+    expect(
+      s.log.some(
+        (line) => line.includes("Marrow") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks onEncounter pending when resolving a deferred encounter", async () => {
+    const { resolvePendingOnEncounter } =
+      await import("../../../src/state/run/onEncounter.js");
+    const s = createInitialState();
+    const ice = instantiateCard("pop-up-window", "pop-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.cards["pop-1"] = ice;
+    s.servers.hq.ice = ["pop-1"];
+    s.run = {
+      serverId: "hq",
+      position: 0,
+      successful: false,
+      ended: false,
+      encounter: {
+        iceId: "pop-1",
+        onEncounterPending: true,
+        onEncounterPrevented: false,
+      },
+    } as typeof s.run;
+    resolvePendingOnEncounter(s);
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Pop-up Window") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks onFirstEmptyGrip pending when the grip empties", async () => {
+    const { maybeFireFirstEmptyGripTriggers } =
+      await import("../../../src/state/damageAndPrevention/damage.js");
+    const s = createInitialState();
+    const respiro = instantiateCard(
+      "respirocytes",
+      "resp-1",
+      "runner:installed",
+    );
+    s.cards["resp-1"] = respiro;
+    s.runner.installed = ["resp-1"];
+    s.runner.hand = [];
+    maybeFireFirstEmptyGripTriggers(s);
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Respirocytes") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks onTrash pending when a Runner card hits the heap", async () => {
+    const s = createInitialState();
+    const rolodex = instantiateCard("rolodex", "rolo-1", "runner:installed");
+    s.cards["rolo-1"] = rolodex;
+    s.runner.installed = ["rolo-1"];
+    trashCard(s, "rolo-1");
+    expect(
+      s.log.some(
+        (line) => line.includes("Rolodex") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks first Corp card / root install at 10.3.1a (phase 3 scanner)", async () => {
+    const {
+      noteFirstCorpCardInstallEachTurn,
+      noteFirstCorpRootInstallEachTurn,
+    } = await import("../../../src/state/hostingAndTrash/trashHooks.js");
+
+    const s = createInitialState();
+    const asa = instantiateCard(
+      "asa-group-security-through-vigilance",
+      "asa-1",
+      "corp:identity",
+    );
+    asa.onFirstCorpCardInstallEachTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const lago = instantiateCard(
+      "lago-paranoa-shelter",
+      "lago-1",
+      "runner:installed",
+    );
+    lago.onFirstCorpRootInstallEachTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["asa-1"] = asa;
+    s.cards["lago-1"] = lago;
+    s.corp.identityId = "asa-1";
+    s.runner.installed = ["lago-1"];
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+
+    noteFirstCorpCardInstallEachTurn(s);
+    noteFirstCorpRootInstallEachTurn(s);
+    expect(s.turn.firstCorpCardInstallMetPending).toBe(true);
+    expect(s.turn.firstCorpRootInstallMetPending).toBe(true);
+    expect(s.corp.credits).toBe(0);
+    expect(s.runner.credits).toBe(0);
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first corp install family",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstCorpCardInstallUsedThisTurn).toBe(true);
+    expect(s.turn.firstCorpRootInstallUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first Corp card install this turn"),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first Corp root install this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+    expect(s.runner.credits).toBe(1);
+  });
+
+  it("marks MirrorMorph pending on the third distinct Corp action", async () => {
+    const { noteCorpActionType } =
+      await import("../../../src/state/turnAndActions/corpActionHooks.js");
+    const s = createInitialState();
+    const morph = instantiateCard(
+      "mirrormorph-endless-iteration",
+      "mm-1",
+      "corp:identity",
+    );
+    s.cards["mm-1"] = morph;
+    s.corp.identityId = "mm-1";
+    s.activeSide = "corp";
+    noteCorpActionType(s, "draw");
+    noteCorpActionType(s, "gain");
+    noteCorpActionType(s, "click_ability");
+    expect(s.turn.mirrormorphThirdDistinctMetPending).toBe(true);
+    expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "mirrormorph third distinct",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    const pending = s.log.findIndex(
+      (line) =>
+        line.includes("MirrorMorph") && line.includes("becomes pending"),
+    );
+    expect(pending).toBeGreaterThanOrEqual(0);
+    expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(true);
+    expect(s.log.some((line) => line.includes("Reaction window open"))).toBe(
+      true,
+    );
+  });
+
+  it("marks Jackpot! pending when an agenda is added to the Runner score area", async () => {
+    const { fireOnAgendaAddedToRunnerScore } =
+      await import("../../../src/state/hostingAndTrash/trashHooks.js");
+    const s = createInitialState();
+    const jackpot = instantiateCard("jackpot", "jp-1", "runner:installed");
+    const agenda = instantiateCard("hostile-takeover", "ht-1", "runner:score");
+    s.cards["jp-1"] = jackpot;
+    s.cards["ht-1"] = agenda;
+    s.runner.installed = ["jp-1"];
+    s.runner.scoreArea = ["ht-1"];
+    s.runner.credits = 0;
+
+    fireOnAgendaAddedToRunnerScore(s);
+
+    const pending = s.log.findIndex((line) =>
+      line.includes("Jackpot! becomes pending"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > pending && line.includes("Reaction window open"),
+    );
+    expect(pending).toBeGreaterThanOrEqual(0);
+    expect(windowOpen).toBeGreaterThan(pending);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+
+  it("marks NeoTokyo Grid pending on the first advancement in its server", () => {
+    let s = createInitialState();
+    const grid = instantiateCard("neotokyo-grid", "neo-1", "server:hq:root");
+    grid.rezzed = true;
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "ag-1",
+      "server:hq:root",
+    );
+    s.cards["neo-1"] = grid;
+    s.cards["ag-1"] = agenda;
+    s.servers.hq.root = ["neo-1", "ag-1"];
+    s.corp.credits = 5;
+    s.corp.clicks = 2;
+    s.activeSide = "corp";
+    s.timingKey = "corp.takeAction";
+    const r = applyAction(s, { type: "advance", cardId: "ag-1" });
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+
+    const pending = s.log.findIndex((line) =>
+      line.includes("NeoTokyo Grid becomes pending"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > pending && line.includes("Reaction window open"),
+    );
+    expect(pending).toBeGreaterThanOrEqual(0);
+    expect(windowOpen).toBeGreaterThan(pending);
+    expect(s.corp.credits).toBe(5);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+});
+
+describe("Bug on Corp draw pending (CR 8.4.1)", () => {
+  it("marks Bug pending when the Corp draws, then opens its may-pay choice", () => {
+    const s = createInitialState();
+    const bug = instantiateCard("bug", "bug-1", "runner:installed");
+    const top = instantiateCard("hedge-fund", "hf-1", "corp:rd");
+    s.cards["bug-1"] = bug;
+    s.cards["hf-1"] = top;
+    s.runner.installed = ["bug-1"];
+    s.corp.deck = ["hf-1"];
+    s.corp.hand = [];
+    s.runner.credits = 5;
+
+    const drawn = evalEffect(
+      { state: s, sourceId: "bug-1" },
+      fx.do({ kind: "draw", side: "corp", amount: 1 }),
+    );
+    expect(drawn.ok).toBe(true);
+
+    const pending = s.log.findIndex((line) =>
+      line.includes("Bug becomes pending"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > pending && line.includes("Reaction window open"),
+    );
+    expect(pending).toBeGreaterThanOrEqual(0);
+    expect(s.log[pending]).toContain(CR.drawing.number);
+    expect(windowOpen).toBeGreaterThan(pending);
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.turn.pendingCorpDrawnCardId).toBe("hf-1");
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+  });
+});
+
+describe("Amaze run-end pending (CR 9.12.5d)", () => {
+  it("marks Amaze pending at run end and gives tags in a reaction window", () => {
+    const s = createInitialState();
+    const amaze = instantiateCard(
+      "amaze-amusements",
+      "amaze-1",
+      "corp:archives",
+    );
+    amaze.rezzed = false;
+    amaze.faceup = true;
+    s.cards["amaze-1"] = amaze;
+    s.corp.discardPile.push("amaze-1");
+    s.runner.tags = 0;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+      agendasStolenThisRun: 1,
+      persistentTagsIfAgendaStolen: 2,
+      persistentAmazeSourceId: "amaze-1",
+    };
+    enterStep(s, "run.ends");
+    autoWalk(s);
+
+    const persists = s.log.findIndex((line) =>
+      line.includes("persists for this run end"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > persists && line.includes("Reaction window open"),
+    );
+    expect(persists).toBeGreaterThanOrEqual(0);
+    expect(s.log[persists]).toContain(CR.persistentAbility.number);
+    expect(windowOpen).toBeGreaterThan(persists);
+    expect(s.runner.tags).toBe(2);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+    expect(s.run).toBeNull();
+  });
+});
+
+describe("Chum run-ends pending (CR 6.8.5)", () => {
+  it("resolves Chum pending net damage in a reaction window at run complete", () => {
+    const s = createInitialState();
+    const chum = instantiateCard("chum", "chum-1", "server:hq:ice");
+    chum.rezzed = true;
+    s.cards["chum-1"] = chum;
+    s.servers.hq.ice = ["chum-1"];
+    s.runner.hand = [
+      "runner-program-1",
+      "runner-fill-1",
+      "runner-fill-2",
+      "runner-fill-3",
+    ];
+    createPendingAbilityInstance(s, {
+      abilityKey: "chum:net-on-run-end",
+      sourceId: "chum-1",
+      controller: "corp",
+      mandatory: true,
+      payload: { kind: "chum_net_damage", amount: 3 },
+    });
+    s.run = {
+      attackedServerId: "hq",
+      phase: "ends",
+      position: null,
+      successful: false,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: true,
+      cannotJackOut: false,
+      accessingCardId: null,
+      lastEncounteredIceId: "wall-1",
+    };
+    enterStep(s, "run.declareUnsuccessful");
+    autoWalk(s);
+
+    const windowOpen = s.log.findIndex((line) =>
+      line.includes("Reaction window open"),
+    );
+    expect(windowOpen).toBeGreaterThanOrEqual(0);
+    expect(s.log.some((line) => line.includes("net damage 3"))).toBe(true);
+    expect(s.runner.hand).toHaveLength(1);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+    expect(s.run).toBeNull();
+  });
+
+  it("keeps Chum's pending net damage when Chum is blanked before the run ends: a delayed conditional ability is kept by a lingering effect (CR 9.6.13, 9.10.1)", () => {
+    const s = createInitialState();
+    const chum = instantiateCard("chum", "chum-1", "server:hq:ice");
+    chum.rezzed = true;
+    s.cards["chum-1"] = chum;
+    s.servers.hq.ice = ["chum-1"];
+    s.runner.hand = [
+      "runner-program-1",
+      "runner-fill-1",
+      "runner-fill-2",
+      "runner-fill-3",
+    ];
+    const pending = createPendingAbilityInstance(s, {
+      abilityKey: "chum:net-on-run-end",
+      sourceId: "chum-1",
+      controller: "corp",
+      mandatory: true,
+      independentOfSource: true,
+      payload: { kind: "chum_net_damage", amount: 3 },
+    });
+    suppressAbilities(s, chum.id);
+    s.run = {
+      attackedServerId: "hq",
+      phase: "ends",
+      position: null,
+      successful: false,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: true,
+      cannotJackOut: false,
+      accessingCardId: null,
+      lastEncounteredIceId: "chum-1",
+    };
+    enterStep(s, "run.declareUnsuccessful");
+    autoWalk(s);
+
+    expect(pending.status).toBe("done");
+    expect(s.runner.hand).toHaveLength(1);
+    expect(
+      s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
+    ).toBe(false);
+  });
+});
+
+describe("Geist chain reaction pending (CR 9.1.2a)", () => {
+  it("marks Geist pending after a trash cost, then draws in a nested reaction window", async () => {
+    const { resolveGeistAfterTrashCost } =
+      await import("../../../src/actions/paidAbility.js");
+    const s = createInitialState();
+    const geist = instantiateCard(
+      "armand-geist-walker-tech-lord",
+      "geist-1",
+      "runner:identity",
+    );
+    const decoy = instantiateCard("decoy", "decoy-1", "runner:installed");
+    const top = instantiateCard("sure-gamble", "stack-1", "runner:stack");
+    s.cards["geist-1"] = geist;
+    s.cards["decoy-1"] = decoy;
+    s.cards["stack-1"] = top;
+    s.runner.identityId = "geist-1";
+    s.runner.installed = ["decoy-1"];
+    s.runner.hand = [];
+    s.runner.deck = ["stack-1"];
+
+    resolveGeistAfterTrashCost(s, decoy, { trashSelf: true });
+
+    const pending = s.log.findIndex(
+      (line) => line.includes("Geist") && line.includes("becomes pending"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > pending && line.includes("Reaction window open"),
+    );
+    const aside = s.log.findIndex(
+      (line, i) => i > windowOpen && line.includes("Set aside 1"),
+    );
+    const windowClose = s.log.findIndex(
+      (line, i) => i > aside && line.includes("Reaction window close"),
+    );
+    expect(pending).toBeGreaterThanOrEqual(0);
+    expect(s.log[pending]).toContain(CR.chainReaction.number);
+    expect(windowOpen).toBeGreaterThan(pending);
+    expect(aside).toBeGreaterThan(windowOpen);
+    expect(windowClose).toBeGreaterThan(aside);
+    expect(s.runner.hand).toEqual(["stack-1"]);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+  });
+});
+
+describe("search pending (CR 8.7.5)", () => {
+  it("marks Personality Profiles pending after shuffle, then trashes before the found card is revealed", () => {
+    let s = createInitialState();
+    const profiles = instantiateCard(
+      "personality-profiles",
+      "pp-1",
+      "corp:score",
+    );
+    const ev = instantiateCard("special-order", "so-1", "runner:grip");
+    const gamble = instantiateCard("sure-gamble", "sg-1", "runner:grip");
+    const breaker = instantiateCard("corroder", "co-1", "runner:stack");
+    s.cards["pp-1"] = profiles;
+    s.cards["so-1"] = ev;
+    s.cards["sg-1"] = gamble;
+    s.cards["co-1"] = breaker;
+    s.corp.scoreArea = ["pp-1"];
+    s.runner.hand = ["so-1", "sg-1"];
+    s.runner.deck = ["co-1"];
+    s.runner.credits = 5;
+    s.runner.clicks = 1;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+
+    let r = applyAction(s, { type: "play_event", cardId: "so-1" });
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+    r = applyAction(s, { type: "choose_option", optionId: "search-find:co-1" });
+    if (!r.ok) throw new Error(r.error);
+    s = r.state;
+
+    const shuffled = s.log.findIndex((line) => line.includes("Stack shuffled"));
+    const pending = s.log.findIndex((line) =>
+      line.includes("Personality Profiles becomes pending"),
+    );
+    const windowOpen = s.log.findIndex(
+      (line, i) => i > pending && line.includes("Reaction window open"),
+    );
+    const trashed = s.log.findIndex((line) =>
+      line.includes("trashes Sure Gamble from grip"),
+    );
+    expect(shuffled).toBeGreaterThanOrEqual(0);
+    expect(pending).toBeGreaterThan(shuffled);
+    expect(windowOpen).toBeGreaterThan(pending);
+    expect(trashed).toBeGreaterThan(windowOpen);
+    expect(s.log[pending]).toContain(CR.searchCondition.number);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+  });
+});
+
+describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
+  it("marks onInstall / onRez / onPlay / onAccess / onBreakSubroutine / onBypass pending", async () => {
+    const {
+      fireOnAccess,
+      fireOnBreakSubroutineTriggers,
+      fireOnInstall,
+      fireOnRez,
+      noteCheckpointAndResolvePlay,
+    } = await import("../../../src/state/triggers/cardLifecycleHooks.js");
+    const { fireOnBypassTriggers } =
+      await import("../../../src/state/rez/iceRezHooks.js");
+
+    const s = createInitialState();
+    const asset = instantiateCard("pad-campaign", "pad-1", "server:hq:root");
+    asset.onInstall = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    asset.onRez = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    setPrintedPlay(
+      asset,
+      fx.do({ kind: "gain_credits", side: "corp", amount: 1 }),
+    );
+    asset.onAccess = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    asset.onBypass = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    const breaker = instantiateCard("corroder", "cor-1", "runner:installed");
+    breaker.onBreakSubroutine = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["pad-1"] = asset;
+    s.cards["cor-1"] = breaker;
+    s.servers.hq.root = ["pad-1"];
+    s.runner.installed = ["cor-1"];
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+
+    fireOnInstall(s, "pad-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("PAD Campaign becomes pending — installed"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+
+    fireOnRez(s, "pad-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("PAD Campaign becomes pending — rezzed"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(2);
+
+    noteCheckpointAndResolvePlay(s, "pad-1", "test.play");
+    expect(
+      s.log.some((line) =>
+        line.includes("PAD Campaign becomes pending — played"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(3);
+
+    fireOnAccess(s, "pad-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("PAD Campaign becomes pending — accessed"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(4);
+
+    fireOnBreakSubroutineTriggers(s);
+    expect(
+      s.log.some((line) =>
+        line.includes("Corroder becomes pending — subroutine broken"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+
+    fireOnBypassTriggers(s, "pad-1");
+    occurCheckpoint(
+      s,
+      "instruction",
+      "bypass",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(
+      s.log.some((line) =>
+        line.includes("PAD Campaign becomes pending — bypassed"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(5);
+    expect(s.pendingAbilities).toHaveLength(0);
+    expect(s.reactionStack).toHaveLength(0);
+  });
+
+  it("marks onSteal / onStealAgenda / onFullyBreak / onEncounterEnd / onScore pending", async () => {
+    const {
+      fireAfterAgendaStolenHooks,
+      fireOnEncounterEnd,
+      fireOnFullyBreak,
+      fireOnScore,
+      fireOnSteal,
+    } = await import("../../../src/state/triggers/cardLifecycleHooks.js");
+
+    const s = createInitialState();
+    const agenda = instantiateCard("hostile-takeover", "ht-1", "runner:score");
+    agenda.onSteal = fx.do({ kind: "gain_credits", side: "runner", amount: 1 });
+    agenda.onScore = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    const maemi = instantiateCard("mystic-maemi", "mm-1", "runner:installed");
+    maemi.onStealAgenda = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    const ice = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
+    ice.onFullyBreak = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    ice.onEncounterEnd = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    s.cards["ht-1"] = agenda;
+    s.cards["mm-1"] = maemi;
+    s.cards["iw-1"] = ice;
+    s.runner.scoreArea = ["ht-1"];
+    s.runner.installed = ["mm-1"];
+    s.servers.hq.ice = ["iw-1"];
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+
+    fireOnSteal(s, "ht-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("Hostile Takeover becomes pending — stolen"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+
+    fireAfterAgendaStolenHooks(s, "ht-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("Mystic Maemi becomes pending — agenda stolen"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(2);
+
+    fireOnFullyBreak(s, "iw-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("Ice Wall becomes pending — ice fully broken"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+
+    fireOnEncounterEnd(s, "iw-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("Ice Wall becomes pending — encounter ends"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(2);
+
+    fireOnScore(s, "ht-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("Hostile Takeover becomes pending — scored"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(3);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+});
+
+describe("inline flag conditionals pending (CR 9.6.2)", () => {
+  async function markInlineAtCheckpoint(
+    s: ReturnType<typeof createInitialState>,
+    args: {
+      sourceId: string;
+      effect: import("../../../src/effects/ir/effect.js").Effect;
+      abilityKey: string;
+      logLine: string;
+      controller?: "corp" | "runner";
+      independentOfSource?: boolean;
+    },
+  ): Promise<void> {
+    const { noteInlineConditional } =
+      await import("../../../src/state/triggers/inlineConditionalHooks.js");
+    const card = s.cards[args.sourceId];
+    noteInlineConditional(s, {
+      cardId: args.sourceId,
+      abilityKey: args.abilityKey,
+      controller:
+        args.controller ?? (card?.side === "corp" ? "corp" : "runner"),
+      mandatory: true,
+      effect: args.effect,
+      logLine: args.logLine,
+      ...(args.independentOfSource ? { independentOfSource: true } : {}),
+    });
+    occurCheckpoint(
+      s,
+      "instruction",
+      "inline conditional",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+  }
+
+  it("marks Franchise City / Builder of Nations / Caïssa pending", async () => {
+    const s = createInitialState();
+    const city = instantiateCard("franchise-city", "fc-1", "server:hq:root");
+    city.addSelfToCorpScoreOnAgendaAccess = { agendaPoints: 1 };
+    city.rezzed = true;
+    const bon = instantiateCard(
+      "weyland-consortium-builder-of-nations",
+      "bon-1",
+      "corp:identity",
+    );
+    bon.firstAdvancedIceEncounterEndMeatDamageEachTurn = true;
+    const caissa = instantiateCard("imp", "imp-1", "runner:installed");
+    caissa.caissaAdvanceOnSuccessfulRun = true;
+    caissa.hostId = "iw-1";
+    s.cards["fc-1"] = city;
+    s.cards["bon-1"] = bon;
+    s.cards["imp-1"] = caissa;
+    s.corp.identityId = "bon-1";
+    s.servers.hq.root = ["fc-1"];
+    s.runner.installed = ["imp-1"];
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "fc-1",
+      effect: {
+        op: "do",
+        action: { kind: "add_to_corp_score_as_agenda", agendaPoints: 1 },
+      },
+      abilityKey: "add-self-to-corp-score-on-agenda-access",
+      logLine: `${city.title} becomes pending — agenda accessed (add self to Corp score).`,
+      controller: "corp",
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Franchise City") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "bon-1",
+      effect: { op: "do", action: { kind: "meat_damage", amount: 1 } },
+      abilityKey: "first-advanced-ice-encounter-end-meat",
+      logLine: `${bon.title} becomes pending — first advanced ice encounter ends (meat damage).`,
+      controller: "corp",
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Builder of Nations") &&
+          line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "imp-1",
+      effect: {
+        op: "do",
+        action: { kind: "advance_caissa_host_inward_or_install" },
+      },
+      abilityKey: "caissa-advance-on-successful-run",
+      logLine: `${caissa.title} becomes pending — successful run (Caïssa advance).`,
+    });
+    expect(
+      s.log.some(
+        (line) => line.includes("Imp") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks on-advance flag hooks pending via inline_conditional", async () => {
+    const s = createInitialState();
+    const card = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote1:root",
+    );
+    card.creditsOnAdvance = { default: 1 };
+    card.placeAdvancementOnAnotherOnAdvance = { default: 1 };
+    s.cards["pad-1"] = card;
+    s.servers.remote1 = {
+      id: "remote1",
+      kind: "remote",
+      ice: [],
+      root: ["pad-1"],
+    };
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pad-1",
+      effect: {
+        op: "do",
+        action: { kind: "gain_credits", side: "corp", amount: 1 },
+      },
+      abilityKey: "credits-on-advance",
+      logLine: `${card.title} becomes pending — advanced (gain 1¢).`,
+      controller: "corp",
+    });
+    expect(
+      s.log.some(
+        (line) => line.includes(card.title) && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pad-1",
+      effect: {
+        op: "do",
+        action: { kind: "place_advancement_on_another_on_advance", amount: 1 },
+      },
+      abilityKey: "place-advancement-on-another-on-advance",
+      logLine: `${card.title} becomes pending — advanced (may place advancement on another).`,
+      controller: "corp",
+    });
+    expect(
+      s.log.filter((line) => line.includes("becomes pending")).length,
+    ).toBeGreaterThanOrEqual(2);
+  });
+
+  it("marks mandatory flag conditionals pending via inline_conditional", async () => {
+    const s = createInitialState();
+    const alg = instantiateCard("algernon", "alg-1", "runner:installed");
+    alg.trashAtTurnEndUnlessSuccessfulRun = true;
+    const dd = instantiateCard("daredevil", "dd-1", "runner:installed");
+    dd.drawOnFirstRunEachTurnIfServerIceGte = { ice: 2, draw: 2 };
+    s.cards["alg-1"] = alg;
+    s.cards["dd-1"] = dd;
+    s.runner.installed = ["alg-1", "dd-1"];
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "alg-1",
+      effect: { op: "do", action: { kind: "trash_self" } },
+      abilityKey: "trash-at-turn-end-unless-successful-run",
+      logLine: `${alg.title} becomes pending — turn end (trash unless successful run).`,
+    });
+    expect(
+      s.log.some(
+        (line) => line.includes("Algernon") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "dd-1",
+      effect: { op: "do", action: { kind: "draw", side: "runner", amount: 2 } },
+      abilityKey: "daredevil-draw-on-first-run-ice-gte",
+      logLine: `${dd.title} becomes pending — first run on server with 2 ice (draw 2).`,
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Daredevil") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks encounter/run may flag hooks pending via inline_conditional", async () => {
+    const s = createInitialState();
+    const paperclip = instantiateCard("paperclip", "pc-1", "runner:heap");
+    paperclip.mayInstallSelfFromHeapOnEncounterBarrier = true;
+    const sifr = instantiateCard("sifr", "sifr-1", "runner:installed");
+    sifr.sifrMayZeroEncounterIceStrengthOncePerTurn = true;
+    const nero = instantiateCard(
+      "nero-severn-information-broker",
+      "nero-1",
+      "runner:identity",
+    );
+    nero.mayJackOutOnEncounterSentryOncePerTurn = true;
+    const aeneas = instantiateCard(
+      "aeneas-informant",
+      "ae-1",
+      "runner:installed",
+    );
+    aeneas.aeneasInformantRevealGainOnAccessWithoutTrash = true;
+    s.cards["pc-1"] = paperclip;
+    s.cards["sifr-1"] = sifr;
+    s.cards["nero-1"] = nero;
+    s.cards["ae-1"] = aeneas;
+    s.runner.identityId = "nero-1";
+    s.runner.discardPile = ["pc-1"];
+    s.runner.installed = ["sifr-1", "ae-1"];
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pc-1",
+      effect: {
+        op: "choose",
+        chooser: "runner",
+        options: [
+          {
+            id: "install",
+            label: "Install Paperclip from heap",
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_heap_card",
+                cardId: "pc-1",
+                discount: 0,
+              },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      },
+      abilityKey: "paperclip-heap-install-on-encounter-barrier",
+      logLine: `${paperclip.title} becomes pending — encounter (may install from heap).`,
+      independentOfSource: true,
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Paperclip") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "sifr-1",
+      effect: {
+        op: "choose",
+        chooser: "runner",
+        options: [
+          {
+            id: "sifr-accept",
+            label: "Şifr accept",
+            effect: {
+              op: "do",
+              action: { kind: "sifr_zero_encounter_ice_strength" },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      },
+      abilityKey: "sifr-may-zero-encounter-ice-strength",
+      logLine: `${sifr.title} becomes pending — encounter (may zero ice strength).`,
+    });
+    expect(
+      s.log.some(
+        (line) => line.includes("Şifr") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "nero-1",
+      effect: { op: "do", action: { kind: "offer_jack_out" } },
+      abilityKey: "nero-may-jack-out-on-encounter-sentry",
+      logLine: `${nero.title} becomes pending — encounter sentry (may jack out).`,
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Nero Severn") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "ae-1",
+      effect: {
+        op: "do",
+        action: { kind: "may_reveal_aeneas_gain_one", cardId: "x-1" },
+      },
+      abilityKey: "aeneas-may-reveal-gain-on-access-without-trash",
+      logLine: `${aeneas.title} becomes pending — access without trash (may reveal and gain).`,
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Aeneas Informant") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Top Hat / Analog Dreamers / Puppet Master / Dedicated Neural Net pending", async () => {
+    const s = createInitialState();
+    const hat = instantiateCard("top-hat", "th-1", "runner:installed");
+    hat.mayInsteadOfBreachRdAccessOneOfTopN = 3;
+    const ad = instantiateCard("analog-dreamers", "ad-1", "runner:installed");
+    const pm = instantiateCard("puppet-master", "pm-1", "corp:score-area");
+    pm.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced = true;
+    const dnn = instantiateCard(
+      "dedicated-neural-net",
+      "dnn-1",
+      "corp:score-area",
+    );
+    dnn.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess = true;
+    s.cards["th-1"] = hat;
+    s.cards["ad-1"] = ad;
+    s.cards["pm-1"] = pm;
+    s.cards["dnn-1"] = dnn;
+    s.runner.installed = ["th-1", "ad-1"];
+    s.corp.scoreArea = ["pm-1", "dnn-1"];
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "th-1",
+      effect: {
+        op: "do",
+        action: { kind: "top_hat_may_instead_of_breach", n: 3 },
+      },
+      abilityKey: "top-hat-may-instead-of-breach",
+      logLine: `${hat.title} becomes pending — successful R&D run (may instead of breach).`,
+    });
+    expect(
+      s.log.some(
+        (line) => line.includes("Top Hat") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "ad-1",
+      effect: {
+        op: "do",
+        action: { kind: "may_breach_instead_analog_dreamers" },
+      },
+      abilityKey: "analog-dreamers-may-instead-of-breach",
+      logLine: `${ad.title} becomes pending — successful R&D run (may instead of breach).`,
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Analog Dreamers") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pm-1",
+      effect: {
+        op: "do",
+        action: { kind: "tlm_puppet_master_place_advancement" },
+      },
+      abilityKey: "puppet-master-place-advancement-on-successful-run",
+      logLine: `${pm.title} becomes pending — successful run (may place advancement).`,
+      controller: "corp",
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Puppet Master") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "dnn-1",
+      effect: {
+        op: "do",
+        action: {
+          kind: "play_psi_game",
+          maxBid: 2,
+          ifBidsDiffer: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
+        },
+      },
+      abilityKey: "dedicated-neural-net-psi-on-first-successful-hq",
+      logLine: `${dnn.title} becomes pending — first successful HQ (psi; Corp may choose access).`,
+      controller: "corp",
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Dedicated Neural Net") &&
+          line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks score/steal flag hooks pending via inline_conditional", async () => {
+    const s = createInitialState();
+    const pe = instantiateCard(
+      "jinteki-personal-evolution",
+      "pe-1",
+      "corp:identity",
+    );
+    pe.netDamageOnAgendaScoredOrStolen = 1;
+    const panto = instantiateCard("pantograph", "pan-1", "runner:installed");
+    panto.mayInstallOnScoreOrSteal = true;
+    s.cards["pe-1"] = pe;
+    s.cards["pan-1"] = panto;
+    s.corp.identityId = "pe-1";
+    s.runner.installed = ["pan-1"];
+    s.runner.hand = [];
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pe-1",
+      effect: fx.netDamage(1),
+      abilityKey: "net-damage-on-agenda-scored-or-stolen",
+      logLine: `${pe.title} becomes pending — agenda scored or stolen (net damage).`,
+      controller: "corp",
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Personal Evolution") &&
+          line.includes("becomes pending") &&
+          line.includes("net damage"),
+      ),
+    ).toBe(true);
+
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pan-1",
+      effect: fx.mayInstallFromGrip(),
+      abilityKey: "may-install-on-score-or-steal",
+      logLine: `${panto.title} becomes pending — agenda scored or stolen (may install).`,
+    });
+    expect(
+      s.log.some(
+        (line) =>
+          line.includes("Pantograph") && line.includes("becomes pending"),
+      ),
+    ).toBe(true);
+  });
+});
+
+describe("misc conditionals pending (CR 9.6.2)", () => {
+  it("marks leftover timed Effect conditionals pending", async () => {
+    const {
+      fireAfterMandatoryDraw,
+      fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun,
+      fireOnFirstHardwareUseDuringRunEachTurn,
+    } = await import("../../../src/state/triggers/miscConditionalHooks.js");
+    const { noteOnBeforeFirstTurn } =
+      await import("../../../src/state/setupAndEnd/beforeFirstTurnHooks.js");
+    const { maybeFireSeidrOnClickSpendOrLose } =
+      await import("../../../src/state/turnAndActions/clickHooks.js");
+
+    const s = createInitialState();
+    const forum = instantiateCard("open-forum", "of-1", "server:hq:root");
+    forum.afterMandatoryDraw = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const seidr = instantiateCard(
+      "seidr-laboratories-destiny-defined",
+      "seidr-1",
+      "corp:identity",
+    );
+    seidr.onFirstRunnerClickSpendOrLoseDuringRun = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    seidr.onBeforeFirstTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    seidr.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const hw = instantiateCard("diesel", "hw-1", "runner:installed");
+    hw.onFirstHardwareUseDuringRunEachTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["of-1"] = forum;
+    s.cards["seidr-1"] = seidr;
+    s.cards["hw-1"] = hw;
+    s.corp.identityId = "seidr-1";
+    s.servers.hq.root = ["of-1"];
+    s.runner.installed = ["hw-1"];
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+    s.run = {
+      attackedServerId: "hq",
+      position: 0,
+      successful: false,
+      ended: false,
+    } as typeof s.run;
+
+    fireAfterMandatoryDraw(s, "of-1");
+    expect(
+      s.log.some((line) =>
+        line.includes("Open Forum becomes pending — after mandatory draw"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+
+    noteOnBeforeFirstTurn(s, "seidr-1");
+    occurCheckpoint(
+      s,
+      "instruction",
+      "before first turn",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Seidr Laboratories: Destiny Defined becomes pending — before first turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(2);
+
+    maybeFireSeidrOnClickSpendOrLose(s);
+    expect(s.turn.seidrClickMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "seidr first click during run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Seidr Laboratories: Destiny Defined becomes pending — first Runner click spend/lose during a run",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(3);
+
+    fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun(s, "seidr-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Seidr Laboratories: Destiny Defined becomes pending — Corp ability caused Runner to spend or lose credits during a run",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(4);
+
+    fireOnFirstHardwareUseDuringRunEachTurn(s, "hw-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Diesel becomes pending — first hardware use during a run this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+
+  it("marks first / each bad-publicity take at 10.3.1a (phase 3 scanner)", async () => {
+    const { fireFirstBadPublicityTake } =
+      await import("../../../src/state/keywordsAndCredits/badPublicityHooks.js");
+
+    const s = createInitialState();
+    const editorial = instantiateCard(
+      "editorial-division-ad-nihilum",
+      "ed-1",
+      "corp:identity",
+    );
+    editorial.onFirstBadPublicityTakeEachTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const flint = instantiateCard(
+      "raymond-flint",
+      "flint-1",
+      "runner:installed",
+    );
+    flint.onEachCorpBadPublicityTake = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["ed-1"] = editorial;
+    s.cards["flint-1"] = flint;
+    s.corp.identityId = "ed-1";
+    s.runner.installed = ["flint-1"];
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+
+    fireFirstBadPublicityTake(s, 1);
+    expect(s.turn.firstBadPublicityMetPending).toBe(true);
+    expect(s.turn.corpBadPublicityTakeEventsPending).toBe(1);
+    expect(s.turn.firstBadPublicityTakeUsedThisTurn).toBe(false);
+    expect(s.corp.credits).toBe(0);
+    expect(s.runner.credits).toBe(0);
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "bad publicity take",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstBadPublicityTakeUsedThisTurn).toBe(true);
+    expect(s.turn.firstBadPublicityMetPending).toBe(false);
+    expect(s.turn.corpBadPublicityTakeEventsPending).toBe(0);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Editorial Division: Ad Nihilum becomes pending — first bad publicity take this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Raymond Flint becomes pending — Corp took bad publicity",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+    expect(s.runner.credits).toBe(1);
+
+    fireFirstBadPublicityTake(s, 1);
+    expect(s.turn.firstBadPublicityMetPending).toBe(false);
+    expect(s.turn.corpBadPublicityTakeEventsPending).toBe(1);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "second bad publicity take",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.corp.credits).toBe(1);
+    expect(s.runner.credits).toBe(2);
+  });
+
+  it("marks first event trashed at 10.3.1a (phase 3 scanner)", async () => {
+    const { fireOnFirstEventTrashedThisTurn } =
+      await import("../../../src/state/hostingAndTrash/trashHooks.js");
+
+    const s = createInitialState();
+    const aniccam = instantiateCard("aniccam", "an-1", "runner:installed");
+    aniccam.onFirstEventTrashedThisTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["an-1"] = aniccam;
+    s.runner.installed = ["an-1"];
+    s.runner.credits = 0;
+
+    fireOnFirstEventTrashedThisTurn(s);
+    expect(s.turn.firstEventTrashedMetPending).toBe(true);
+    expect(s.turn.firstEventTrashedUsedThisTurn).toBe(false);
+    expect(s.runner.credits).toBe(0);
+
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first event trashed",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstEventTrashedUsedThisTurn).toBe(true);
+    expect(s.turn.firstEventTrashedMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Aniccam becomes pending — first event trashed this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+
+    fireOnFirstEventTrashedThisTurn(s);
+    expect(s.turn.firstEventTrashedMetPending).toBe(false);
+  });
+
+  it("marks discard / full-break / first-ice-rez / would-draw pending", async () => {
+    const {
+      fireOnDiscardPhaseEnd,
+      fireOnFirstIceRezEachTurn,
+      fireOnFullyBreakOncePerTurn,
+      fireOnInstallFromNonHq,
+      fireOnWouldDrawOncePerTurn,
+    } = await import("../../../src/state/triggers/miscConditionalHooks.js");
+
+    const s = createInitialState();
+    const discard = instantiateCard("diesel", "d-1", "runner:installed");
+    discard.onDiscardPhaseEnd = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    const breaker = instantiateCard("corroder", "c-1", "runner:installed");
+    breaker.onFullyBreakOncePerTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    const foundry = instantiateCard(
+      "haas-bioroid-stronger-together",
+      "id-corp",
+      "corp:identity",
+    );
+    foundry.onFirstIceRezEachTurn = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const archivesInstall = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
+    archivesInstall.onInstallFromNonHq = fx.do({
+      kind: "gain_credits",
+      side: "corp",
+      amount: 1,
+    });
+    const classAct = instantiateCard(
+      "the-class-act",
+      "ca-1",
+      "runner:installed",
+    );
+    classAct.onWouldDrawOncePerTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["d-1"] = discard;
+    s.cards["c-1"] = breaker;
+    s.cards["id-corp"] = foundry;
+    s.cards["pad-1"] = archivesInstall;
+    s.cards["ca-1"] = classAct;
+    s.runner.installed = ["d-1", "c-1", "ca-1"];
+    s.corp.identityId = "id-corp";
+    s.corp.credits = 0;
+    s.runner.credits = 0;
+
+    fireOnDiscardPhaseEnd(s, ["d-1"]);
+    expect(
+      s.log.some((line) =>
+        line.includes("Diesel becomes pending — discard phase ends"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+
+    fireOnFullyBreakOncePerTurn(s, "c-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Corroder becomes pending — ice fully broken (once per turn)",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(2);
+
+    fireOnFirstIceRezEachTurn(s, "id-corp");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Haas-Bioroid: Stronger Together becomes pending — first ice rezzed this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+
+    fireOnInstallFromNonHq(s, "pad-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "PAD Campaign becomes pending — installed from outside HQ",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(2);
+
+    fireOnWouldDrawOncePerTurn(s, "ca-1");
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "The Class Act becomes pending — would draw (once per turn)",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(3);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+});
+
+describe("run-timing conditionals pending (CR 9.6.2)", () => {
+  it("marks first-encounter / pass / successful-run first-* pending", async () => {
+    const {
+      fireOnFirstEncounterEachRun,
+      fireOnFirstSuccessfulHqRunThisTurn,
+      fireOnPassRezzedIce,
+    } = await import("../../../src/state/run/runTimingHooks.js");
+
+    const s = createInitialState();
+    const a = instantiateCard("corroder", "a-1", "runner:installed");
+    a.onFirstEncounterEachRun = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    const b = instantiateCard("diesel", "b-1", "runner:installed");
+    b.onPassRezzedIce = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    const c = instantiateCard("sure-gamble", "c-1", "runner:installed");
+    c.onFirstSuccessfulHqRunThisTurn = fx.do({
+      kind: "gain_credits",
+      side: "runner",
+      amount: 1,
+    });
+    s.cards["a-1"] = a;
+    s.cards["b-1"] = b;
+    s.cards["c-1"] = c;
+    s.runner.installed = ["a-1", "b-1", "c-1"];
+    s.runner.credits = 0;
+
+    fireOnFirstEncounterEachRun(s);
+    expect(
+      s.log.some((line) =>
+        line.includes("Corroder becomes pending — first encounter this run"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(1);
+
+    fireOnPassRezzedIce(s);
+    expect(
+      s.log.some((line) =>
+        line.includes("Diesel becomes pending — rezzed ice passed"),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(2);
+
+    fireOnFirstSuccessfulHqRunThisTurn(s);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "Sure Gamble becomes pending — first successful HQ run this turn",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.credits).toBe(3);
+    expect(s.pendingAbilities).toHaveLength(0);
+  });
+});
+
+describe("damage expected effects (CR 9.9.2)", () => {
+  it("tracks expected damage and updates it when prevented", () => {
+    const s = createInitialState();
+    const result = dealDamage(s, "net", 2, s.corp.identityId, {
+      interactive: true,
+    });
+    expect(result).toBe("pending");
+    expect(s.pendingDamage?.expectedEffects?.damage).toEqual({
+      type: "net",
+      amount: 2,
+    });
+
+    preventPendingDamage(s, 1);
+    expect(s.pendingDamage?.remaining).toBe(1);
+    expect(s.pendingDamage?.expectedEffects?.damage?.amount).toBe(1);
+  });
+});

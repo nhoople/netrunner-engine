@@ -14,7 +14,7 @@ import {
   pick,
   toCorpTurn,
   toRunnerTurn,
-} from "../rulings-helpers.js";
+} from "../rulings/rulings-helpers.js";
 import { accepts, Board, hasOption, offered, take } from "./harness.js";
 import type { Report } from "./harness.js";
 import { legalActions } from "../../src/index.js";

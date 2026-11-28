@@ -44,7 +44,7 @@ import {
   type Generated,
   type NeverFired,
 } from "../tests/ability-fire/coverage.js";
-import { ownerRank } from "../tests/cr-owners.js";
+import { ownerRank } from "../tests/cr-citations/cr-owners.js";
 import { FORMATS } from "../tests/playout/harness.js";
 
 const args = process.argv.slice(2);
@@ -52,9 +52,15 @@ const allowNew = args.includes("--allow-new");
 const playoutsOnly = args.includes("--playouts-only");
 
 /** The test files that call `describePlayouts` (tests/playout/suite.ts). */
-const PLAYOUT_FILES = readdirSync("tests")
-  .filter((name) => name.endsWith(".test.ts"))
-  .map((name) => `tests/${name}`)
+const PLAYOUT_FILES = readdirSync("tests", {
+  recursive: true,
+  encoding: "utf8",
+})
+  .map((name) => `tests/${name.split("\\").join("/")}`)
+  .filter(
+    (file) => file.endsWith(".test.ts") && !file.startsWith("tests/jnet/"),
+  )
+  .sort()
   .filter((file) => readFileSync(file, "utf8").includes("describePlayouts("));
 
 const cardsTag = JSON.parse(
@@ -219,7 +225,7 @@ try {
   const baseline: Baseline = {
     _comment:
       old?._comment ??
-      "Shrink-only baseline for tests/ability-fire-coverage.test.ts (CR audit tool 1.18). Recorded 2026-11-20: the CR 9.3 ability records on supported cards that no seeded playout fires, by the area they are filed under (tests/ability-fire/abilities.ts). Each area's evidence step reads its list and adds a hand-built test for each; tests/generated/ability-fire-coverage.json says which already have one. An ability leaves the list when a playout fires it. Regenerate with npx tsx scripts/update-ability-fire.ts.",
+      "Shrink-only baseline for tests/ability-fire/ability-fire-coverage.test.ts (CR audit tool 1.18). Recorded 2026-11-20: the CR 9.3 ability records on supported cards that no seeded playout fires, by the area they are filed under (tests/ability-fire/abilities.ts). Each area's evidence step reads its list and adds a hand-built test for each; tests/generated/ability-fire-coverage.json says which already have one. An ability leaves the list when a playout fires it. Regenerate with npx tsx scripts/update-ability-fire.ts.",
     cardsTag: generated.cardsTag,
     neverFired: Object.fromEntries(
       Object.entries(next)

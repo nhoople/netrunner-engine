@@ -31,10 +31,10 @@
 
 Scenarios whose ports exposed engine defects, each fixed in its own change with a native regression test:
 
-- "installing an upgrade in a new remote creates that server (CR 4.6.8b)" in `tests/basic-action-legality.test.ts` (upstream `game.cards.basic-test/corp-basic-actions-install-upgrade`)
-- "playing a Runner current trashes the Corp current (CR 3.5.1b)" in `tests/currents.test.ts` (upstream `game.core.engine-test/trash-currents-test`)
-- "Houdini pumps twice on Mantle's recurring credits and reaches 10 strength (CR 1.10.5a)" in `tests/stealth-costs.test.ts` (upstream `game.core.costs-test/pump-and-break`)
-- "trashes Endless Hunger so Corroder can install when MU is full (CR 8.5.6c)" in `tests/program-install-memory.test.ts` (upstream `game.core.installing-test/trash-existing-programs-test`)
+- "installing an upgrade in a new remote creates that server (CR 4.6.8b)" in `tests/legality/basic-action-legality.test.ts` (upstream `game.cards.basic-test/corp-basic-actions-install-upgrade`)
+- "playing a Runner current trashes the Corp current (CR 3.5.1b)" in `tests/state/continuous/currents.test.ts` (upstream `game.core.engine-test/trash-currents-test`)
+- "Houdini pumps twice on Mantle's recurring credits and reaches 10 strength (CR 1.10.5a)" in `tests/state/keywordsAndCredits/stealth-costs.test.ts` (upstream `game.core.costs-test/pump-and-break`)
+- "trashes Endless Hunger so Corroder can install when MU is full (CR 8.5.6c)" in `tests/state/install/program-install-memory.test.ts` (upstream `game.core.installing-test/trash-existing-programs-test`)
 
 ### Waiting on the cards data
 
@@ -85,7 +85,7 @@ None found among the classified scenarios so far.
 The CR settles these and the engine is wrong. Each is listed under the Phase 3 area that owns the fix.
 
 - **1. Hosting and trash**
-  - `game.core.rules-test/clearing-currents` (CR 3.5.1b, 3.7.1b, 8.6.6c; probe) — jnet's outcome holds (no Hostile Infrastructure damage when a current is cleared), but every played current is also pushed to its discard pile while staying in the play area: trashActiveCurrentsBeforePlay trashes the new current itself. Already in tests/baselines/invariants.json as MULTIPLE_ZONES on tests/currents.test.ts.
+  - `game.core.rules-test/clearing-currents` (CR 3.5.1b, 3.7.1b, 8.6.6c; probe) — jnet's outcome holds (no Hostile Infrastructure damage when a current is cleared), but every played current is also pushed to its discard pile while staying in the play area: trashActiveCurrentsBeforePlay trashes the new current itself. Already in tests/baselines/invariants.json as MULTIPLE_ZONES on tests/state/continuous/currents.test.ts.
   - `game.core.scenarios-test/maxx-annicam-buffer-drive-one-card-in-stack` (CR 1.2.1, 9.2.8d; probe) — The ordering is right (ported, passing: Buffer Drive first, then Aniccam draws the card). Labor Rights, which jnet uses to build the board, is trashed instead of removed from the game, so Aniccam draws off it (fix-now: a supported card wrong in normal use). The defect is against Labor Rights' printed text (CR 1.2.1); CR 9.2.8d is the ordering that agrees.
 - **2. Uninstall and run position**
   - `game.core.rules-test/events-after-derez` (CR 4.1.2b, 9.1.7; probe) — Saker's '2 credits, add this program to your grip' cost leaves Saker listed in the rig as well as the grip (MULTIPLE_ZONES). The Kakugo assertion itself is not reached.
@@ -231,7 +231,7 @@ Deferred entries also carry a `classification` from CR audit tool 1.8:
 - `agrees` — this engine already matches jnet's expectation and the CR.
 - `engine-bug` — the CR settles the point and this engine is wrong. `engineBugArea` names the Phase 3 area that owns the fix. The fix lands in that area's session, not here.
 
-`agrees` and `engine-bug` entries also record `crCite`, `classificationNote`, and `classificationBasis`: `probe` when the board was run against the engine, or `code` when the finding comes from reading the engine source. `tests/jnet-manifest.test.ts` checks these fields and that the Status section is current.
+`agrees` and `engine-bug` entries also record `crCite`, `classificationNote`, and `classificationBasis`: `probe` when the board was run against the engine, or `code` when the finding comes from reading the engine source. `tests/jnet-scenarios/jnet-manifest.test.ts` checks these fields and that the Status section is current.
 
 CI runs `npm run test:jnet` as its own `jnet` job with `continue-on-error`. It reports but never fails the workflow, and it is not part of the required `test` check.
 

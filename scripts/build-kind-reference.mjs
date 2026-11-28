@@ -5,7 +5,7 @@
  *   node scripts/build-kind-reference.mjs --write   write docs/effect-ir-kinds.md
  *
  * `npm run kind-reference` runs the --write form.
- * tests/kind-reference.test.ts fails when the committed file is stale.
+ * tests/effects/kind-reference.test.ts fails when the committed file is stale.
  *
  * Sources:
  * - kinds: `KNOWN_PRIMITIVE_KINDS` in src/effects/ir/knownKinds.ts;

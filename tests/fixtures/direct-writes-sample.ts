@@ -1,6 +1,6 @@
 /**
- * Writes that tests/direct-writes.ts must see, for the scanner check in
- * tests/procedure-write-guard.test.ts. Not imported by anything.
+ * Writes that tests/state/direct-writes.ts must see, for the scanner check in
+ * tests/state/procedure-write-guard.test.ts. Not imported by anything.
  */
 import type { GameState } from "../../src/state/types/game.js";
 
